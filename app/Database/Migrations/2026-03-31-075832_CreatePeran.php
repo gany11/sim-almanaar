@@ -19,6 +19,12 @@ class CreatePeran extends Migration
                 'type'       => 'VARCHAR',
                 'constraint' => '100',
             ],
+            'class_color' => [
+                'type'       => 'VARCHAR',
+                'constraint' => '100',
+                'null'       => true,
+                'default'    => 'bg-gray-100 text-gray-700',
+            ],
         ]);
         $this->forge->addKey('id_peran', true);
         $this->forge->createTable('peran');

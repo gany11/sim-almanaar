@@ -54,7 +54,7 @@ class AuthController extends BaseController
                 ];
                 session()->set($sessionData);
 
-                return redirect()->to('admin/dashboard')->with('sukses', "Selamat datang, {$user->nama}!");
+                return redirect()->to('admin/dashboard')->with('success', "Selamat datang, {$user->nama}!");
             } else {
                 return redirect()->back()->with('error', 'Username atau password yang Anda masukkan salah!');
             }
@@ -66,6 +66,6 @@ class AuthController extends BaseController
     public function logout()
     {
         session()->destroy();
-        return redirect()->to('admin/login')->with('sukses', 'Berhasil logout.');
+        return redirect()->to('admin/login')->with('success', 'Berhasil logout.');
     }
 }

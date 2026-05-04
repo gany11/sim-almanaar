@@ -1,7 +1,10 @@
 <!-- ===================== MAIN ===================== -->
 <?= $this->include('layout/admin/head') ?>
 
-<body x-data="{ sidebarOpen: true }" class="bg-gray-100 font-sans antialiased overflow-x-hidden">
+<body 
+    x-data="{ sidebarOpen: window.innerWidth >= 768 }" 
+    @resize.window="sidebarOpen = window.innerWidth >= 768"
+    class="bg-gray-100 font-sans antialiased overflow-x-hidden">
 
     <aside 
         :class="sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full md:translate-x-0'"
@@ -14,6 +17,9 @@
 
     <div 
         x-show="sidebarOpen" 
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
         @click="sidebarOpen = false"
         class="fixed inset-0 z-40 bg-black/50 md:hidden"
         x-cloak>

@@ -7,7 +7,8 @@ export default defineConfig({
         manifest: true,
         rollupOptions: {
             input: {
-                app: 'public/js/app.js'
+                app: 'public/js/app.js',
+                landing: 'public/js/landing.js'
             }
         }
     }

@@ -24,5 +24,10 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.5);
         }
+
+        thead th {
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
     </style>
 </head>

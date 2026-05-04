@@ -41,10 +41,10 @@
                         <i class="fas fa-exclamation-circle text-lg"></i>
                         <span><?= session()->getFlashdata('error') ?></span>
                     </div>
-                <?php elseif (!empty(session()->getFlashdata('sukses'))): ?>
+                <?php elseif (!empty(session()->getFlashdata('success'))): ?>
                     <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 text-sm rounded shadow-sm flex items-center gap-3">
                         <i class="fas fa-check-circle text-lg"></i>
-                        <span><?= session()->getFlashdata('sukses') ?></span>
+                        <span><?= session()->getFlashdata('success') ?></span>
                     </div>
                 <?php endif; ?>
 

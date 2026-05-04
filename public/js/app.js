@@ -7,13 +7,17 @@ import Swal from 'sweetalert2'
 import * as lucide from 'lucide'
 import Chart from 'chart.js/auto'
 import select2 from 'select2'
+import tinymce from 'tinymce'
+import flatpickr from "flatpickr";
+
 
 // ===================== IMPORT CSS LOKAL =====================
-// Vite akan membungkus file-file CSS ini ke dalam build final Anda
 import 'datatables.net-dt/css/dataTables.dataTables.css'; 
 import 'datatables.net-responsive-dt/css/responsive.dataTables.css';
 import 'select2/dist/css/select2.css';
 import 'sweetalert2/dist/sweetalert2.min.css';
+import "flatpickr/dist/flatpickr.css";
+import { Indonesian } from "flatpickr/dist/l10n/id.js";
 
 // ===================== GLOBAL EXPOSE =====================
 window.$ = window.jQuery = $
@@ -22,6 +26,11 @@ window.Chart = Chart
 window.DataTable = DataTable
 window.lucide = lucide
 window.Alpine = Alpine
+window.tinymce = tinymce
+window.flatpickr = flatpickr;
+window.flatpickr_id = Indonesian;
+flatpickr.localize(Indonesian);
+
 
 // ===================== INIT FUNCTIONS =====================
 window.reinitIcons = () => {
@@ -29,6 +38,31 @@ window.reinitIcons = () => {
         icons: lucide.icons 
     });
 };
+
+window.initEditor = () => {
+    if (window.tinymce) {
+        tinymce.remove('.editor'); 
+        
+        tinymce.init({
+            selector: '.editor',
+            license_key: 'gpl',
+            base_url: '/assets/vendor/tinymce', 
+            suffix: '.min',
+            height: 400,
+            menubar: false,
+            plugins: 'lists link image table code help wordcount',
+            toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | removeformat | code',
+            content_style: 'body { font-family:Inter,Arial,sans-serif; font-size:14px }',
+            skin: 'oxide',
+            content_css: 'default',
+            setup: function (editor) {
+                editor.on('change', function () {
+                    editor.save();
+                });
+            }
+        });
+    }
+}
 
 window.confirmLogout = function() {
     Swal.fire({
@@ -49,15 +83,15 @@ window.confirmLogout = function() {
 
 // ===================== INIT ON LOAD =====================
 document.addEventListener("DOMContentLoaded", () => {
-    // Jalankan Select2
     select2($);
-    
+
     $('.select2-dynamic').select2({
         tags: true,
         width: '100%'
     });
 
-    // Render icons
+    window.initEditor();
+
     window.reinitIcons();
 });
 

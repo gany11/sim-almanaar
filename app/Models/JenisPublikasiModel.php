@@ -9,5 +9,5 @@ class JenisPublikasiModel extends Model
     protected $table            = 'jenis_publikasi';
     protected $primaryKey       = 'id_jenis_publikasi';
     protected $returnType       = 'object';
-    protected $allowedFields    = ['jenis_publikasi'];
+    protected $allowedFields    = ['jenis_publikasi', 'class_color'];
 }

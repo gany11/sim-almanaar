@@ -17,7 +17,7 @@
             @click.outside="open = false"
             x-transition
             class="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-50">
-            <a href="<?= base_url('admin/profil'); ?>" class="block px-4 py-2 text-sm hover:bg-gray-100">Profil Akun</a>
+            <a href="<?= base_url('admin/profile'); ?>" class="block px-4 py-2 text-sm hover:bg-gray-100">Profil Akun</a>
             <button onclick="confirmLogout()" class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100">
                 Logout
             </button>

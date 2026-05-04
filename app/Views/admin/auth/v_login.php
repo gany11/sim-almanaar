@@ -45,7 +45,9 @@
                 <p class="text-sm text-gray-500 font-medium mt-1">Sistem Informasi Masjid Al Manaar</p>
                 
                 <div class="mt-1 py-2 px-4 rounded-lg inline-block">
-                    <div id="date" class="text-xs font-semibold text-gray-600 uppercase tracking-wider"></div>
+                    <div class="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <?= format_indo(date('Y-m-d'), 'full') ?> | <?= format_hijriah(date('Y-m-d')) ?>
+                    </div>
                     <div id="time" class="text-xl font-bold text-blue-600"></div>
                 </div>
                 <div class="overflow-hidden whitespace-nowrap">
@@ -59,10 +61,10 @@
                         <i class="fas fa-exclamation-circle text-lg"></i>
                         <span><?= session()->getFlashdata('error') ?></span>
                     </div>
-                <?php elseif (!empty(session()->getFlashdata('sukses'))): ?>
+                <?php elseif (!empty(session()->getFlashdata('success'))): ?>
                     <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 text-sm rounded shadow-sm flex items-center gap-3">
                         <i class="fas fa-check-circle text-lg"></i>
-                        <span><?= session()->getFlashdata('sukses') ?></span>
+                        <span><?= session()->getFlashdata('success') ?></span>
                     </div>
                 <?php endif; ?>
 
@@ -132,27 +134,38 @@
         function updateDateTime() {
             const now = new Date();
 
-            // Format tanggal (Hari, Tanggal Bulan Tahun)
-            const day = now.toLocaleDateString('id-ID', { weekday: 'long' });
-            const date = now.getDate();
-            const month = now.toLocaleDateString('id-ID', { month: 'long' });
-            const year = now.getFullYear();
+            // 1. Update Waktu (Jam:Menit:Detik)
+            // padStart memastikan angka selalu 2 digit (misal: 09:05:01)
+            const timeString = [
+                now.getHours(),
+                now.getMinutes(),
+                now.getSeconds()
+            ].map(unit => String(unit).padStart(2, '0')).join(':');
 
-            // Format waktu (Jam:Menit:Detik)
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const timeElement = document.getElementById('time');
+            if (timeElement) {
+                timeElement.textContent = timeString;
+            }
 
-            // Update elemen HTML
-            document.getElementById('date').innerHTML = `${day}, ${date} ${month} ${year}`;
-            document.getElementById('time').innerHTML = `${hours}:${minutes}:${seconds}`;
+            // 2. Update Tanggal Masehi (Hanya jika jam menunjukkan tepat tengah malam)
+            // Ini untuk efisiensi agar tidak me-render ulang teks tanggal setiap detik
+            if (now.getHours() === 0 && now.getMinutes() === 0 && now.getSeconds() === 0) {
+                // Opsional: Anda bisa memicu reload halaman atau fetch ulang tanggal hijriah via AJAX
+                // jika ingin tanggalnya berganti otomatis tanpa refresh saat lewat jam 12 malam.
+            }
         }
 
-        // Update setiap detik
+        // Jalankan setiap detik
         setInterval(updateDateTime, 1000);
 
-        // Initial call to set date and time immediately
-        updateDateTime();
+        // Panggil langsung saat halaman load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDateTime();
+            // Re-init icons jika menggunakan Lucide
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
     </script>
 </body>
 </html>
