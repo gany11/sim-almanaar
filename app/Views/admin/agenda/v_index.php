@@ -7,10 +7,10 @@
             <h2 class="text-2xl font-bold text-gray-800">Manajemen Agenda</h2>
             <p class="text-sm text-gray-500 mt-1">Kelola jadwal kegiatan, penugasan SDM, dan lokasi acara masjid.</p>
         </div>
-        <?php if (in_array(session()->get('id_peran'), [1, 3])): ?>
-        <a href="<?= base_url('admin/agenda/create') ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Agenda
-        </a>
+        <?php if (in_array(session()->get('id_peran'), [3,5])): ?>
+            <a href="<?= base_url('admin/agenda/create') ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Agenda
+            </a>
         <?php endif; ?>
     </div>
 
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 
                 if ($('#load-data').find('td[colspan]').length === 0) {
                     new DataTable(tableId, {
-                        responsive: true,
+                        responsive: false,
                         pageLength: 10,
                         columnDefs: [{ targets: [2, 5], orderable: false }],
                         dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>'

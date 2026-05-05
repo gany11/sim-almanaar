@@ -68,7 +68,7 @@ class ForgotController extends BaseController
         $emailService->setMessage($message);
 
         if ($emailService->send()) {
-            return redirect()->back()->with('sukses', 'Link reset password telah dikirim ke email Anda.');
+            return redirect()->back()->with('success', 'Link reset password telah dikirim ke email Anda.');
         } else {
             $data = $emailService->printDebugger(['headers']);
             print_r($data);
@@ -133,7 +133,7 @@ class ForgotController extends BaseController
             $this->sendNotificationSuccess($user->email, $user->nama);
         }
 
-        return redirect()->to('admin/login')->with('sukses', 'Password berhasil diperbarui. Silakan login.');
+        return redirect()->to('admin/login')->with('success', 'Password berhasil diperbarui. Silakan login.');
     }
 
     private function templateEmailReset($nama, $link)

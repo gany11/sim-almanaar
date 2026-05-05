@@ -24,7 +24,8 @@ class FinanceController extends BaseController
     public function index() {
         return view('admin/finance/v_index', [
             'title'    => 'Keuangan Rutin',
-            'kategori' => $this->kategoriModel->findAll()
+            'kategori' => $this->kategoriModel->findAll(),
+            'summaryKeuangan' => $this->keuanganModel->getSummaryPerKategori()
         ]);
     }
 
@@ -55,6 +56,8 @@ class FinanceController extends BaseController
 
         $data['current_report'] = $currentReport;
         $data['routine'] = $builder->orderBy('keuangan.created_at', 'ASC')->findAll();
+
+        $data['summaryKeuangan'] = $this->keuanganModel->getSummaryPerKategori();
 
         $data['history'] = $this->laporanModel
             ->where('ended_at <', $now)
@@ -220,37 +223,4 @@ class FinanceController extends BaseController
 
         return $this->response->setJSON(['status' => 'success', 'message' => 'Transaksi berhasil dihapus.']);
     }
-
-    // public function editNote($id) 
-    // {
-    //     $report = $this->laporanModel->find($id);
-        
-    //     if (!$report) {
-    //         return redirect()->to('admin/finance/routine')->with('error', 'Laporan tidak ditemukan.');
-    //     }
-
-    //     // Cek validasi 30 hari
-    //     $limit = strtotime($report['ended_at'] . ' +30 days');
-    //     if (time() > $limit) {
-    //         return redirect()->to('admin/finance/routine')->with('error', 'Batas waktu edit catatan (30 hari) sudah berakhir.');
-    //     }
-
-    //     return view('admin/finance/v_edit_note', [
-    //         'title'  => 'Edit Catatan Laporan',
-    //         'report' => $report
-    //     ]);
-    // }
-
-    // public function updateNote() 
-    // {
-    //     $id   = $this->request->getPost('id_laporan');
-    //     $note = $this->request->getPost('catatan');
-
-    //     $this->laporanModel->update($id, [
-    //         'catatan'   => $note,
-    //         'updated_by' => session()->get('id_akun')
-    //     ]);
-
-    //     return redirect()->to('admin/finance/routine')->with('success', 'Catatan laporan berhasil diperbarui.');
-    // }
 }

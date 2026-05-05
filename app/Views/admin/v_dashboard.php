@@ -7,6 +7,14 @@
         <p class="text-sm text-gray-500">Selamat datang di Panel SIM Al-Manaar.</p>
     </div>
 
+    <?php if (session()->getFlashdata('error')) : ?>
+        <div id="flash-error" data-message="<?= session()->getFlashdata('error') ?>"></div>
+        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-xl flex items-center gap-3 shadow-sm">
+            <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
+            <span class="text-sm font-medium"><?= session()->getFlashdata('error') ?></span>
+        </div>
+    <?php endif; ?>
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <?php if (!empty($summaryKeuangan)): ?>
             <?php foreach ($summaryKeuangan as $k) : ?>

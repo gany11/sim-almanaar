@@ -10,13 +10,21 @@ class RoleFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        // Ambil id_peran dari session
         $userRole = session()->get('id_peran');
 
-        // $arguments berisi daftar id_peran yang diizinkan dari Routes
-        if (!in_array($userRole, $arguments)) {
-            // Jika tidak diizinkan, arahkan ke halaman 403 atau dashboard dengan pesan
-            return redirect()->to(base_url('admin/dashboard'))->with('error', 'Anda tidak memiliki akses ke halaman tersebut (403).');
+        if (!$userRole) {
+            return redirect()->to(base_url('login'))->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        if (empty($arguments)) {
+            return;
+        }
+
+        $allowedRoles = array_map('intval', $arguments);
+
+        if (!in_array((int)$userRole, $allowedRoles, true)) {
+            return redirect()->to(base_url('admin/dashboard'))
+                ->with('error', 'Akses Ditolak: Anda tidak memiliki izin untuk peran ini (403).');
         }
     }
 

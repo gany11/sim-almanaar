@@ -102,23 +102,32 @@ class PublikasiModel extends Model
         ],
     ];
 
-    public function getNews($slug = false) {
-        if ($slug === false) return $this->where('id_jenis_publikasi', 1)->findAll();
-        return $this->where(['slug' => $slug, 'id_jenis_publikasi' => 1])->first();
-    }
+    // public function getNews($slug = false) {
+    //     if ($slug === false) return $this->where('id_jenis_publikasi', 1)->findAll();
+    //     return $this->where(['slug' => $slug, 'id_jenis_publikasi' => 1])->first();
+    // }
 
-    public function getArticle($slug = false) {
-        if ($slug === false) return $this->where('id_jenis_publikasi', 2)->findAll();
-        return $this->where(['slug' => $slug, 'id_jenis_publikasi' => 2])->first();
-    }
+    // public function getArticle($slug = false) {
+    //     if ($slug === false) return $this->where('id_jenis_publikasi', 2)->findAll();
+    //     return $this->where(['slug' => $slug, 'id_jenis_publikasi' => 2])->first();
+    // }
 
-    public function getTerbaru($limit = 4)
+    public function getTerbaru($limit = 4, $excludeId = null, $idJenis = null)
     {
-        return $this->select('publikasi.*, jenis_publikasi.jenis_publikasi, jenis_publikasi.class_color as kategori_color')
+        $builder = $this->select('publikasi.*, jenis_publikasi.jenis_publikasi, jenis_publikasi.class_color as kategori_color')
             ->join('jenis_publikasi', 'jenis_publikasi.id_jenis_publikasi = publikasi.id_jenis_publikasi', 'left')
             ->where('publikasi.deleted_at', null)
-            ->where('publikasi.status', 'aktif')
-            ->orderBy('publikasi.created_at', 'DESC')
+            ->where('publikasi.status', 'aktif');
+
+        if ($excludeId !== null) {
+            $builder->where('publikasi.id_publikasi !=', $excludeId);
+        }
+        
+        if ($idJenis !== null) {
+            $builder->where('publikasi.id_jenis_publikasi', $idJenis);
+        }
+
+        return $builder->orderBy('publikasi.created_at', 'DESC')
             ->findAll($limit);
     }
 }
