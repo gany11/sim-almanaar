@@ -95,8 +95,8 @@ vendor/
 # Modules Testing
 _modules/*
 node_modules
-public\uploads
-public\build\uploads
+public/uploads
+public/build/uploads
 
 # phpenv local config
 .php-version
