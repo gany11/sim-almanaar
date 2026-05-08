@@ -23,7 +23,7 @@ $routes->get('keuangan/(:num)/(:num)/(:num)', 'Landing\FinanceController::detail
  * Agenda (FullCalendar)
  */
 $routes->get('agenda', 'Landing\AgendaController::index');
-$routes->get('api/agenda', 'Landing\AgendaController::getEvents');
+$routes->get('api/agenda', 'Landing\AgendaController::getEvents', ['filter' => 'apiGuard']);
 
 /**
  * News (Berita)

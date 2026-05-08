@@ -5,8 +5,9 @@
             <!-- BRAND -->
             <div class="space-y-6">
                 <div class="flex items-center gap-3">
-                    <div class="p-2 bg-blue-600 rounded-xl">
-                        <i data-lucide="mosque" class="text-white w-6 h-6"></i>
+                    <div class="p-1 bg-blue-600 rounded-xl">
+                        <img class="h-8 w-auto" src="<?= base_url('assets/images/Logo Masjid Al Manaar Slipi.png') ?>" alt="Logo">
+                        <!-- <i data-lucide="mosque" class="text-white w-6 h-6"></i> -->
                     </div>
                     <span class="text-white font-black text-xl tracking-tighter uppercase">
                         Al-Manaar <span class="text-blue-600">Slipi</span>

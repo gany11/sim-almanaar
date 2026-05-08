@@ -40,7 +40,15 @@ window.initCalendar = () => {
             plugins: [dayGridPlugin, interactionPlugin],
             initialView: 'dayGridMonth',
             locale: 'id',
-            events: '/api/agenda',
+            eventSources: [{
+                url: '/api/agenda',
+                method: 'GET',
+                fetchOptions: {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }
+            }],
             eventClick: function(info) {
                 const props = info.event.extendedProps;
                 
