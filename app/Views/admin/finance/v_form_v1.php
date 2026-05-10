@@ -47,7 +47,7 @@
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wider">Tanggal Nota</label>
-                        <input type="date" name="tanggal" max="<?= date('Y-m-d') ?>" value="<?= old('tanggal', $keuangan['tanggal'] ?? date('Y-m-d')) ?>" 
+                        <input type="date" name="tanggal" value="<?= old('tanggal', $keuangan['tanggal'] ?? date('Y-m-d')) ?>" 
                             class="w-full px-5 py-3.5 rounded-2xl border <?= isset(session('errors')['tanggal']) ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200' ?> focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 text-sm appearance-none cursor-pointer">
                         <?php if (isset(session('errors')['tanggal'])) : ?>
                             <p class="text-xs text-red-500 mt-2"><?= session('errors')['tanggal'] ?></p>
@@ -56,37 +56,6 @@
                 </div>
 
                 <div class="lg:col-span-2 space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wider">Alokasi Dana</label>
-                            <select @change="fetchDetail($event.target.value)" class="w-full px-5 py-3.5 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 text-sm appearance-none cursor-pointer">
-                                <option value="">Pilih Alokasi...</option>
-                                <?php foreach($alokasi as $a): ?>
-                                    <?php 
-                                        // Logika untuk menentukan selected saat edit
-                                        $selectedAlokasi = isset($keuangan) ? ($current_detail[0]['id_alokasi'] ?? '') : '';
-                                    ?>
-                                    <option value="<?= $a['id_alokasi'] ?>" <?= $selectedAlokasi == $a['id_alokasi'] ? 'selected' : '' ?>>
-                                        <?= $a['nama_alokasi'] ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wider">Detail Alokasi</label>
-                            <select name="id_detail_alokasi" x-model="selectedDetail" class="w-full px-5 py-3.5 rounded-2xl border <?= isset(session('errors')['id_detail_alokasi']) ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200' ?> focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 text-sm appearance-none cursor-pointer">
-                                <option value="">Pilih Detail...</option>
-                                <template x-for="item in details" :key="item.id_detail_alokasi">
-                                    <option :value="item.id_detail_alokasi" x-text="item.detail_alokasi" :selected="item.id_detail_alokasi == selectedDetail"></option>
-                                </template>
-                            </select>
-                            <?php if (isset(session('errors')['id_detail_alokasi'])) : ?>
-                                <p class="text-xs text-red-500 mt-2 font-bold"><?= session('errors')['id_detail_alokasi'] ?></p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
                     <div>
                         <label class="block text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wider">Keterangan / Peruntukan</label>
                         <input type="text" name="keterangan" value="<?= old('keterangan', $keuangan['keterangan'] ?? '') ?>" 
@@ -115,14 +84,14 @@
 
                     <div class="bg-blue-50/50 p-6 rounded-3xl border <?= isset(session('errors')['bukti']) ? 'border-red-500 ring-1 ring-red-500' : 'border-blue-100/50' ?>">
                         <label class="block text-sm font-bold text-blue-900 mb-1">Lampiran Dokumen (Opsional)</label>
-                        <p class="text-xs text-blue-600/70 mb-4 tracking-tight">Unggah kuitansi atau laporan dalam format PDF atau Gambar (Maks. 5MB).</p>
+                        <p class="text-xs text-blue-600/70 mb-4 tracking-tight">Unggah kuitansi atau laporan dalam format PDF (Maks. 5MB).</p>
                         
                         <div class="flex items-center gap-4">
                             <label class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-700 rounded-xl cursor-pointer hover:bg-blue-600 hover:text-white transition-all font-semibold text-sm shadow-sm active:scale-95">
-                                <input type="file" name="bukti" class="sr-only" accept="application/pdf,image/*" 
-                                    @change="fileName = $event.target.files[0].name">
                                 <i data-lucide="file-up" class="w-4 h-4"></i>
-                                Pilih File (PDF/Gambar)
+                                Pilih File PDF
+                                <input type="file" name="bukti" class="sr-only" accept="application/pdf" 
+                                    @change="fileName = $event.target.files[0].name">
                             </label>
 
                             <span class="text-xs text-gray-400 italic truncate max-w-[250px]">
@@ -146,13 +115,6 @@
                             <p class="text-xs text-red-500 mt-2 font-bold"><?= session('errors')['bukti'] ?></p>
                         <?php endif; ?>
                     </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wider">PIC / Penanggung Jawab</label>
-                        <input type="text" name="pic" value="<?= old('pic', $keuangan['pic'] ?? '') ?>" 
-                            class="w-full px-5 py-3.5 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-gray-50"
-                            placeholder="Nama person in charge...">
-                    </div>
                 </div>
             </div>
 
@@ -171,43 +133,15 @@
             rawJumlah: "<?= old('jumlah', $keuangan['jumlah'] ?? '0') ?>",
             displayJumlah: "",
             fileName: "",
-            details: <?= isset($current_detail) ? json_encode($current_detail) : '[]' ?>,
-            selectedDetail: "<?= old('id_detail_alokasi', $keuangan['id_detail_alokasi'] ?? '') ?>",
-            
             init() { this.updateDisplay(); },
-            
             formatJumlah(e) {
                 let val = e.target.value.replace(/\D/g, "");
                 this.rawJumlah = val;
                 this.updateDisplay();
             },
-            
             updateDisplay() {
                 if (!this.rawJumlah || this.rawJumlah === "0") { this.displayJumlah = ""; return; }
                 this.displayJumlah = new Intl.NumberFormat('id-ID').format(this.rawJumlah);
-            },
-
-            // Fungsi AJAX untuk ambil Detail Alokasi
-            async fetchDetail(idAlokasi) {
-                if (!idAlokasi) {
-                    this.details = [];
-                    this.selectedDetail = "";
-                    return;
-                }
-                
-                try {
-                    let response = await fetch("<?= base_url('admin/finance/get-detail-alokasi') ?>", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded",
-                            "X-Requested-With": "XMLHttpRequest"
-                        },
-                        body: "id_alokasi=" + idAlokasi + "&<?= csrf_token() ?>=<?= csrf_hash() ?>"
-                    });
-                    this.details = await response.json();
-                } catch (error) {
-                    console.error("Gagal mengambil data detail alokasi", error);
-                }
             }
         }
     }

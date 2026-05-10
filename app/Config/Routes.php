@@ -17,7 +17,10 @@ $routes->get('/', 'Landing\HomeController::index');
  * Finance Reports (DataTables)
  */
 $routes->get('keuangan', 'Landing\FinanceController::index');
-$routes->get('keuangan/(:num)/(:num)/(:num)', 'Landing\FinanceController::detail/$1/$2/$3');
+// $routes->get('keuangan/(:num)/(:num)/(:num)', 'Landing\FinanceController::detail/$1/$2/$3');
+// Iterasi 2
+$routes->get('keuangan/(:num)/(:num)', 'Landing\FinanceController::detail/$1/$2');
+$routes->get('keuangan/getMonthlyReportAjax', 'Landing\FinanceController::getMonthlyReportAjax', ['filter' => 'apiGuard']);
 
 /**
  * Agenda (FullCalendar)
@@ -98,6 +101,10 @@ $routes->post('admin/finance/routine/save', 'Admin\FinanceController::save', ['f
 $routes->get('admin/finance/routine/edit/(:num)', 'Admin\FinanceController::edit/$1', ['filter' => ['auth:true', 'role:4']]);
 $routes->post('admin/finance/routine/update/(:num)', 'Admin\FinanceController::update/$1', ['filter' => ['auth:true', 'role:4']]);
 $routes->post('admin/finance/routine/delete', 'Admin\FinanceController::delete', ['filter' => ['auth:true', 'role:4']]);
+
+// Iterasi 2
+$routes->post('admin/finance/get-detail-alokasi', 'Admin\FinanceController::getDetailAlokasi', ['filter' => 'apiGuard']);
+$routes->post('admin/finance/import-excel', 'Admin\FinanceController::importExcel', ['filter' => ['auth:true', 'role:4']]);
 
 // Report
 $routes->get('admin/finance/report/detail/(:num)', 'Admin\ReportController::detail/$1', ['filter' => ['auth:true', 'role:2,3,4']]);

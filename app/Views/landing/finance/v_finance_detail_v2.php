@@ -139,87 +139,85 @@
     </div>
 
     <!-- Bagian 2: Detail Transaksi -->
-    <?php if (!empty(session()->get('id_peran'))): ?>
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-6 border-b border-gray-100 font-bold text-gray-800 uppercase italic flex justify-between items-center">
-                <span>Rincian Transaksi Bulanan</span>
-                <span class="text-[10px] bg-gray-100 px-2 py-1 rounded text-gray-500 normal-case italic font-normal">
-                    * Menampilkan transaksi hingga batas tutup buku
-                </span>
-            </div>
-            <div class="p-6 overflow-x-auto">
-                <table class="w-full text-sm border-collapse">
-                    <thead class="text-white bg-blue-600 uppercase text-[10px] font-black">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 font-bold text-gray-800 uppercase italic flex justify-between items-center">
+            <span>Rincian Transaksi Bulanan</span>
+            <span class="text-[10px] bg-gray-100 px-2 py-1 rounded text-gray-500 normal-case italic font-normal">
+                * Menampilkan transaksi hingga batas tutup buku
+            </span>
+        </div>
+        <div class="p-6 overflow-x-auto">
+            <table class="w-full text-sm border-collapse">
+                <thead class="text-white bg-blue-600 uppercase text-[10px] font-black">
+                    <tr>
+                        <th class="border border-blue-500 px-4 py-3 text-center w-44">Tanggal</th>
+                        <th class="border border-blue-500 px-4 py-3 text-center w-40">Kategori Kas</th>
+                        <th class="border border-blue-500 px-4 py-3 text-center">Keterangan / Alokasi</th>
+                        <th class="border border-blue-500 px-4 py-3 text-center w-36">Debet (Masuk)</th>
+                        <th class="border border-blue-500 px-4 py-3 text-center w-36">Kredit (Keluar)</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    <?php if (empty($detail_transaksi)): ?>
                         <tr>
-                            <th class="border border-blue-500 px-4 py-3 text-center w-44">Tanggal</th>
-                            <th class="border border-blue-500 px-4 py-3 text-center w-40">Kategori Kas</th>
-                            <th class="border border-blue-500 px-4 py-3 text-center">Keterangan / Alokasi</th>
-                            <th class="border border-blue-500 px-4 py-3 text-center w-36">Debet (Masuk)</th>
-                            <th class="border border-blue-500 px-4 py-3 text-center w-36">Kredit (Keluar)</th>
+                            <td colspan="5" class="px-4 py-10 text-center italic text-gray-400 bg-gray-50">
+                                Tidak ada catatan transaksi pada periode ini.
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody class="text-gray-700">
-                        <?php if (empty($detail_transaksi)): ?>
-                            <tr>
-                                <td colspan="5" class="px-4 py-10 text-center italic text-gray-400 bg-gray-50">
-                                    Tidak ada catatan transaksi pada periode ini.
+                    <?php else: ?>
+                        <?php 
+                        $total_m = 0; 
+                        $total_k = 0; 
+                        foreach($detail_transaksi as $dt): 
+                            if ($dt['jenis'] == 'pemasukan') $total_m += $dt['jumlah'];
+                            else $total_k += $dt['jumlah'];
+                        ?>
+                            <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100">
+                                <td class="px-4 py-4 text-center border-x border-gray-100">
+                                    <span class="block font-bold text-gray-800"><?= format_indo($dt['tanggal'], 'full') ?></span>
+                                    <span class="text-[9px] text-gray-400">Tercatat: <?= format_indo($dt['created_at'], 'full_datetime') ?></span>
+                                </td>
+                                <td class="px-4 py-4 text-center border-x border-gray-100">
+                                    <span class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-[10px] font-bold uppercase">
+                                        <?= $dt['kategori'] ?>
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4 border-x border-gray-100">
+                                    <span class="font-bold text-gray-800 block leading-tight"><?= $dt['keterangan'] ?></span>
+                                    <span class="text-[10px] text-blue-500 uppercase font-medium"><?= $dt['detail_alokasi'] ?></span>
+                                </td>
+                                <td class="px-4 py-4 text-right border-x border-gray-100 font-bold text-green-600 bg-green-50/30">
+                                    <?= $dt['jenis'] == 'pemasukan' ? 'Rp' . number_format($dt['jumlah'], 0, ',', '.') : '-' ?>
+                                </td>
+                                <td class="px-4 py-4 text-right border-x border-gray-100 font-bold text-red-600 bg-red-50/30">
+                                    <?= $dt['jenis'] == 'pengeluaran' ? 'Rp' . number_format($dt['jumlah'], 0, ',', '.') : '-' ?>
                                 </td>
                             </tr>
-                        <?php else: ?>
-                            <?php 
-                            $total_m = 0; 
-                            $total_k = 0; 
-                            foreach($detail_transaksi as $dt): 
-                                if ($dt['jenis'] == 'pemasukan') $total_m += $dt['jumlah'];
-                                else $total_k += $dt['jumlah'];
-                            ?>
-                                <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100">
-                                    <td class="px-4 py-4 text-center border-x border-gray-100">
-                                        <span class="block font-bold text-gray-800"><?= format_indo($dt['tanggal'], 'full') ?></span>
-                                        <span class="text-[9px] text-gray-400">Tercatat: <?= format_indo($dt['created_at'], 'full_datetime') ?></span>
-                                    </td>
-                                    <td class="px-4 py-4 text-center border-x border-gray-100">
-                                        <span class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-[10px] font-bold uppercase">
-                                            <?= $dt['kategori'] ?>
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-4 border-x border-gray-100">
-                                        <span class="font-bold text-gray-800 block leading-tight"><?= $dt['keterangan'] ?></span>
-                                        <span class="text-[10px] text-blue-500 uppercase font-medium"><?= $dt['detail_alokasi'] ?></span>
-                                    </td>
-                                    <td class="px-4 py-4 text-right border-x border-gray-100 font-bold text-green-600 bg-green-50/30">
-                                        <?= $dt['jenis'] == 'pemasukan' ? 'Rp' . number_format($dt['jumlah'], 0, ',', '.') : '-' ?>
-                                    </td>
-                                    <td class="px-4 py-4 text-right border-x border-gray-100 font-bold text-red-600 bg-red-50/30">
-                                        <?= $dt['jenis'] == 'pengeluaran' ? 'Rp' . number_format($dt['jumlah'], 0, ',', '.') : '-' ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </tbody>
-                    <?php if (!empty($detail_transaksi)): ?>
-                    <tfoot class="bg-gray-50 font-black text-gray-800">
-                        <tr>
-                            <td colspan="3" class="px-4 py-3 text-right uppercase tracking-tighter">Total Mutasi Transaksi</td>
-                            <td class="px-4 py-3 text-right border-x border-gray-200 text-green-700">
-                                Rp<?= number_format($total_m, 0, ',', '.') ?>
-                            </td>
-                            <td class="px-4 py-3 text-right border-x border-gray-200 text-red-700">
-                                Rp<?= number_format($total_k, 0, ',', '.') ?>
-                            </td>
-                        </tr>
-                        <tr class="bg-blue-50">
-                            <td colspan="3" class="px-4 py-3 text-right uppercase tracking-tighter text-blue-800">Total Kas (Masuk - Keluar)</td>
-                            <td colspan="2" class="px-4 py-3 text-center text-blue-900 text-base">
-                                Rp<?= number_format($total_m - $total_k, 0, ',', '.') ?>
-                            </td>
-                        </tr>
-                    </tfoot>
+                        <?php endforeach; ?>
                     <?php endif; ?>
-                </table>
-            </div>
+                </tbody>
+                <?php if (!empty($detail_transaksi)): ?>
+                <tfoot class="bg-gray-50 font-black text-gray-800">
+                    <tr>
+                        <td colspan="3" class="px-4 py-3 text-right uppercase tracking-tighter">Total Mutasi Transaksi</td>
+                        <td class="px-4 py-3 text-right border-x border-gray-200 text-green-700">
+                            Rp<?= number_format($total_m, 0, ',', '.') ?>
+                        </td>
+                        <td class="px-4 py-3 text-right border-x border-gray-200 text-red-700">
+                            Rp<?= number_format($total_k, 0, ',', '.') ?>
+                        </td>
+                    </tr>
+                    <tr class="bg-blue-50">
+                        <td colspan="3" class="px-4 py-3 text-right uppercase tracking-tighter text-blue-800">Total Kas (Masuk - Keluar)</td>
+                        <td colspan="2" class="px-4 py-3 text-center text-blue-900 text-base">
+                            Rp<?= number_format($total_m - $total_k, 0, ',', '.') ?>
+                        </td>
+                    </tr>
+                </tfoot>
+                <?php endif; ?>
+            </table>
         </div>
-     <?php endif; ?>
+    </div>
 
     <!-- Catatan Penutup -->
     <div class="mt-12 p-8 bg-gray-900 rounded-3xl text-center text-white relative overflow-hidden">

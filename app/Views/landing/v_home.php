@@ -37,7 +37,7 @@
                 <div class="p-3 rounded-2xl transition-transform group-hover:scale-110 duration-300 <?= !empty($f['class_color']) ? $f['class_color'] . ' bg-opacity-10' : 'bg-blue-50 text-blue-600' ?>">
                     <i data-lucide="wallet" class="w-6 h-6"></i>
                 </div>
-                <span class="text-[20px] font-black text-gray-400 uppercase tracking-widest leading-tight" title="<?= $f['kategori'] ?>">
+                <span class="text-[15px] font-black text-gray-400 uppercase tracking-widest leading-tight" title="<?= $f['kategori'] ?>">
                     <?= $f['kategori'] ?>
                 </span>
             </div>
@@ -50,7 +50,9 @@
             </div>
 
             <div class="flex justify-between items-center mt-4">
-                <p class="text-[10px] text-gray-400 italic">Total Saldo Saat Ini</p>
+                <!-- <p class="text-[10px] text-gray-400 italic">Total Saldo Saat Ini</p> -->
+                <!-- Iterasi 2 -->
+                <p class="text-[10px] text-gray-400 italic">Total Saldo Sampai: <?= format_indo($f['tanggal_penghitungan'], 'full') ?></p>
                 <div class="w-2 h-2 rounded-full animate-pulse <?= !empty($f['class_color']) ? str_replace('text', 'bg', $f['class_color']) : 'bg-blue-600' ?>"></div>
             </div>
 

@@ -67,59 +67,99 @@
                 <div class="p-4 rounded-lg border-l-4 <?= $cat['class_color'] ?: 'border-blue-500' ?>">
                     <p class="text-xs text-gray-500 uppercase font-semibold"><?= $cat['kategori'] ?></p>
                     <p class="text-lg font-bold text-gray-800">Rp <?= number_format($cat['saldo'], 0, ',', '.') ?></p>
-                    <!-- Iterasi 2 -->
-                    <p class="text-[9px] text-gray-400 italic mt-1 pt-1 border-t border-gray-200/50">
-                        Saldo akhir per: <?= format_indo($cat['tanggal_penghitungan'], 'full') ?>
-                    </p>
                 </div>
                 <?php endforeach; ?>
             </div>
         </div>
     </div>
 
-    <!-- Section Laporan Bulanan -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+    <!-- Middle Section: Tabel Transaksi Terkini -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-8 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
             <div>
-                <h3 class="text-lg font-bold text-gray-800">Arsip Laporan Bulanan</h3>
-                <p class="text-sm text-gray-500">Data terupdate otomatis berdasarkan tahun</p>
+                <h3 class="text-lg font-bold text-gray-800">Transaksi Laporan Terkini</h3>
+                <p id="current-title" class="text-sm text-gray-500">
+                    <?= $current_report ? format_indo($current_report['started_at'], 'full') . ' - ' . format_indo($current_report['ended_at'], 'full') : 'Tidak ada periode laporan aktif' ?>
+                </p>
             </div>
-            
-            <!-- Dropdown Tanpa Form Submit -->
-            <select id="filter-tahun" class="w-full md:w-40 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl block p-2.5 font-bold">
-                <?php foreach($years as $y): ?>
-                    <option value="<?= $y['year'] ?>" <?= date('Y') == $y['year'] ? 'selected' : '' ?>>
-                        Tahun <?= $y['year'] ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
         </div>
-
         <div class="p-6">
-            <div class="overflow-x-auto w-full">
-                <table class="w-full text-sm text-left min-w-[500px]">
-                    <thead class="bg-gray-50 text-gray-600 uppercase text-xs font-black">
+            <div class="overflow-x-auto w-full custom-scrollbar">
+                <table class="w-full text-sm text-left min-w-[600px]">
+                    <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
                         <tr>
-                            <th class="px-6 py-4">Bulan</th>
-                            <th class="px-6 py-4 text-center">Status</th>
-                            <th class="px-6 py-4 text-center">Aksi</th>
+                            <th class="px-6 py-4">Tanggal</th>
+                            <th class="px-6 py-4">Keterangan</th>
+                            <th class="px-6 py-4 text-right">Masuk</th>
+                            <th class="px-6 py-4 text-right">Keluar</th>
                         </tr>
                     </thead>
-                    <tbody id="table-body-report" class="divide-y divide-gray-100">
-                        <!-- Data akan dimuat via AJAX -->
+                    <tbody class="divide-y divide-gray-100">
+                        <?php if(empty($transactions)): ?>
+                            <tr><td colspan="4" class="px-6 py-10 text-center text-gray-400 italic">Belum ada transaksi pada periode ini.</td></tr>
+                        <?php endif; ?>
+                        <?php foreach($transactions as $t): ?>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-500"><?= format_indo($t['created_at'], 'full_datetime') ?></td>
+                            <td class="px-6 py-4 font-medium text-gray-700"><?= $t['keterangan'] ?></td>
+                            <td class="px-6 py-4 text-right text-green-600 font-bold whitespace-nowrap">
+                                <?= $t['jenis'] == 'pemasukan' ? 'Rp'.number_format($t['jumlah'], 0, ',', '.') : '-' ?>
+                            </td>
+                            <td class="px-6 py-4 text-right text-red-600 font-bold whitespace-nowrap">
+                                <?= $t['jenis'] == 'pengeluaran' ? 'Rp'.number_format($t['jumlah'], 0, ',', '.') : '-' ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
         </div>
-        
-        <!-- Info Section -->
-        <div class="p-6 bg-gray-50/50 border-t border-gray-100">
-            <div class="flex items-start gap-3 text-gray-500">
-                <i data-lucide="info" class="w-5 h-5 text-blue-500 shrink-0"></i>
-                <p class="text-xs italic leading-relaxed">
-                    Status <span class="font-bold text-amber-600">On Process</span> berarti bulan berjalan masih menerima transaksi baru. 
-                    Data akan berstatus <span class="font-bold text-emerald-600">Final</span> setelah memasuki bulan berikutnya. 
-                    Seluruh cut-off mingguan tetap dihitung setiap hari <span class="font-bold text-gray-800">Kamis pukul 23:59 WIB</span>.
+    </div>
+
+    <!-- Bottom Section: Tabel Riwayat Laporan -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100">
+            <h3 class="text-lg font-bold text-gray-800">Riwayat Laporan Keuangan</h3>
+        </div>
+        <div class="p-6">
+            <div class="overflow-x-auto w-full custom-scrollbar">
+                <table class="w-full text-sm text-left min-w-[500px]">
+                    <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                        <tr>
+                            <th class="px-6 py-4">Judul Laporan</th>
+                            <th class="px-6 py-4">Periode</th>
+                            <th class="px-6 py-4 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <?php if(empty($history_reports)): ?>
+                            <tr><td colspan="3" class="px-6 py-10 text-center text-gray-400 italic">Belum ada riwayat laporan yang diarsipkan.</td></tr>
+                        <?php endif; ?>
+                        <?php foreach($history_reports as $h): ?>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-bold text-gray-700 uppercase"><?= $h['judul'] ?></td>
+                            <td class="px-6 py-4 text-gray-500 italic">
+                                <?= format_indo($h['started_at'], 'full') ?> - <?= format_indo($h['ended_at'], 'full') ?>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <a href="<?= base_url('keuangan/'.date('Ymd', strtotime($h['started_at'])).'/'.date('Ymd', strtotime($h['ended_at'])).'/'.$h['id_laporan_mingguan']) ?>" 
+                                class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-bold transition-colors">
+                                    Detail <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="p-6">
+            <div class="flex items-start gap-3 text-gray-600">
+                <i data-lucide="info" class="w-5 h-5 text-blue-500 mt-0.5"></i>
+                <p class="text-sm italic">
+                    Membutuhkan data laporan keuangan yang lebih lama? Silakan hubungi 
+                    <span class="font-bold text-gray-800">Bendahara/Pengurus Masjid</span> 
+                    secara langsung di kantor sekretariat.
                 </p>
             </div>
         </div>
@@ -128,8 +168,7 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        
-        // --- 1. INISIALISASI CHART (Line Chart) ---
+        // --- 1. INISIALISASI CHART ---
         const ctxLine = document.getElementById('lineChartKeuangan');
         if (ctxLine) {
             const totalData = <?= json_encode($chartDataTotal ?? []) ?>;
@@ -197,88 +236,35 @@
             });
         }
 
-        // --- 2. LOGIKA AJAX TABEL LAPORAN BULANAN ---
-        const filterTahun = document.getElementById('filter-tahun');
-        const tableBody = document.getElementById('table-body-report');
+        // --- 2. INISIALISASI DATATABLE (STATIS) ---
+        if (typeof DataTable !== 'undefined') {
+            
+            new DataTable('#tableRoutine', {
+                responsive: true,
+                paging: false,
+                info: false,
+                dom: 'rt',
+                columnDefs: [{ targets: [2, 3], orderable: false }]
+            });
 
-        if (filterTahun && tableBody) {
-            function loadMonthlyData(tahun) {
-                tableBody.innerHTML = '<tr><td colspan="3" class="px-6 py-10 text-center text-gray-400">Memuat data...</td></tr>';
-
-                fetch(`<?= base_url('keuangan/getMonthlyReportAjax') ?>?tahun=${tahun}`, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(async response => {
-                    const isJson = response.headers.get('content-type')?.includes('application/json');
-                    const data = isJson ? await response.json() : null;
-
-                    if (!response.ok) {
-                        const errorMsg = data?.error || data?.message || `Error ${response.status}: Akses Ditolak`;
-                        throw new Error(errorMsg);
-                    }
-                    return data;
-                })
-                .then(data => {
-                    tableBody.innerHTML = '';
-                    if (!data || data.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="3" class="px-6 py-10 text-center text-gray-400 italic">Tidak ada transaksi pada tahun ini.</td></tr>';
-                        return;
-                    }
-
-                    data.forEach(report => {
-                        const statusHtml = report.status === 'On Process' 
-                            ? `<span class="px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-full border border-amber-100 inline-flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping"></span> ON PROCESS
-                            </span>`
-                            : `<span class="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded-full border border-emerald-100 inline-flex items-center gap-1">
-                                <i data-lucide="check-circle" class="w-3 h-3"></i> FINAL
-                            </span>`;
-
-                        const row = `
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold uppercase text-[15px]">
-                                            ${report.bulan_num}
-                                        </div>
-                                        <div>
-                                            <p class="font-bold text-gray-800 uppercase tracking-tight">${report.bulan_name}</p>
-                                            <p class="text-[10px] text-gray-400">Arsip Laporan ${report.tahun}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-center">${statusHtml}</td>
-                                <td class="px-6 py-4 text-center">
-                                    <a href="${report.url}" class="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 font-bold transition-all group">
-                                        Detail Laporan <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        `;
-                        tableBody.insertAdjacentHTML('beforeend', row);
-                    });
-                    
-                    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                        lucide.createIcons({
-                            icons: lucide.icons
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('AJAX Error:', error);
-                    tableBody.innerHTML = `<tr><td colspan="3" class="px-6 py-10 text-center text-red-500 font-bold">
-                        Gagal memuat data: ${error.message}
-                    </td></tr>`;
-                });
-            }
-
-            loadMonthlyData(filterTahun.value);
-
-            filterTahun.addEventListener('change', function() {
-                loadMonthlyData(this.value);
+            new DataTable('#tableHistory', {
+                responsive: true,
+                pageLength: 5,
+                lengthMenu: [5, 10, 25, 50],
+                language: {
+                    search: "Cari Laporan:",
+                    lengthMenu: "Tampilkan _MENU_ data", 
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ laporan",
+                    infoEmpty: "Menampilkan 0 sampai 0 dari 0 laporan",
+                    infoFiltered: "(disaring dari _MAX_ total laporan)",
+                    emptyTable: "Belum ada riwayat laporan.",
+                    zeroRecords: "Laporan tidak ditemukan."
+                },
+                dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>',
+                drawCallback: function() {
+                    if (window.reinitIcons) window.reinitIcons();
+                    else if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
             });
         }
     });

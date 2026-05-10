@@ -22,7 +22,9 @@ class HomeController extends BaseController
         $data = [
             'title'      => 'Beranda - Masjid Al-Manaar Slipi',
             'carousels'  => $carouselModel->getActiveCarousel(),
-            'finance'    => $keuanganModel->getSummaryPerKategori(),
+            // 'finance'    => $keuanganModel->getSummaryPerKategori(),
+            // Iterasi 2
+            'finance'    => $keuanganModel->getSummaryPerKategori(false),
             'agendas'    => $agendaModel->getAgendaMendatang(5),
             'latest_news'    => $publikasiModel->getTerbaru(3, null, 1),
             'latest_article' => $publikasiModel->getTerbaru(3, null, 2),

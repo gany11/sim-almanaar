@@ -87,7 +87,14 @@ document.addEventListener("DOMContentLoaded", function() {
                         responsive: false,
                         pageLength: 10,
                         columnDefs: [{ targets: [2, 3], orderable: false }],
-                        dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>'
+                        dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>',
+                        drawCallback: function() {
+                            if (window.reinitIcons) {
+                                window.reinitIcons();
+                            } else if (typeof lucide !== 'undefined') {
+                                lucide.createIcons();
+                            }
+                        }
                     });
                 }
                 if (window.reinitIcons) window.reinitIcons();

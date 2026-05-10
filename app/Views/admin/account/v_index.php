@@ -100,7 +100,14 @@ document.addEventListener("DOMContentLoaded", function() {
                         columnDefs: [
                             { targets: [3, 4], orderable: false }
                         ],
-                        dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>'
+                        dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>',
+                        drawCallback: function() {
+                            if (window.reinitIcons) {
+                                window.reinitIcons();
+                            } else if (typeof lucide !== 'undefined') {
+                                lucide.createIcons();
+                            }
+                        }
                     });
                 }
 

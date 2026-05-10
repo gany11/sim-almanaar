@@ -6,6 +6,12 @@ use App\Models\KeuanganModel;
 use App\Models\KategoriKeuanganModel;
 use App\Models\LaporanMingguanModel;
 
+// Iterasi 2
+use App\Models\AlokasiModel;
+use App\Models\DetailAlokasiModel;
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
+
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
 
@@ -14,11 +20,18 @@ class FinanceController extends BaseController
     protected $keuanganModel;
     protected $kategoriModel;
     protected $laporanModel;
+    // Iterasi 2
+    protected $alokasiModel;
+    protected $detailAlokasiModel;
+
 
     public function __construct() {
         $this->keuanganModel = new KeuanganModel();
         $this->kategoriModel = new KategoriKeuanganModel();
         $this->laporanModel  = new LaporanMingguanModel();
+        // Iterasi 2
+        $this->alokasiModel  = new AlokasiModel();
+        $this->detailAlokasiModel  = new DetailAlokasiModel();
     }
 
     public function index() {
@@ -70,7 +83,9 @@ class FinanceController extends BaseController
     public function create() {
         return view('admin/finance/v_form', [
             'title'    => 'Tambah Transaksi',
-            'kategori' => $this->kategoriModel->findAll()
+            'kategori' => $this->kategoriModel->findAll(),
+            // Iterasi 2 - Ambil data alokasi untuk pilihan di form
+            'alokasi'  => $this->alokasiModel->findAll()
         ]);
     }
 
@@ -88,7 +103,11 @@ class FinanceController extends BaseController
         return view('admin/finance/v_form', [
             'title'    => 'Edit Transaksi',
             'keuangan' => $keuangan,
-            'kategori' => $this->kategoriModel->findAll()
+            'kategori' => $this->kategoriModel->findAll(),
+            // Iterasi 2 - Ambil data alokasi untuk pilihan di form
+            'alokasi'  => $this->alokasiModel->findAll(),
+            // Iterasi 2 - Kirim detail alokasi yang relevan dengan alokasi yang sudah terpilih sebelumnya
+            'current_detail' => $this->detailAlokasiModel->where('id_alokasi', $this->_getIdAlokasiFromDetail($keuangan['id_detail_alokasi']))->findAll()
         ]);
     }
 
@@ -121,11 +140,13 @@ class FinanceController extends BaseController
 
         $rules = $this->keuanganModel->validationKeuangan;
 
-        $jumlahRaw = $this->request->getPost('jumlah');
-        $jumlahClean = str_replace('.', '', $jumlahRaw ?? '0');
         
+        $jumlahRaw = $this->request->getPost('jumlah');
+        $jumlahBeforeDecimal = explode('.', $jumlahRaw)[0];
+        $jumlahClean = str_replace('.', '', $jumlahBeforeDecimal);
+        // $jumlahClean = str_replace('.', '', $jumlahRaw ?? '0');
         $_POST['jumlah'] = $jumlahClean;
-
+        
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
@@ -147,10 +168,13 @@ class FinanceController extends BaseController
 
         $saveData = [
             'id_kategori_keuangan' => $this->request->getPost('id_kategori_keuangan'),
+            'id_detail_alokasi'    => $this->request->getPost('id_detail_alokasi'), // Iterasi 2 - Field Baru
             'tanggal'              => $this->request->getPost('tanggal'),
             'jumlah'               => $jumlahClean,
             'jenis'                => $this->request->getPost('jenis'),
             'keterangan'           => $this->request->getPost('keterangan'),
+            'pic'                  => $this->request->getPost('pic'), // Iterasi 2 - Field Baru
+            'method_input'         => 'manual', // Iterasi 2 - Paksa manual karena lewat form
             'bukti'                => $fileName,
         ];
 
@@ -181,9 +205,12 @@ class FinanceController extends BaseController
             // Hitung Pekan ke- (P1, P2, dst)
             $dayOfMonth = date('j', strtotime($start));
             $weekNum    = ceil($dayOfMonth / 7);
-            $monthName  = date('F', strtotime($start));
+            $monthName = format_indo($start, 'month_only');
+        
+            $dateStartIndo = format_indo($start, 'full_date');
+            $dateEndIndo   = format_indo($end, 'full_date');
             
-            $title = "Laporan Keuangan " . date('d/M/Y', strtotime($start)) . " - " . date('d/M/Y', strtotime($end)) . " (P{$weekNum} {$monthName})";
+            $title = "Laporan Keuangan {$dateStartIndo} - {$dateEndIndo} (P{$weekNum} {$monthName})";
 
             $this->laporanModel->insert([
                 'judul'      => $title,
@@ -222,5 +249,155 @@ class FinanceController extends BaseController
         $this->keuanganModel->delete($id);
 
         return $this->response->setJSON(['status' => 'success', 'message' => 'Transaksi berhasil dihapus.']);
+    }
+
+    // Iterasi 2
+    private function _getIdAlokasiFromDetail($idDetail) {
+        $detail = $this->detailAlokasiModel->find($idDetail);
+        return $detail ? $detail['id_alokasi'] : null;
+    }
+
+    public function getDetailAlokasi()
+    {
+        $idAlokasi = $this->request->getPost('id_alokasi');
+        $details = $this->detailAlokasiModel->where('id_alokasi', $idAlokasi)->findAll();
+
+        return $this->response->setJSON($details);
+    }
+
+    public function importExcel()
+    {
+        $file = $this->request->getFile('file_excel');
+        if (!$file->isValid()) return redirect()->to('admin/finance/routine')->with('error', 'File tidak valid.');
+
+        $reader = new Xlsx();
+        $spreadsheet = $reader->load($file->getTempName());
+        $dataRaw = $spreadsheet->getActiveSheet()->toArray();
+
+        $dataToInsert = [];
+        $importErrors = [];
+        $skippedCount = 0;
+
+        // 1. Tentukan Rentang Duplikasi (Jumat - Kamis Pekan Ini)
+        $startOfWeek = date('Y-m-d 00:00:00', strtotime('last friday', strtotime('tomorrow')));
+        $endOfWeek   = date('Y-m-d 23:59:59', strtotime('next thursday', strtotime('yesterday')));
+
+        // Mulai iterasi dari baris ke-5 (Index 4)
+        for ($i = 4; $i < count($dataRaw); $i++) {
+            $row = $dataRaw[$i];
+            
+            // Skip jika baris benar-benar kosong
+            if (empty(array_filter($row))) continue;
+
+            $rowNumber = $i + 1;
+
+            // 2. Validasi Input Dasar
+            $lineErrors = [];
+            if (empty($row[0])) $lineErrors[] = "Tanggal kosong";
+            if (empty($row[1])) $lineErrors[] = "Kategori Kas kosong";
+            if (empty($row[2])) $lineErrors[] = "Jenis Transaksi kosong";
+            if (empty($row[3]) || strlen($row[3]) < 5) $lineErrors[] = "Keterangan minimal 5 karakter";
+            if (empty($row[4]) && $row[4] !== "0") $lineErrors[] = "Nominal kosong";
+            if (empty($row[6])) $lineErrors[] = "Detail Alokasi kosong";
+
+            if (!empty($lineErrors)) {
+                $importErrors[] = "Baris {$rowNumber}: " . implode(', ', $lineErrors);
+                continue;
+            }
+
+            // 3. Konversi Tanggal
+            $tanggal = \DateTime::createFromFormat('m/d/Y', $row[0]);
+
+            if (!$tanggal) {
+                $tanggal = \DateTime::createFromFormat('d/m/Y', $row[0]);
+            }
+
+            if (!$tanggal) {
+                $importErrors[] = "Baris {$rowNumber}: Format tanggal '{$row[0]}' tidak dikenali.";
+                continue;
+            }
+
+            // Reset waktu agar perbandingan murni tanggal (mencegah error 'melebihi hari ini')
+            $tanggal->setTime(0, 0, 0); 
+            $finalDate = $tanggal->format('Y-m-d H:i:s');
+
+            $todayObj = new \DateTime();
+            $todayObj->setTime(0, 0, 0);
+
+            if ($tanggal > $todayObj) {
+                $importErrors[] = "Baris {$rowNumber}: Tanggal '{$row[0]}' tidak boleh melebihi hari ini.";
+                continue;
+            }
+            
+            // --- LOGIKA NOMINAL BARU (LEBIH FLEXIBLE) ---
+            $nominalRaw = (string)$row[4];
+            
+            // 1. Cek apakah ada koma yang berfungsi sebagai desimal (format Indo: 31.111,00)
+            if (strpos($nominalRaw, ',') !== false) {
+                $parts = explode(',', $nominalRaw);
+                if (isset($parts[1]) && strlen(trim($parts[1])) <= 2) {
+                    $nominalRaw = $parts[0];
+                }
+            }
+            
+            // 2. Hapus semua karakter yang BUKAN angka.
+            $cleanNominal = preg_replace('/[^0-9]/', '', $nominalRaw);
+
+            $jenis = strtolower($row[2]);
+
+            $kat = $this->kategoriModel->where('kategori', $row[1])->first();
+            $det = $this->detailAlokasiModel->where('detail_alokasi', $row[6])->first();
+
+            if (!$kat) { $importErrors[] = "Baris {$rowNumber}: Kategori '{$row[1]}' tidak ada"; continue; }
+            if (!$det) { $importErrors[] = "Baris {$rowNumber}: Detail Alokasi '{$row[6]}' tidak ada"; continue; }
+
+            // 4. Cek Duplikasi
+            $isExist = $this->keuanganModel->where([
+                'id_kategori_keuangan' => $kat['id_kategori_keuangan'],
+                'tanggal'              => $finalDate,
+                'jumlah'               => $cleanNominal,
+                'jenis'                => $jenis,
+                'keterangan'           => $row[3],
+            ])->where('created_at >=', $startOfWeek)
+            ->where('created_at <=', $endOfWeek)
+            ->countAllResults();
+
+            if ($isExist > 0) {
+                $skippedCount++;
+                continue; 
+            }
+
+            $dataToInsert[] = [
+                'id_kategori_keuangan' => $kat['id_kategori_keuangan'],
+                'id_detail_alokasi'    => $det['id_detail_alokasi'],
+                'tanggal'              => $finalDate,
+                'jenis'                => $jenis,
+                'keterangan'           => $row[3],
+                'jumlah'               => $cleanNominal,
+                'pic'                  => $row[7] ?? null,
+                'method_input'         => 'import',
+                'created_by'           => session()->get('id_akun'),
+            ];
+        }
+
+        // 5. Eksekusi
+        if (!empty($importErrors)) {
+            return redirect()->to('admin/finance/routine')->with('error_list', $importErrors);
+        }
+
+        if (!empty($dataToInsert)) {
+            $nowTime = date('Y-m-d H:i:s');
+            $this->_ensureReportExists($nowTime);
+
+            $this->keuanganModel->insertBatch($dataToInsert);
+            
+            $msg = count($dataToInsert) . " transaksi baru berhasil diimport.";
+            if ($skippedCount > 0) $msg .= " ({$skippedCount} data lama dilewati).";
+            
+            // dd($dataToInsert);
+            return redirect()->to('admin/finance/routine')->with('success', $msg);
+        }
+
+        return redirect()->to('admin/finance/routine')->with('error', 'Tidak ada transaksi baru yang diimport. Data mungkin sudah terdaftar di sistem pada pekan ini.');
     }
 }

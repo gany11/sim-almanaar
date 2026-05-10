@@ -6,6 +6,12 @@ use App\Models\KeuanganModel;
 use App\Models\KategoriKeuanganModel;
 use App\Models\LaporanMingguanModel;
 
+// Iterasi 2
+use App\Models\AlokasiModel;
+use App\Models\DetailAlokasiModel;
+use App\Models\SdmAgendaModel;
+use App\Models\AgendaModel;
+
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
 
@@ -14,174 +20,184 @@ class ReportController extends BaseController
     protected $keuanganModel;
     protected $kategoriModel;
     protected $laporanModel;
+    // Iterasi 2
+    protected $alokasiModel;
+    protected $detailAlokasiModel;
+    protected $sdmAgendaModel;
+    protected $agendaModel;
 
     public function __construct() {
         $this->keuanganModel = new KeuanganModel();
         $this->kategoriModel = new KategoriKeuanganModel();
         $this->laporanModel  = new LaporanMingguanModel();
+        // Iterasi 2
+        $this->alokasiModel  = new AlokasiModel();
+        $this->detailAlokasiModel  = new DetailAlokasiModel();
+        $this->sdmAgendaModel = new SdmAgendaModel();
+        $this->agendaModel    = new AgendaModel();
     }
 
-    public function detail($id)
-    {
-        $report = $this->laporanModel->find($id);
-        if (!$report) return redirect()->to('admin/finance/routine')->with('error', 'Laporan tidak ditemukan.');
+    // public function detail($id)
+    // {
+    //     $report = $this->laporanModel->find($id);
+    //     if (!$report) return redirect()->to('admin/finance/routine')->with('error', 'Laporan tidak ditemukan.');
         
-        $hariIni = date('Y-m-d');
-        if ($report['ended_at'] > $hariIni) {
-            return redirect()->to('admin/finance/routine')->with('error', 'Laporan pekan berjalan belum dapat dilihat detailnya sampai periode berakhir.');
-        }
+    //     $hariIni = date('Y-m-d');
+    //     if ($report['ended_at'] > $hariIni) {
+    //         return redirect()->to('admin/finance/routine')->with('error', 'Laporan pekan berjalan belum dapat dilihat detailnya sampai periode berakhir.');
+    //     }
 
-        // 1. Ambil data saldo awal (Saldo akhir dari laporan sebelumnya)
-        $lastReport = $this->laporanModel->where('ended_at <', $report['started_at'])
-                                        ->orderBy('ended_at', 'DESC')
-                                        ->first();
+    //     // 1. Ambil data saldo awal (Saldo akhir dari laporan sebelumnya)
+    //     $lastReport = $this->laporanModel->where('ended_at <', $report['started_at'])
+    //                                     ->orderBy('ended_at', 'DESC')
+    //                                     ->first();
 
-        // 2. Ambil transaksi periode ini
-        $transactions = $this->keuanganModel
-            ->where('created_at >=', $report['started_at'])
-            ->where('created_at <=', $report['ended_at'])
-            ->findAll();
+    //     // 2. Ambil transaksi periode ini
+    //     $transactions = $this->keuanganModel
+    //         ->where('created_at >=', $report['started_at'])
+    //         ->where('created_at <=', $report['ended_at'])
+    //         ->findAll();
 
-        // 3. Strukturkan data sesuai permintaan (A, B, C)
-        $mapping = [
-            'A' => ['name' => 'Kas Yatim & PKU', 'ids' => [3, 4]],
-            'B' => ['name' => 'Kas Masjid', 'ids' => [1]],
-            'C' => ['name' => 'Kas Perawatan & Renovasi', 'ids' => [2]],
-        ];
+    //     // 3. Strukturkan data sesuai permintaan (A, B, C)
+    //     $mapping = [
+    //         'A' => ['name' => 'Kas Yatim & PKU', 'ids' => [3, 4]],
+    //         'B' => ['name' => 'Kas Masjid', 'ids' => [1]],
+    //         'C' => ['name' => 'Kas Perawatan & Renovasi', 'ids' => [2]],
+    //     ];
 
-        $groupedData = [];
-        foreach ($mapping as $key => $map) {
-            // Filter transaksi yang masuk ke grup ini
-            $items = array_filter($transactions, function($t) use ($map) {
-                return in_array($t['id_kategori_keuangan'], $map['ids']);
-            });
+    //     $groupedData = [];
+    //     foreach ($mapping as $key => $map) {
+    //         // Filter transaksi yang masuk ke grup ini
+    //         $items = array_filter($transactions, function($t) use ($map) {
+    //             return in_array($t['id_kategori_keuangan'], $map['ids']);
+    //         });
 
-            // Hitung saldo awal (Logika: Total semua transaksi kategori tsb sebelum started_at laporan ini)
-            $saldoAwal = $this->keuanganModel->selectSum('jumlah')
-                ->whereIn('id_kategori_keuangan', $map['ids'])
-                ->where('jenis', 'pemasukan')
-                ->where('created_at <', $report['started_at'])
-                ->get()->getRow()->jumlah ?? 0;
+    //         // Hitung saldo awal (Logika: Total semua transaksi kategori tsb sebelum started_at laporan ini)
+    //         $saldoAwal = $this->keuanganModel->selectSum('jumlah')
+    //             ->whereIn('id_kategori_keuangan', $map['ids'])
+    //             ->where('jenis', 'pemasukan')
+    //             ->where('created_at <', $report['started_at'])
+    //             ->get()->getRow()->jumlah ?? 0;
 
-            $pengeluaranAwal = $this->keuanganModel->selectSum('jumlah')
-                ->whereIn('id_kategori_keuangan', $map['ids'])
-                ->where('jenis', 'pengeluaran')
-                ->where('created_at <', $report['started_at'])
-                ->get()->getRow()->jumlah ?? 0;
+    //         $pengeluaranAwal = $this->keuanganModel->selectSum('jumlah')
+    //             ->whereIn('id_kategori_keuangan', $map['ids'])
+    //             ->where('jenis', 'pengeluaran')
+    //             ->where('created_at <', $report['started_at'])
+    //             ->get()->getRow()->jumlah ?? 0;
 
-            $realSaldoAwal = $saldoAwal - $pengeluaranAwal;
+    //         $realSaldoAwal = $saldoAwal - $pengeluaranAwal;
 
-            $totalMasuk = 0;
-            $totalKeluar = 0;
-            foreach ($items as $item) {
-                if ($item['jenis'] == 'pemasukan') $totalMasuk += $item['jumlah'];
-                else $totalKeluar += $item['jumlah'];
-            }
+    //         $totalMasuk = 0;
+    //         $totalKeluar = 0;
+    //         foreach ($items as $item) {
+    //             if ($item['jenis'] == 'pemasukan') $totalMasuk += $item['jumlah'];
+    //             else $totalKeluar += $item['jumlah'];
+    //         }
 
-            $groupedData[$key] = [
-                'judul' => $map['name'],
-                'saldo_awal' => $realSaldoAwal,
-                'items' => $items,
-                'total_masuk' => $totalMasuk,
-                'total_keluar' => $totalKeluar,
-                'saldo_akhir' => ($realSaldoAwal + $totalMasuk) - $totalKeluar
-            ];
-        }
+    //         $groupedData[$key] = [
+    //             'judul' => $map['name'],
+    //             'saldo_awal' => $realSaldoAwal,
+    //             'items' => $items,
+    //             'total_masuk' => $totalMasuk,
+    //             'total_keluar' => $totalKeluar,
+    //             'saldo_akhir' => ($realSaldoAwal + $totalMasuk) - $totalKeluar
+    //         ];
+    //     }
 
-        $nextWeekStart = date('Y-m-d 00:00:00', strtotime($report['ended_at'] . ' +1 day'));
-        $nextWeekEnd   = date('Y-m-d 23:59:59', strtotime($nextWeekStart . ' +6 days'));
+    //     $nextWeekStart = date('Y-m-d 00:00:00', strtotime($report['ended_at'] . ' +1 day'));
+    //     $nextWeekEnd   = date('Y-m-d 23:59:59', strtotime($nextWeekStart . ' +6 days'));
 
-        $agendaModel = new \App\Models\AgendaModel();
-        $agendas = $agendaModel->select('agenda.*, kategori_agenda.nama_kategori, kw_mulai.keterangan as ket_mulai, kw_selesai.keterangan as ket_selesai')
-            ->join('kategori_agenda', 'kategori_agenda.id_kategori_agenda = agenda.id_kategori_agenda')
-            ->join('keterangan_waktu as kw_mulai', 'kw_mulai.id_keterangan_waktu = agenda.id_keterangan_waktu_mulai', 'left')
-            ->join('keterangan_waktu as kw_selesai', 'kw_selesai.id_keterangan_waktu = agenda.id_keterangan_waktu_selesai', 'left')
-            ->where('waktu_mulai >=', $nextWeekStart)
-            ->where('waktu_mulai <=', $nextWeekEnd)
-            ->where('agenda.deleted_at', null)
-            ->orderBy('waktu_mulai', 'ASC')
-            ->findAll();
+    //     $agendaModel = new \App\Models\AgendaModel();
+    //     $agendas = $agendaModel->select('agenda.*, kategori_agenda.nama_kategori, kw_mulai.keterangan as ket_mulai, kw_selesai.keterangan as ket_selesai')
+    //         ->join('kategori_agenda', 'kategori_agenda.id_kategori_agenda = agenda.id_kategori_agenda')
+    //         ->join('keterangan_waktu as kw_mulai', 'kw_mulai.id_keterangan_waktu = agenda.id_keterangan_waktu_mulai', 'left')
+    //         ->join('keterangan_waktu as kw_selesai', 'kw_selesai.id_keterangan_waktu = agenda.id_keterangan_waktu_selesai', 'left')
+    //         ->where('waktu_mulai >=', $nextWeekStart)
+    //         ->where('waktu_mulai <=', $nextWeekEnd)
+    //         ->where('agenda.deleted_at', null)
+    //         ->orderBy('waktu_mulai', 'ASC')
+    //         ->findAll();
 
-        // Ambil Pengisi/SDM untuk setiap agenda
-        $sdmAgendaModel = new \App\Models\SdmAgendaModel();
-        foreach ($agendas as &$a) {
-            $a['pengisi'] = $sdmAgendaModel->select('sdm.nama, kategori_sdm.kategori as peran')
-                ->join('sdm', 'sdm.id_sdm = sdm_agenda.id_sdm')
-                ->join('kategori_sdm', 'kategori_sdm.id_kategori_sdm = sdm_agenda.id_kategori_sdm')
-                ->where('id_agenda', $a['id_agenda'])
-                ->findAll();
-        }
+    //     // Ambil Pengisi/SDM untuk setiap agenda
+    //     $sdmAgendaModel = new \App\Models\SdmAgendaModel();
+    //     foreach ($agendas as &$a) {
+    //         $a['pengisi'] = $sdmAgendaModel->select('sdm.nama, kategori_sdm.kategori as peran')
+    //             ->join('sdm', 'sdm.id_sdm = sdm_agenda.id_sdm')
+    //             ->join('kategori_sdm', 'kategori_sdm.id_kategori_sdm = sdm_agenda.id_kategori_sdm')
+    //             ->where('id_agenda', $a['id_agenda'])
+    //             ->findAll();
+    //     }
 
-        return view('admin/finance/v_report_detail', [
-            'title'  => 'Pratinjau Laporan Rutin',
-            'report' => $report,
-            'grouped' => $groupedData,
-            'agendas' => $agendas,
-            'nextWeekStart' => $nextWeekStart,
-            'nextWeekEnd'   => $nextWeekEnd
-        ]);
-    }
+    //     return view('admin/finance/v_report_detail', [
+    //         'title'  => 'Pratinjau Laporan Rutin',
+    //         'report' => $report,
+    //         'grouped' => $groupedData,
+    //         'agendas' => $agendas,
+    //         'nextWeekStart' => $nextWeekStart,
+    //         'nextWeekEnd'   => $nextWeekEnd
+    //     ]);
+    // }
 
-    public function periodic()
-    {
-        $start = $this->request->getGet('start_date') ?? date('Y-m-01');
-        $end   = $this->request->getGet('end_date') ?? date('Y-m-d');
+    // public function periodic()
+    // {
+    //     $start = $this->request->getGet('start_date') ?? date('Y-m-01');
+    //     $end   = $this->request->getGet('end_date') ?? date('Y-m-d');
 
-        // Dipisah menjadi A, B, C, D agar Yatim dan PKU berdiri sendiri
-        $mapping = [
-            'A' => ['judul' => 'Kas Yatim', 'ids' => [3]],
-            'B' => ['judul' => 'Kas PKU', 'ids' => [4]],
-            'C' => ['judul' => 'Kas Masjid', 'ids' => [1]],
-            'D' => ['judul' => 'Kas Perawatan & Renovasi', 'ids' => [2]],
-        ];
+    //     // Dipisah menjadi A, B, C, D agar Yatim dan PKU berdiri sendiri
+    //     $mapping = [
+    //         'A' => ['judul' => 'Kas Yatim', 'ids' => [3]],
+    //         'B' => ['judul' => 'Kas PKU', 'ids' => [4]],
+    //         'C' => ['judul' => 'Kas Masjid', 'ids' => [1]],
+    //         'D' => ['judul' => 'Kas Perawatan & Renovasi', 'ids' => [2]],
+    //     ];
 
-        $groupedData = [];
-        foreach ($mapping as $key => $map) {
-            // Gunakan created_at untuk saldo awal
-            $pemasukanLalu = $this->keuanganModel->selectSum('jumlah')
-                ->whereIn('id_kategori_keuangan', $map['ids'])
-                ->where('jenis', 'pemasukan')
-                ->where('created_at <', $start . ' 00:00:00')->first()['jumlah'] ?? 0;
+    //     $groupedData = [];
+    //     foreach ($mapping as $key => $map) {
+    //         // Gunakan created_at untuk saldo awal
+    //         $pemasukanLalu = $this->keuanganModel->selectSum('jumlah')
+    //             ->whereIn('id_kategori_keuangan', $map['ids'])
+    //             ->where('jenis', 'pemasukan')
+    //             ->where('created_at <', $start . ' 00:00:00')->first()['jumlah'] ?? 0;
 
-            $pengeluaranLalu = $this->keuanganModel->selectSum('jumlah')
-                ->whereIn('id_kategori_keuangan', $map['ids'])
-                ->where('jenis', 'pengeluaran')
-                ->where('created_at <', $start . ' 00:00:00')->first()['jumlah'] ?? 0;
+    //         $pengeluaranLalu = $this->keuanganModel->selectSum('jumlah')
+    //             ->whereIn('id_kategori_keuangan', $map['ids'])
+    //             ->where('jenis', 'pengeluaran')
+    //             ->where('created_at <', $start . ' 00:00:00')->first()['jumlah'] ?? 0;
 
-            $saldoAwal = $pemasukanLalu - $pengeluaranLalu;
+    //         $saldoAwal = $pemasukanLalu - $pengeluaranLalu;
 
-            // Ambil Transaksi berdasarkan created_at
-            $items = $this->keuanganModel
-                ->whereIn('id_kategori_keuangan', $map['ids'])
-                ->where('created_at >=', $start . ' 00:00:00')
-                ->where('created_at <=', $end . ' 23:59:59')
-                ->orderBy('created_at', 'ASC')
-                ->findAll();
+    //         // Ambil Transaksi berdasarkan created_at
+    //         $items = $this->keuanganModel
+    //             ->whereIn('id_kategori_keuangan', $map['ids'])
+    //             ->where('created_at >=', $start . ' 00:00:00')
+    //             ->where('created_at <=', $end . ' 23:59:59')
+    //             ->orderBy('created_at', 'ASC')
+    //             ->findAll();
 
-            $totalMasuk = 0;
-            $totalKeluar = 0;
-            foreach ($items as $item) {
-                if ($item['jenis'] == 'pemasukan') $totalMasuk += $item['jumlah'];
-                else $totalKeluar += $item['jumlah'];
-            }
+    //         $totalMasuk = 0;
+    //         $totalKeluar = 0;
+    //         foreach ($items as $item) {
+    //             if ($item['jenis'] == 'pemasukan') $totalMasuk += $item['jumlah'];
+    //             else $totalKeluar += $item['jumlah'];
+    //         }
 
-            $groupedData[$key] = [
-                'judul'        => $map['judul'],
-                'saldo_awal'   => $saldoAwal,
-                'items'        => $items,
-                'total_masuk'  => $totalMasuk,
-                'total_keluar' => $totalKeluar,
-                'saldo_akhir'  => ($saldoAwal + $totalMasuk) - $totalKeluar
-            ];
-        }
+    //         $groupedData[$key] = [
+    //             'judul'        => $map['judul'],
+    //             'saldo_awal'   => $saldoAwal,
+    //             'items'        => $items,
+    //             'total_masuk'  => $totalMasuk,
+    //             'total_keluar' => $totalKeluar,
+    //             'saldo_akhir'  => ($saldoAwal + $totalMasuk) - $totalKeluar
+    //         ];
+    //     }
 
-        return view('admin/finance/v_report_periodic', [
-            'title'   => 'Laporan Periodik Kas',
-            'grouped' => $groupedData,
-            'start'   => $start,
-            'end'     => $end
-        ]);
-    }
+    //     return view('admin/finance/v_report_periodic', [
+    //         'title'   => 'Laporan Periodik Kas',
+    //         'grouped' => $groupedData,
+    //         'start'   => $start,
+    //         'end'     => $end
+    //     ]);
+    // }
 
     public function editNote($id) 
     {
@@ -214,5 +230,203 @@ class ReportController extends BaseController
         ]);
 
         return redirect()->to('admin/finance/routine')->with('success', 'Catatan laporan berhasil diperbarui.');
+    }
+
+    // Iterasi 2
+    public function detail($id)
+    {
+        $report = $this->laporanModel->find($id);
+        if (!$report) return redirect()->to('admin/finance/routine')->with('error', 'Laporan tidak ditemukan.');
+
+        $hariIni = date('Y-m-d');
+        if ($report['ended_at'] > $hariIni) {
+            return redirect()->to('admin/finance/routine')->with('error', 'Laporan pekan berjalan belum dapat dilihat detailnya sampai periode berakhir.');
+        }
+
+        $transactions = $this->keuanganModel
+            ->select('keuangan.*, rp.nama_ringkasan_protokol, da.detail_alokasi, da.id_ringkasan_protokol')
+            ->join('detail_alokasi da', 'da.id_detail_alokasi = keuangan.id_detail_alokasi', 'left')
+            ->join('ringkasan_protokol rp', 'rp.id_ringkasan_protokol = da.id_ringkasan_protokol', 'left')
+            ->where('keuangan.created_at >=', $report['started_at'])
+            ->where('keuangan.created_at <=', $report['ended_at'])
+            ->where('keuangan.deleted_at', null)
+            ->findAll();
+
+        $mapping = [
+            'A' => ['name' => 'Kas Yatim & PKU', 'ids' => [3, 4]],
+            'B' => ['name' => 'Kas Masjid', 'ids' => [1]],
+            'C' => ['name' => 'Kas Perawatan & Renovasi', 'ids' => [2]],
+        ];
+
+        $groupedData = [];
+        foreach ($mapping as $key => $map) {
+            $items = array_filter($transactions, function ($t) use ($map) {
+                return in_array($t['id_kategori_keuangan'], $map['ids']);
+            });
+
+            // Hitung Saldo Awal (Gunakan alias atau join jika perlu, tapi ini query simpel)
+            $pemasukanAwal = $this->keuanganModel->selectSum('jumlah')
+                ->whereIn('id_kategori_keuangan', $map['ids'])
+                ->where('jenis', 'pemasukan')
+                ->where('created_at <', $report['started_at'])
+                ->where('deleted_at', null)->get()->getRow()->jumlah ?? 0;
+
+            $pengeluaranAwal = $this->keuanganModel->selectSum('jumlah')
+                ->whereIn('id_kategori_keuangan', $map['ids'])
+                ->where('jenis', 'pengeluaran')
+                ->where('created_at <', $report['started_at'])
+                ->where('deleted_at', null)->get()->getRow()->jumlah ?? 0;
+
+            $realSaldoAwal = $pemasukanAwal - $pengeluaranAwal;
+
+            $summary = [];
+            $totalMasuk = 0;
+            $totalKeluar = 0;
+
+            foreach ($items as $item) {
+                $isGrouped = !empty($item['id_ringkasan_protokol']);
+                $groupKey = $isGrouped ? 'protokol_' . $item['id_ringkasan_protokol'] : 'raw_' . $item['id_keuangan'];
+                
+                if (!isset($summary[$groupKey])) {
+                    $namaJenis = ucfirst($item['jenis']); 
+
+                    $summary[$groupKey] = [
+                        'jenis'      => $item['jenis'],
+                        'keterangan' => $namaJenis . ' ' . ($isGrouped ? $item['nama_ringkasan_protokol'] : $item['keterangan']),
+                        'alokasi'    => [],
+                        'total'      => 0
+                    ];
+                }
+
+                $summary[$groupKey]['total'] += $item['jumlah'];
+                
+                if ($item['jenis'] == 'pemasukan') $totalMasuk += $item['jumlah'];
+                else $totalKeluar += $item['jumlah'];
+
+                if (!empty($item['detail_alokasi']) && !in_array($item['detail_alokasi'], $summary[$groupKey]['alokasi'])) {
+                    $summary[$groupKey]['alokasi'][] = $item['detail_alokasi'];
+                }
+            }
+
+            $groupedData[$key] = [
+                'judul'       => $map['name'],
+                'saldo_awal'  => $realSaldoAwal,
+                'summary'     => $summary,
+                'total_masuk' => $totalMasuk,
+                'total_keluar' => $totalKeluar,
+                'saldo_akhir' => ($realSaldoAwal + $totalMasuk) - $totalKeluar
+            ];
+        }
+
+        // Logika Agenda (Tetap sama)
+        $nextWeekStart = date('Y-m-d 00:00:00', strtotime($report['ended_at'] . ' +1 day'));
+        $nextWeekEnd   = date('Y-m-d 23:59:59', strtotime($nextWeekStart . ' +6 days'));
+
+        $agendas = $this->agendaModel->select('agenda.*, kategori_agenda.nama_kategori, kw_mulai.keterangan as ket_mulai, kw_selesai.keterangan as ket_selesai')
+            ->join('kategori_agenda', 'kategori_agenda.id_kategori_agenda = agenda.id_kategori_agenda')
+            ->join('keterangan_waktu as kw_mulai', 'kw_mulai.id_keterangan_waktu = agenda.id_keterangan_waktu_mulai', 'left')
+            ->join('keterangan_waktu as kw_selesai', 'kw_selesai.id_keterangan_waktu = agenda.id_keterangan_waktu_selesai', 'left')
+            ->where('waktu_mulai >=', $nextWeekStart)
+            ->where('waktu_mulai <=', $nextWeekEnd)
+            ->where('agenda.deleted_at', null)
+            ->orderBy('waktu_mulai', 'ASC')
+            ->findAll();
+
+        foreach ($agendas as &$a) {
+            $a['pengisi'] = $this->sdmAgendaModel->select('sdm.nama, kategori_sdm.kategori as peran')
+                ->join('sdm', 'sdm.id_sdm = sdm_agenda.id_sdm')
+                ->join('kategori_sdm', 'kategori_sdm.id_kategori_sdm = sdm_agenda.id_kategori_sdm')
+                ->where('id_agenda', $a['id_agenda'])
+                ->findAll();
+        }
+
+        return view('admin/finance/v_report_detail', [
+            'title'         => 'Pratinjau Laporan Rutin',
+            'report'        => $report,
+            'grouped'       => $groupedData,
+            'agendas'       => $agendas,
+            'nextWeekStart' => $nextWeekStart,
+            'nextWeekEnd'   => $nextWeekEnd
+        ]);
+    }
+
+
+    public function periodic()
+    {
+        $start = $this->request->getGet('start_date') ?? date('Y-m-01');
+        $end   = $this->request->getGet('end_date') ?? date('Y-m-d');
+
+        $today = date('Y-m-d');
+        if ($end == $today) {
+            $end = date('Y-m-d', strtotime('last thursday'));
+        }
+        
+        $endTime = $end . ' 23:59:59';
+        $startTime = $start . ' 00:00:00';
+
+        // 1. Ambil Semua Kategori Kas untuk Kolom Tabel
+        $data['categories'] = $this->kategoriModel->orderBy('id_kategori_keuangan', 'ASC')->findAll();
+
+        // 2. Hitung Saldo Awal (Sebelum $startTime) per Kategori
+        $saldoAwal = [];
+        foreach ($data['categories'] as $kat) {
+            $masukLalu = $this->keuanganModel->selectSum('jumlah')
+                ->where('id_kategori_keuangan', $kat['id_kategori_keuangan'])
+                ->where('jenis', 'pemasukan')
+                ->where('created_at <', $startTime)
+                ->where('deleted_at', null)->first()['jumlah'] ?? 0;
+
+            $keluarLalu = $this->keuanganModel->selectSum('jumlah')
+                ->where('id_kategori_keuangan', $kat['id_kategori_keuangan'])
+                ->where('jenis', 'pengeluaran')
+                ->where('created_at <', $startTime)
+                ->where('deleted_at', null)->first()['jumlah'] ?? 0;
+
+            $saldoAwal[$kat['id_kategori_keuangan']] = $masukLalu - $keluarLalu;
+        }
+        $data['saldo_awal'] = $saldoAwal;
+
+        // 3. Ambil Struktur Alokasi & Details
+        $alokasi = $this->alokasiModel->orderBy('urutan', 'ASC')->findAll();
+        foreach ($alokasi as &$al) {
+            $al['details'] = $this->detailAlokasiModel
+                ->where('id_alokasi', $al['id_alokasi'])
+                ->orderBy('id_detail_alokasi', 'ASC')
+                ->findAll();
+        }
+        $data['alokasi'] = $alokasi;
+
+        // 4. Mapping Transaksi (Masuk & Keluar) dalam Range Periode
+        $rawTransaksi = $this->keuanganModel->select('id_detail_alokasi, id_kategori_keuangan, jenis, SUM(jumlah) as total')
+            ->where('created_at >=', $startTime)
+            ->where('created_at <=', $endTime)
+            ->where('deleted_at', null)
+            ->groupBy('id_detail_alokasi, id_kategori_keuangan, jenis')
+            ->findAll();
+
+        $mapped = [];
+        foreach ($rawTransaksi as $rt) {
+            $mapped[$rt['id_detail_alokasi']][$rt['id_kategori_keuangan']][$rt['jenis']] = $rt['total'];
+        }
+        $data['mapped_transaksi'] = $mapped;
+
+        $data['detail_transaksi'] = $this->keuanganModel->select('keuangan.*, kategori_keuangan.kategori, detail_alokasi.detail_alokasi')
+            ->join('kategori_keuangan', 'kategori_keuangan.id_kategori_keuangan = keuangan.id_kategori_keuangan')
+            ->join('detail_alokasi', 'detail_alokasi.id_detail_alokasi = keuangan.id_detail_alokasi')
+            ->where('keuangan.created_at >=', $startTime)
+            ->where('keuangan.created_at <=', $endTime)
+            ->where('keuangan.deleted_at', null)
+            ->orderBy('keuangan.created_at', 'ASC')
+            ->findAll();
+
+        // 5. Data Tambahan untuk View
+        $data['title'] = 'Laporan Periodik Kas';
+        $data['start'] = $start;
+        $data['end']   = $end;
+        $data['tgl_akhir_laporan'] = $endTime;
+
+        // dd($data);
+
+        return view('admin/finance/v_report_periodic', $data);
     }
 }

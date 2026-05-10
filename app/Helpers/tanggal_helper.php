@@ -35,6 +35,16 @@ if (!function_exists('format_indo')) {
                 return "$tgl / $bln_num / $thn";
             case 'time':
                 return $waktu;
+            // --- Iterasi 2 ---
+            case 'month_year':
+                return "$bln_name $thn";
+            case 'month_only':
+                return $bln_name;
+            case 'month_num_only':
+                return $bln_num;
+            case 'full_date':
+                return "$tgl $bln_name $thn";
+            // ------------------------------------
             default:
                 return "$tgl $bln_name $thn";
         }
