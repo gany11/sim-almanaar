@@ -136,93 +136,164 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // const ctxLine = document.getElementById('lineChartKeuangan');
+        
+        // // Data dari PHP
+        // const totalData = <?= json_encode($chartDataTotal?? '') ?>;
+        // const detailData = <?= json_encode($chartDetail?? '') ?>;
+        
+        // // 1. Ambil Labels (Bulan) dari data total
+        // const labels = totalData.map(item => item.bulan);
+        
+        // // 2. Siapkan Datasets
+        // const datasets = [];
+
+        // // Dataset A: Total Pemasukan (Garis Tebal)
+        // datasets.push({
+        //     label: 'Total Saldo (Global)',
+        //     data: totalData.map(item => item.masuk),
+        //     borderColor: '#10b981',
+        //     backgroundColor: '#10b98110',
+        //     borderWidth: 3,
+        //     fill: true,
+        //     tension: 0.4
+        // });
+
+        // // Dataset B: Per Kategori (Neto / Saldo per bulan)
+        // const colors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#6366f1']; // Variasi warna
+        // let colorIdx = 0;
+
+        // for (const [kategori, values] of Object.entries(detailData)) {
+        //     // Map data agar sesuai dengan bulan yang ada di label
+        //     const dataPoint = labels.map(bulan => {
+        //         const found = values.find(v => v.bulan === bulan);
+        //         return found ? found.neto : 0;
+        //     });
+
+        //     datasets.push({
+        //         label: `Saldo ${kategori}`,
+        //         data: dataPoint,
+        //         borderColor: colors[colorIdx % colors.length],
+        //         borderDash: [5, 5], // Garis putus-putus untuk detail kategori
+        //         borderWidth: 2,
+        //         fill: false,
+        //         tension: 0.4
+        //     });
+        //     colorIdx++;
+        // }
+
+        // new Chart(ctxLine, {
+        //     type: 'line',
+        //     data: {
+        //         labels: labels.length > 0 ? labels : ['Jan', 'Feb', 'Mar'],
+        //         datasets: datasets
+        //     },
+        //     options: {
+        //         responsive: true,
+        //         maintainAspectRatio: false,
+        //         interaction: {
+        //             mode: 'index',
+        //             intersect: false,
+        //         },
+        //         plugins: {
+        //             legend: { 
+        //                 position: 'bottom',
+        //                 labels: { boxWidth: 12, usePointStyle: true, font: { size: 11 } }
+        //             },
+        //             tooltip: {
+        //                 callbacks: {
+        //                     label: function(context) {
+        //                         let label = context.dataset.label || '';
+        //                         if (label) label += ': ';
+        //                         if (context.parsed.y !== null) {
+        //                             label += new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(context.parsed.y);
+        //                         }
+        //                         return label;
+        //                     }
+        //                 }
+        //             }
+        //         },
+        //         scales: {
+        //             y: {
+        //                 beginAtZero: true,
+        //                 ticks: {
+        //                     callback: (value) => 'Rp ' + value.toLocaleString('id-ID')
+        //                 }
+        //             }
+        //         }
+        //     }
+        // });
         const ctxLine = document.getElementById('lineChartKeuangan');
-        
-        // Data dari PHP
-        const totalData = <?= json_encode($chartDataTotal) ?>;
-        const detailData = <?= json_encode($chartDetail) ?>;
-        
-        // 1. Ambil Labels (Bulan) dari data total
-        const labels = totalData.map(item => item.bulan);
-        
-        // 2. Siapkan Datasets
-        const datasets = [];
+        if (ctxLine) {
+            const detailData = <?= json_encode($chartDetail ?? []) ?>;
+            
+            // Ambil labels dari salah satu kategori yang memiliki data terbanyak
+            let labels = [];
+            for (const key in detailData) {
+                if (detailData[key].length > labels.length) {
+                    labels = detailData[key].map(item => item.bulan);
+                }
+            }
 
-        // Dataset A: Total Pemasukan (Garis Tebal)
-        datasets.push({
-            label: 'Total Saldo (Global)',
-            data: totalData.map(item => item.masuk),
-            borderColor: '#10b981',
-            backgroundColor: '#10b98110',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4
-        });
+            const colors = ['#8b5cf6', '#f59e0b', '#ec4899', '#6366f1'];
+            const datasets = [];
+            let colorIdx = 0;
 
-        // Dataset B: Per Kategori (Neto / Saldo per bulan)
-        const colors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#6366f1']; // Variasi warna
-        let colorIdx = 0;
+            for (const [kategori, values] of Object.entries(detailData)) {
+                datasets.push({
+                    label: kategori,
+                    // Mapping data saldo_akhir ke label bulan yang sesuai
+                    data: labels.map(bulan => {
+                        const found = values.find(v => v.bulan === bulan);
+                        return found ? parseFloat(found.saldo_akhir) : 0;
+                    }),
+                    // Simpan rincian masuk/keluar di properti custom untuk tooltip
+                    extra: labels.map(bulan => {
+                        const found = values.find(v => v.bulan === bulan);
+                        return found ? { masuk: found.masuk, keluar: found.keluar } : { masuk: 0, keluar: 0 };
+                    }),
+                    borderColor: colors[colorIdx % colors.length],
+                    backgroundColor: colors[colorIdx % colors.length],
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: false,
+                    pointStyle: 'circle'
+                });
+                colorIdx++;
+            }
 
-        for (const [kategori, values] of Object.entries(detailData)) {
-            // Map data agar sesuai dengan bulan yang ada di label
-            const dataPoint = labels.map(bulan => {
-                const found = values.find(v => v.bulan === bulan);
-                return found ? found.neto : 0;
-            });
-
-            datasets.push({
-                label: `Saldo ${kategori}`,
-                data: dataPoint,
-                borderColor: colors[colorIdx % colors.length],
-                borderDash: [5, 5], // Garis putus-putus untuk detail kategori
-                borderWidth: 2,
-                fill: false,
-                tension: 0.4
-            });
-            colorIdx++;
-        }
-
-        new Chart(ctxLine, {
-            type: 'line',
-            data: {
-                labels: labels.length > 0 ? labels : ['Jan', 'Feb', 'Mar'],
-                datasets: datasets
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
-                },
-                plugins: {
-                    legend: { 
-                        position: 'bottom',
-                        labels: { boxWidth: 12, usePointStyle: true, font: { size: 11 } }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) label += ': ';
-                                if (context.parsed.y !== null) {
-                                    label += new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(context.parsed.y);
+            new Chart(ctxLine, {
+                type: 'line',
+                data: { labels: labels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true, font: { size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const val = context.parsed.y;
+                                    const extra = context.dataset.extra[context.dataIndex];
+                                    const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
+                                    
+                                    return [
+                                        `${context.dataset.label}: ${fmt(val)}`,
+                                        ` • Masuk: ${fmt(extra.masuk)}`,
+                                        ` • Keluar: ${fmt(extra.keluar)}`
+                                    ];
                                 }
-                                return label;
                             }
                         }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: (value) => 'Rp ' + value.toLocaleString('id-ID')
+                    },
+                    scales: {
+                        y: { 
+                            ticks: { callback: (value) => 'Rp ' + value.toLocaleString('id-ID') } 
                         }
                     }
                 }
-            }
-        });
+            });
+        }
     });
 </script>
 <?= $this->endSection() ?>

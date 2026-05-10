@@ -181,21 +181,22 @@
         </div>
 
         <!-- Bagian 2: Tanda Tangan (Opsional untuk Laporan Resmi) -->
-        <div class="mt-6">
-            <div class="flex mt-3 justify-between items-start" style="display: flex; justify-content: space-between;">
-                <div class="text-center w-64" style="text-align: center; width: 250px;">
-                    <br/>
-                    <p>Ketua DKM,</p>
-                    <div style="height: 80px;"></div> 
-                    <p class="font-bold" style="font-weight: bold; border-bottom: 1px solid black; display: inline-block; min-width: 150px;">
+        <div class="mt-10 w-full">
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+                
+                <div style="text-align: center; flex: 1; min-width: 200px; max-width: 300px;">
+                    <br class="no-print"/> <p style="margin-bottom: 0;">Ketua DKM,</p>
+                    <div style="height: 70px;"></div> 
+                    <p style="font-weight: bold; border-bottom: 1px solid black; display: inline-block; min-width: 180px; padding-bottom: 2px;">
                         ( ............................................ )
                     </p>
                 </div>
-                <div class="text-center w-64" style="text-align: center; width: 250px;">
-                    <p>Jakarta, <?= format_indo(date('Y-m-d'), 'date') ?></p>
-                    <p>Bendahara,</p>
-                    <div style="height: 80px;"></div>
-                    <p class="font-bold" style="font-weight: bold; border-bottom: 1px solid black; display: inline-block; min-width: 150px;">
+
+                <div style="text-align: center; flex: 1; min-width: 200px; max-width: 300px;">
+                    <p style="margin-bottom: 5px;">Jakarta, <?= format_indo(date('Y-m-d')) ?></p>
+                    <p style="margin-bottom: 0;">Bendahara,</p>
+                    <div style="height: 70px;"></div>
+                    <p style="font-weight: bold; border-bottom: 1px solid black; display: inline-block; min-width: 180px; padding-bottom: 2px;">
                         ( ............................................ )
                     </p>
                 </div>
@@ -208,63 +209,65 @@
                 Rincian Transaksi
             </h2>
             
-            <table class="w-full border-collapse border-2 border-black text-[10pt]">
-                <thead>
-                    <tr class="text-white bg-blue-600">
-                        <th class="border-2 border-black p-2 text-center w-32">Tanggal</th>
-                        <th class="border-2 border-black p-2 text-center w-40">Kategori Kas</th>
-                        <th class="border-2 border-black p-2 text-center">Keterangan / Alokasi</th>
-                        <th class="border-2 border-black p-2 text-center w-36">Debet (Masuk)</th>
-                        <th class="border-2 border-black p-2 text-center w-36">Kredit (Keluar)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    $total_masuk_all = 0;
-                    $total_keluar_all = 0;
+            <div class="mb-10 overflow-x-auto">
+                <table class="w-full border-collapse border-2 border-black text-[10pt]">
+                    <thead>
+                        <tr class="text-white bg-blue-600">
+                            <th class="border-2 border-black p-2 text-center w-32">Tanggal</th>
+                            <th class="border-2 border-black p-2 text-center w-40">Kategori Kas</th>
+                            <th class="border-2 border-black p-2 text-center">Keterangan / Alokasi</th>
+                            <th class="border-2 border-black p-2 text-center w-36">Debet (Masuk)</th>
+                            <th class="border-2 border-black p-2 text-center w-36">Kredit (Keluar)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $total_masuk_all = 0;
+                        $total_keluar_all = 0;
 
-                    if (empty($detail_transaksi)): ?>
-                        <tr>
-                            <td colspan="5" class="border-2 border-black p-10 text-center italic text-gray-500">
-                                Tidak ada catatan transaksi pada periode ini.
-                            </td>
+                        if (empty($detail_transaksi)): ?>
+                            <tr>
+                                <td colspan="5" class="border-2 border-black p-10 text-center italic text-gray-500">
+                                    Tidak ada catatan transaksi pada periode ini.
+                                </td>
+                            </tr>
+                        <?php else: 
+                            foreach ($detail_transaksi as $item): 
+                                if ($item['jenis'] == 'pemasukan') $total_masuk_all += $item['jumlah'];
+                                else $total_keluar_all += $item['jumlah'];
+                        ?>
+                            <tr>
+                                <td class="border-2 border-black p-2 text-center whitespace-nowrap">
+                                    <?= format_indo($item['tanggal'], 'full') ?>
+                                    <div style="font-size: 8pt; color: #666;">Tanggal Catat Sistem:<?= format_indo($item['created_at'], 'full') ?></div>
+                                </td>
+                                <td class="border-2 border-black p-2 text-center">
+                                    <span style="text-transform: uppercase; font-weight: bold;"><?= $item['kategori'] ?></span>
+                                </td>
+                                <td class="border-2 border-black p-2">
+                                    <div class="font-bold"><?= $item['keterangan'] ?></div>
+                                    <div style="font-size: 9pt; color: #444; text-transform: uppercase;">
+                                        Alokasi: <?= $item['detail_alokasi'] ?>
+                                    </div>
+                                </td>
+                                <td class="border-2 border-black p-2 text-right">
+                                    <?= $item['jenis'] == 'pemasukan' ? 'Rp' . number_format($item['jumlah'], 0, ',', '.') : '-' ?>
+                                </td>
+                                <td class="border-2 border-black p-2 text-right">
+                                    <?= $item['jenis'] == 'pengeluaran' ? 'Rp' . number_format($item['jumlah'], 0, ',', '.') : '-' ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; endif; ?>
+                    </tbody>
+                    <tfoot>
+                        <tr class="text-white bg-blue-600 font-bold">
+                            <td colspan="3" class="border-2 border-black p-2 text-right uppercase">Total Mutasi Keseluruhan</td>
+                            <td class="border-2 border-black p-2 text-right">Rp<?= number_format($total_masuk_all, 0, ',', '.') ?></td>
+                            <td class="border-2 border-black p-2 text-right">Rp<?= number_format($total_keluar_all, 0, ',', '.') ?></td>
                         </tr>
-                    <?php else: 
-                        foreach ($detail_transaksi as $item): 
-                            if ($item['jenis'] == 'pemasukan') $total_masuk_all += $item['jumlah'];
-                            else $total_keluar_all += $item['jumlah'];
-                    ?>
-                        <tr>
-                            <td class="border-2 border-black p-2 text-center whitespace-nowrap">
-                                <?= format_indo($item['tanggal'], 'full') ?>
-                                <div style="font-size: 8pt; color: #666;">Tanggal Catat Sistem:<?= format_indo($item['created_at'], 'full') ?></div>
-                            </td>
-                            <td class="border-2 border-black p-2 text-center">
-                                <span style="text-transform: uppercase; font-weight: bold;"><?= $item['kategori'] ?></span>
-                            </td>
-                            <td class="border-2 border-black p-2">
-                                <div class="font-bold"><?= $item['keterangan'] ?></div>
-                                <div style="font-size: 9pt; color: #444; text-transform: uppercase;">
-                                    Alokasi: <?= $item['detail_alokasi'] ?>
-                                </div>
-                            </td>
-                            <td class="border-2 border-black p-2 text-right">
-                                <?= $item['jenis'] == 'pemasukan' ? 'Rp' . number_format($item['jumlah'], 0, ',', '.') : '-' ?>
-                            </td>
-                            <td class="border-2 border-black p-2 text-right">
-                                <?= $item['jenis'] == 'pengeluaran' ? 'Rp' . number_format($item['jumlah'], 0, ',', '.') : '-' ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; endif; ?>
-                </tbody>
-                <tfoot>
-                    <tr class="text-white bg-blue-600 font-bold">
-                        <td colspan="3" class="border-2 border-black p-2 text-right uppercase">Total Mutasi Keseluruhan</td>
-                        <td class="border-2 border-black p-2 text-right">Rp<?= number_format($total_masuk_all, 0, ',', '.') ?></td>
-                        <td class="border-2 border-black p-2 text-right">Rp<?= number_format($total_keluar_all, 0, ',', '.') ?></td>
-                    </tr>
-                </tfoot>
-            </table>
+                    </tfoot>
+                </table>
+            </div>
         </div>
 
         <div class="mt-10 pt-6 border-t border-gray-50 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 uppercase tracking-widest gap-4">
@@ -336,6 +339,8 @@ function printReport() {
     
     // Memastikan printer mencetak warna/border dengan tegas
     doc.write('* { color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }');
+    doc.write('.flex-signature { display: flex !important; justify-content: space-between !important; width: 100% !important; }');
+    doc.write('.sig-box { text-align: center !important; width: 40% !important; }'); // Lebar box TTD saat dicetak
     doc.write('</style></head><body>');
     doc.write(printContents);
     doc.write('</body></html>');

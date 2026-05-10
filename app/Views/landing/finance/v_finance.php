@@ -130,39 +130,106 @@
     document.addEventListener("DOMContentLoaded", function () {
         
         // --- 1. INISIALISASI CHART (Line Chart) ---
+        // const ctxLine = document.getElementById('lineChartKeuangan');
+        // if (ctxLine) {
+        //     const totalData = <?= json_encode($chartDataTotal ?? []) ?>;
+        //     const detailData = <?= json_encode($chartDetail ?? []) ?>;
+        //     const labels = totalData.length > 0 ? totalData.map(item => item.bulan) : ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
+            
+        //     const datasets = [];
+        //     datasets.push({
+        //         label: 'Total Saldo (Global)',
+        //         data: totalData.map(item => item.masuk),
+        //         borderColor: '#10b981',
+        //         backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        //         borderWidth: 3,
+        //         fill: true,
+        //         tension: 0.4,
+        //         pointRadius: 4
+        //     });
+
+        //     const colors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#6366f1'];
+        //     let colorIdx = 0;
+        //     for (const [kategori, values] of Object.entries(detailData)) {
+        //         const dataPoint = labels.map(bulan => {
+        //             const found = values.find(v => v.bulan === bulan);
+        //             return found ? parseFloat(found.neto) : 0;
+        //         });
+        //         datasets.push({
+        //             label: `Neto ${kategori}`,
+        //             data: dataPoint,
+        //             borderColor: colors[colorIdx % colors.length],
+        //             borderDash: [5, 5], 
+        //             borderWidth: 2,
+        //             fill: false,
+        //             tension: 0.4,
+        //             pointStyle: 'circle'
+        //         });
+        //         colorIdx++;
+        //     }
+
+        //     new Chart(ctxLine, {
+        //         type: 'line',
+        //         data: { labels: labels, datasets: datasets },
+        //         options: {
+        //             responsive: true,
+        //             maintainAspectRatio: false,
+        //             interaction: { mode: 'index', intersect: false },
+        //             plugins: {
+        //                 legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true, font: { size: 11 } } },
+        //                 tooltip: {
+        //                     callbacks: {
+        //                         label: function(context) {
+        //                             let label = context.dataset.label || '';
+        //                             if (label) label += ': ';
+        //                             if (context.parsed.y !== null) {
+        //                                 label += new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(context.parsed.y);
+        //                             }
+        //                             return label;
+        //                         }
+        //                     }
+        //                 }
+        //             },
+        //             scales: {
+        //                 y: { beginAtZero: true, ticks: { callback: (value) => 'Rp ' + value.toLocaleString('id-ID') } }
+        //             }
+        //         }
+        //     });
+        // }
         const ctxLine = document.getElementById('lineChartKeuangan');
         if (ctxLine) {
-            const totalData = <?= json_encode($chartDataTotal ?? []) ?>;
             const detailData = <?= json_encode($chartDetail ?? []) ?>;
-            const labels = totalData.length > 0 ? totalData.map(item => item.bulan) : ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
             
-            const datasets = [];
-            datasets.push({
-                label: 'Total Saldo (Global)',
-                data: totalData.map(item => item.masuk),
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointRadius: 4
-            });
+            // Ambil labels dari salah satu kategori yang memiliki data terbanyak
+            let labels = [];
+            for (const key in detailData) {
+                if (detailData[key].length > labels.length) {
+                    labels = detailData[key].map(item => item.bulan);
+                }
+            }
 
-            const colors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#6366f1'];
+            const colors = ['#8b5cf6', '#f59e0b', '#ec4899', '#6366f1'];
+            const datasets = [];
             let colorIdx = 0;
+
             for (const [kategori, values] of Object.entries(detailData)) {
-                const dataPoint = labels.map(bulan => {
-                    const found = values.find(v => v.bulan === bulan);
-                    return found ? parseFloat(found.neto) : 0;
-                });
                 datasets.push({
-                    label: `Neto ${kategori}`,
-                    data: dataPoint,
+                    label: kategori,
+                    // Mapping data saldo_akhir ke label bulan yang sesuai
+                    data: labels.map(bulan => {
+                        const found = values.find(v => v.bulan === bulan);
+                        return found ? parseFloat(found.saldo_akhir) : 0;
+                    }),
+                    // Simpan rincian masuk/keluar di properti custom untuk tooltip
+                    extra: labels.map(bulan => {
+                        const found = values.find(v => v.bulan === bulan);
+                        return found ? { masuk: found.masuk, keluar: found.keluar } : { masuk: 0, keluar: 0 };
+                    }),
                     borderColor: colors[colorIdx % colors.length],
-                    borderDash: [5, 5], 
+                    backgroundColor: colors[colorIdx % colors.length],
                     borderWidth: 2,
+                    tension: 0.3,
                     fill: false,
-                    tension: 0.4,
                     pointStyle: 'circle'
                 });
                 colorIdx++;
@@ -174,24 +241,28 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true, font: { size: 11 } } },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) label += ': ';
-                                    if (context.parsed.y !== null) {
-                                        label += new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(context.parsed.y);
-                                    }
-                                    return label;
+                                    const val = context.parsed.y;
+                                    const extra = context.dataset.extra[context.dataIndex];
+                                    const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
+                                    
+                                    return [
+                                        `${context.dataset.label}: ${fmt(val)}`,
+                                        ` • Masuk: ${fmt(extra.masuk)}`,
+                                        ` • Keluar: ${fmt(extra.keluar)}`
+                                    ];
                                 }
                             }
                         }
                     },
                     scales: {
-                        y: { beginAtZero: true, ticks: { callback: (value) => 'Rp ' + value.toLocaleString('id-ID') } }
+                        y: { 
+                            ticks: { callback: (value) => 'Rp ' + value.toLocaleString('id-ID') } 
+                        }
                     }
                 }
             });

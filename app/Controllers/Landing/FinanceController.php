@@ -44,20 +44,29 @@ class FinanceController extends BaseController
         // 2. Data Chart Total (Pemasukan vs Pengeluaran)
         // $data['chartDataTotal']  = $this->keuanganModel->getChartTotal();
         // Iterasi - 2
-        $data['chartDataTotal']  = $this->keuanganModel->getChartTotal(6, false);
+        // $data['chartDataTotal']  = $this->keuanganModel->getChartTotal(6, false);
 
         // 2. Ambil Chart Detail per Kategori
         // $kategoriList = $db->table('kategori_keuangan')->get()->getResultArray();
         // Iterasi - 2
-        $kategoriList = $this->kategoriModel->get()->getResultArray();
-        $chartDetail  = [];
-        foreach ($kategoriList as $kat) {
-            // $chartDetail[$kat['kategori']] = $this->keuanganModel->getNetoByKategori($kat['id_kategori_keuangan']);
-            // Iterasi - 2
-            $chartDetail[$kat['kategori']] = $this->keuanganModel->getNetoByKategori($kat['id_kategori_keuangan'], 6, false);
+            // $kategoriList = $this->kategoriModel->get()->getResultArray();
+            // $chartDetail  = [];
+            // foreach ($kategoriList as $kat) {
+            //     // $chartDetail[$kat['kategori']] = $this->keuanganModel->getNetoByKategori($kat['id_kategori_keuangan']);
+            //     // Iterasi - 2
+            //     $chartDetail[$kat['kategori']] = $this->keuanganModel->getNetoByKategori($kat['id_kategori_keuangan'], 6, false);
 
-        }
-        $data['chartDetail'] = $chartDetail;
+            // }
+            // $data['chartDetail'] = $chartDetail;
+
+            $kategoriList = $this->kategoriModel->findAll();
+            $chartDetail  = [];
+
+            foreach ($kategoriList as $kat) {
+                $chartDetail[$kat['kategori']] = $this->keuanganModel->getSaldoPerKategori($kat['id_kategori_keuangan'], 6, false);
+            }
+
+            $data['chartDetail'] = $chartDetail;
 
         // // 3. Laporan Saat Ini & Transaksi Terkini
         // $currentReport = $this->laporanModel

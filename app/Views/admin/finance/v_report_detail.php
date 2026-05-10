@@ -84,74 +84,75 @@
                         </h3>
                     </div>
 
-                    <!-- Gunakan Flexbox untuk menyejajarkan Tabel dan TTD -->
-                    <div class="flex-container" style="display: flex; gap: 20px; align-items: stretch;">
-                        
-                        <!-- Tabel Keuangan (Lebar diatur via CSS Print) -->
-                        <div class="table-side" style="flex: 1;">
-                            <table class="w-full border-collapse border-2 border-black font-serif text-[11pt]">
-                                <tbody>
-                                    <?php 
-                                    $grandTotalSeluruhnya = 0;
-                                    foreach ($grouped as $key => $data): 
-                                        $grandTotalSeluruhnya += $data['saldo_akhir'];
-                                        $tglAwal = date('d/m/y', strtotime($report['started_at'] . ' -1 day'));
-                                        $tglAkhir = date('d/m/y', strtotime($report['ended_at']));
-                                    ?>
-                                        <!-- Konten Tabel Anda Tetap Sama Seperti Sebelumnya -->
-                                        <tr class="bg-gray-100 font-bold">
-                                            <td class="border-2 border-black p-1 uppercase">
-                                                <?= $key ?>. <?= $data['judul'] ?> s/d Tgl. <?= $tglAwal ?>
-                                            </td>
-                                            <td class="border-2 border-black p-1 text-right w-48">
-                                                Rp <?= number_format($data['saldo_awal'], 0, ',', '.') ?>
-                                            </td>
-                                        </tr>
-                                        <?php foreach ($data['summary'] as $row): ?>
-                                            <tr>
-                                                <td class="border-2 border-black p-1 pl-6 italic">
-                                                    - <?= $row['keterangan'] ?> 
-                                                    <?php if(!empty($row['alokasi'])): ?>
-                                                        (<?= implode(', ', $row['alokasi']) ?>)
-                                                    <?php endif; ?>
-                                                    <?= $row['jenis'] == 'pemasukan' ? '(+)' : '(-)' ?>
+                    <div class="flex flex-row overflow-x-auto print-flex gap-6 items-stretch">
+                        <div class="table-side w-2/3 flex-none">
+                            <div class="overflow-x-auto">
+                                <table class="w-full border-collapse border-2 border-black font-serif text-[10pt] md:text-[11pt]">
+                                    <tbody>
+                                        <?php 
+                                        $grandTotalSeluruhnya = 0;
+                                        foreach ($grouped as $key => $data): 
+                                            $grandTotalSeluruhnya += $data['saldo_akhir'];
+                                            $tglAwal = date('d/m/y', strtotime($report['started_at'] . ' -1 day'));
+                                            $tglAkhir = date('d/m/y', strtotime($report['ended_at']));
+                                        ?>
+                                            <tr class="bg-gray-100 font-bold">
+                                                <td class="border-2 border-black p-1 uppercase">
+                                                    <?= $key ?>. <?= $data['judul'] ?> s/d Tgl. <?= $tglAwal ?>
+                                                </td>
+                                                <td class="border-2 border-black p-1 text-right w-32 md:w-40">
+                                                    Rp<?= number_format($data['saldo_awal'], 0, ',', '.') ?>
+                                                </td>
+                                            </tr>
+
+                                            <?php foreach ($data['summary'] as $row): ?>
+                                                <tr>
+                                                    <td class="border-2 border-black p-1 pl-6 italic">
+                                                        - <?= $row['keterangan'] ?> 
+                                                        <?php if(!empty($row['alokasi'])): ?>
+                                                            (<?= implode(', ', $row['alokasi']) ?>)
+                                                        <?php endif; ?>
+                                                        <?= $row['jenis'] == 'pemasukan' ? '(+)' : '(-)' ?>
+                                                    </td>
+                                                    <td class="border-2 border-black p-1 text-right">
+                                                        Rp<?= number_format($row['total'], 0, ',', '.') ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+
+                                            <tr class="bg-gray-200 font-bold uppercase text-sm">
+                                                <td class="border-2 border-black p-1">
+                                                    TOTAL SALDO <?= $data['judul'] ?> s/d Tgl. <?= $tglAkhir ?>
                                                 </td>
                                                 <td class="border-2 border-black p-1 text-right">
-                                                    Rp <?= number_format($row['total'], 0, ',', '.') ?>
+                                                    Rp<?= number_format($data['saldo_akhir'], 0, ',', '.') ?>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
-                                        <tr class="bg-gray-200 font-bold uppercase">
-                                            <td class="border-2 border-black p-1">
-                                                TOTAL SALDO <?= $data['judul'] ?> s/d Tgl. <?= $tglAkhir ?>
+
+                                        <tr class="bg-gray-300 font-bold uppercase text-[12pt]">
+                                            <td class="border-2 border-black p-2 text-center text-blue-900">
+                                                TOTAL KAS MASJID AL-MANAAR (SELURUHNYA)
                                             </td>
-                                            <td class="border-2 border-black p-1 text-right">
-                                                Rp <?= number_format($data['saldo_akhir'], 0, ',', '.') ?>
+                                            <td class="border-2 border-black p-2 text-right text-blue-900">
+                                                Rp<?= number_format($grandTotalSeluruhnya, 0, ',', '.') ?>
                                             </td>
                                         </tr>
-                                    <?php endforeach; ?>
-                                    <tr class="bg-gray-300 font-bold uppercase text-[12pt]">
-                                        <td class="border-2 border-black p-2 text-center">
-                                            TOTAL KAS MASJID AL-MANAAR (SELURUHNYA)
-                                        </td>
-                                        <td class="border-2 border-black p-2 text-right">
-                                            Rp <?= number_format($grandTotalSeluruhnya, 0, ',', '.') ?>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
 
-                        <!-- Kolom Tanda Tangan (Sembunyi di Layar, Muncul di Cetak) -->
-                        <div class="ttd-side" style="width: 25%; flex-direction: column; justify-content: space-between; font-family: 'Times New Roman', serif;">
-                            <div style="text-align: center; margin-top: 10px;">
-                                <p>Jakarta, <?= format_indo(date('Y-m-d'), 'date') ?></p>
-                                <p style="margin-bottom: 60px;">Sekertaris,</p>
-                                <p class="font-bold">( ............................ )</p>
+                        <div class="ttd-side w-1/3 flex-none p-6 font-serif flex flex-col bg-gray-50/30">
+                            <div class="text-center">
+                                <p class="text-sm mb-1 italic text-gray-600">Jakarta, <?= format_indo(date('Y-m-d'), 'slash') ?></p>
+                                <p class="text-lg font-medium">Sekretaris,</p>
+                                <div class="h-24 md:h-36"></div> <p class="font-bold underline decoration-1 underline-offset-8">(............................................)</p>
                             </div>
-                            <div style="text-align: center; margin-bottom: 20px;">
-                                <p style="margin-bottom: 60px;">Bendahara,</p>
-                                <p class="font-bold">( ............................ )</p>
+                            
+                            <div class="text-center mb-6">
+                                <p class="text-lg font-medium">Bendahara,</p>
+                                <div class="h-24 md:h-36"></div> <p class="font-bold underline decoration-1 underline-offset-8">(............................................)</p>
                             </div>
                         </div>
 
@@ -159,17 +160,16 @@
                 </div>
 
                 <?php if (!empty($report['catatan']) && $report['catatan'] != '-'): ?>
-                <div class="p-4 border border-black rounded-xl bg-amber-50">
-                    <h4 class="text-xs font-black uppercase underline mb-2">Catatan Laporan:</h4>
-                    <div class="text-sm italic leading-relaxed prose prose-sm max-w-none">
-                        <?= $report['catatan'] ?>
+                    <div class="p-4 border border-black rounded-xl bg-amber-50">
+                        <h4 class="text-xs font-black uppercase underline mb-2">Catatan Laporan:</h4>
+                        <div class="text-sm italic leading-relaxed prose prose-sm max-w-none">
+                            <?= $report['catatan'] ?>
+                        </div>
                     </div>
-                </div>
                 <?php endif; ?>
 
                 <div class="mt-10 pt-6 border-t border-gray-200 flex justify-between items-center text-[10px] text-gray-400 uppercase tracking-widest italic">
                     <p>Waktu Perolehan Data: <?= format_indo(date('Y-m-d H:i:s'), 'datetime') ?> WIB</p>
-                    <p>SIM Al-Manaar Slipi</p>
                 </div>
             </div>
         </div>
@@ -194,19 +194,24 @@
         doc.open();
         doc.write('<html><head><title>Cetak Laporan</title>');
         doc.write('<style>');
-        doc.write('@page { size: 330mm 215mm; margin: 15mm; }');
+        doc.write('@page { size: 330mm 215mm; margin: 10mm; }');
         doc.write('body { font-family: "Times New Roman", serif; font-size: 11pt; line-height: 1.2; color: black; background: white; padding: 0; margin: 0; }');
         
-        // TAMBAHKAN CSS BORDER DI SINI
         doc.write('table { width: 100%; border-collapse: collapse; margin-bottom: 8px; border: 2px solid black; }');
-        doc.write('th, td { border: 1px solid black; padding: 6px; }');
+        doc.write('th, td { border: 1px solid black; padding: 4px 6px; }');
         
-        doc.write('.flex { display: flex; justify-content: space-between; }');
+        // PERBAIKAN CSS CETAK
+        doc.write('.print-flex { display: flex !important; flex-direction: row !important; gap: 15px !important; align-items: start !important; }');
+        doc.write('.table-side { width: 75% !important; flex: none !important; }');
+        doc.write('.ttd-side { width: 25% !important; border: 2px solid black !important; padding: 10px !important; display: block !important; }');
+        doc.write('.ttd-side div { margin-bottom: 30px !important; }'); // Jarak antar TTD saat cetak
+        
         doc.write('.text-right { text-align: right; }');
         doc.write('.text-center { text-align: center; }');
         doc.write('.font-bold { font-weight: bold; }');
+        doc.write('.uppercase { text-transform: uppercase; }');
+        doc.write('.italic { font-style: italic; }');
         
-        // Memastikan printer mencetak warna/border dengan tegas
         doc.write('* { color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }');
         doc.write('</style></head><body>');
         doc.write(printContents);

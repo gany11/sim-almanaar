@@ -272,4 +272,45 @@ class KeuanganModel extends Model
             ORDER BY created_at ASC
         ", [$idKategori, $limitBulan, $waktuBatas])->getResultArray();
     }
+
+    public function getSaldoPerKategori($idKategori, $limitBulan = 6, bool $isCurrent = true)
+    {
+        $waktuBatas = $isCurrent ? date('Y-m-d H:i:s') : date('Y-m-d', strtotime('last thursday')) . ' 23:59:59';
+
+        // 1. Ambil Saldo Awal (sebelum batas interval chart)
+        $awal = $this->db->query("
+            SELECT SUM(CASE WHEN jenis = 'pemasukan' THEN jumlah ELSE -jumlah END) as saldo_awal
+            FROM keuangan
+            WHERE id_kategori_keuangan = ?
+            AND created_at < DATE_SUB(NOW(), INTERVAL ? MONTH)
+            AND deleted_at IS NULL
+        ", [$idKategori, $limitBulan])->getRowArray();
+        
+        $saldoBerjalan = $awal['saldo_awal'] ?? 0;
+
+        // 2. Ambil mutasi bulanan
+        $mutasi = $this->db->query("
+            SELECT 
+                DATE_FORMAT(created_at, '%M') as bulan,
+                SUM(CASE WHEN jenis = 'pemasukan' THEN jumlah ELSE 0 END) as masuk,
+                SUM(CASE WHEN jenis = 'pengeluaran' THEN jumlah ELSE 0 END) as keluar,
+                MONTH(created_at) as bulan_num,
+                YEAR(created_at) as tahun_num
+            FROM keuangan
+            WHERE id_kategori_keuangan = ?
+            AND created_at >= DATE_SUB(NOW(), INTERVAL ? MONTH)
+            AND created_at <= ?
+            AND deleted_at IS NULL
+            GROUP BY tahun_num, bulan_num, bulan
+            ORDER BY tahun_num ASC, bulan_num ASC
+        ", [$idKategori, $limitBulan, $waktuBatas])->getResultArray();
+
+        // 3. Hitung Saldo Akhir Kumulatif tiap bulan
+        foreach ($mutasi as &$m) {
+            $saldoBerjalan += ($m['masuk'] - $m['keluar']);
+            $m['saldo_akhir'] = $saldoBerjalan;
+        }
+
+        return $mutasi;
+    }
 }
