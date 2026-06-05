@@ -13,7 +13,6 @@
 
                     <div class="flex flex-col">
                         <span class="font-bold text-gray-800 line-clamp-1 leading-tight"><?= $row['judul'] ?></span>
-                        <span class="text-[10px] text-gray-400 uppercase tracking-tighter">ID: #<?= $row['id_publikasi'] ?></span>
                     </div>
                 </div>
             </td>

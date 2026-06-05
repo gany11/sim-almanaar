@@ -141,7 +141,6 @@ class AgendaController extends BaseController
             $agendaID = $this->agendaModel->insert($dataAgenda);
         }
 
-        // Handle SDM
         $sdmIds   = $this->request->getPost('sdm_id');
         $sdmRoles = $this->request->getPost('sdm_role');
 
@@ -157,7 +156,6 @@ class AgendaController extends BaseController
                         if ($newSdm) {
                             $finalSdmId = $newSdm['id_sdm'];
                         } else {
-                            // Jika SDM baru, tambahkan created_by
                             $finalSdmId = $this->sdmModel->insert([
                                 'nama'       => $val,
                                 'created_by' => $currentUserId

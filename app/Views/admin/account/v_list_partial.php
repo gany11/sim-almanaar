@@ -17,7 +17,28 @@
                 </span>
             </td>
             <td class="px-6 py-4 text-sm text-gray-600">
-                <?= $row->email ?>
+                <?php 
+                    $email = $row->email;
+                    if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        list($username, $domain) = explode('@', $email);
+                        
+                        $length = strlen($username);
+                        
+                        if ($length <= 2) {
+                            $maskedUsername = substr($username, 0, 1) . '*';
+                        } else {
+                            $start = substr($username, 0, 2);
+                            $starsCount = max(4, $length - 2); 
+                            $stars = str_repeat('*', $starsCount);
+                            
+                            $maskedUsername = $start . $stars;
+                        }
+                        
+                        echo $maskedUsername . '@' . $domain;
+                    } else {
+                        echo $email;
+                    }
+                ?>
             </td>
             <td class="px-6 py-4 text-center">
                 <?php if ($row->status === 'aktif'): ?>
