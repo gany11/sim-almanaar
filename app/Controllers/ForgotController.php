@@ -123,7 +123,7 @@ class ForgotController extends BaseController
             'password' => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT)
         ]);
 
-       $this->tokenModel->update($token->id_otp, [
+       $this->tokenModel->update($token->id_token, [
             'used_at' => Time::now('Asia/Jakarta')->toDateTimeString()
         ]);
 

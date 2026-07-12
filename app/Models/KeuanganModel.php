@@ -250,67 +250,254 @@ class KeuanganModel extends Model
     // }
 
     // Iterasi 2
-    public function getNetoByKategori($idKategori, $limitBulan = 6, bool $isCurrent = true)
-    {
-        // Tentukan batas waktu
-        $waktuBatas = date('Y-m-d H:i:s');
-        if (!$isCurrent) {
-            $waktuBatas = date('Y-m-d', strtotime('last thursday')) . ' 23:59:59';
-        }
+    // public function getNetoByKategori($idKategori, $limitBulan = 6, bool $isCurrent = true)
+    // {
+    //     // Tentukan batas waktu
+    //     $waktuBatas = date('Y-m-d H:i:s');
+    //     if (!$isCurrent) {
+    //         $waktuBatas = date('Y-m-d', strtotime('last thursday')) . ' 23:59:59';
+    //     }
 
-        return $this->db->query("
-            SELECT 
-                DATE_FORMAT(created_at, '%M') as bulan,
-                SUM(CASE WHEN jenis = 'pemasukan' THEN jumlah ELSE 0 END) - 
-                SUM(CASE WHEN jenis = 'pengeluaran' THEN jumlah ELSE 0 END) as neto
-            FROM keuangan
-            WHERE id_kategori_keuangan = ?
-            AND created_at >= DATE_SUB(NOW(), INTERVAL ? MONTH)
-            AND created_at <= ?
-            AND deleted_at IS NULL
-            GROUP BY YEAR(created_at), MONTH(created_at), bulan
-            ORDER BY created_at ASC
-        ", [$idKategori, $limitBulan, $waktuBatas])->getResultArray();
-    }
+    //     return $this->db->query("
+    //         SELECT 
+    //             DATE_FORMAT(created_at, '%M') as bulan,
+    //             SUM(CASE WHEN jenis = 'pemasukan' THEN jumlah ELSE 0 END) - 
+    //             SUM(CASE WHEN jenis = 'pengeluaran' THEN jumlah ELSE 0 END) as neto
+    //         FROM keuangan
+    //         WHERE id_kategori_keuangan = ?
+    //         AND created_at >= DATE_SUB(NOW(), INTERVAL ? MONTH)
+    //         AND created_at <= ?
+    //         AND deleted_at IS NULL
+    //         GROUP BY YEAR(created_at), MONTH(created_at), bulan
+    //         ORDER BY created_at ASC
+    //     ", [$idKategori, $limitBulan, $waktuBatas])->getResultArray();
+    // }
 
-    public function getSaldoPerKategori($idKategori, $limitBulan = 6, bool $isCurrent = true)
-    {
-        $waktuBatas = $isCurrent ? date('Y-m-d H:i:s') : date('Y-m-d', strtotime('last thursday')) . ' 23:59:59';
+    // public function getSaldoPerKategori($idKategori, $limitBulan = 6, bool $isCurrent = true)
+    // {
+    //     $waktuBatas = $isCurrent ? date('Y-m-d H:i:s') : date('Y-m-d', strtotime('last thursday')) . ' 23:59:59';
 
-        // 1. Ambil Saldo Awal (sebelum batas interval chart)
-        $awal = $this->db->query("
-            SELECT SUM(CASE WHEN jenis = 'pemasukan' THEN jumlah ELSE -jumlah END) as saldo_awal
-            FROM keuangan
-            WHERE id_kategori_keuangan = ?
-            AND created_at < DATE_SUB(NOW(), INTERVAL ? MONTH)
-            AND deleted_at IS NULL
-        ", [$idKategori, $limitBulan])->getRowArray();
+    //     // 1. Ambil Saldo Awal (sebelum batas interval chart)
+    //     $awal = $this->db->query("
+    //         SELECT SUM(CASE WHEN jenis = 'pemasukan' THEN jumlah ELSE -jumlah END) as saldo_awal
+    //         FROM keuangan
+    //         WHERE id_kategori_keuangan = ?
+    //         AND created_at < DATE_SUB(NOW(), INTERVAL ? MONTH)
+    //         AND deleted_at IS NULL
+    //     ", [$idKategori, $limitBulan])->getRowArray();
         
-        $saldoBerjalan = $awal['saldo_awal'] ?? 0;
+    //     $saldoBerjalan = $awal['saldo_awal'] ?? 0;
 
-        // 2. Ambil mutasi bulanan
-        $mutasi = $this->db->query("
-            SELECT 
-                DATE_FORMAT(created_at, '%M') as bulan,
-                SUM(CASE WHEN jenis = 'pemasukan' THEN jumlah ELSE 0 END) as masuk,
-                SUM(CASE WHEN jenis = 'pengeluaran' THEN jumlah ELSE 0 END) as keluar,
-                MONTH(created_at) as bulan_num,
-                YEAR(created_at) as tahun_num
-            FROM keuangan
-            WHERE id_kategori_keuangan = ?
-            AND created_at >= DATE_SUB(NOW(), INTERVAL ? MONTH)
-            AND created_at <= ?
-            AND deleted_at IS NULL
-            GROUP BY tahun_num, bulan_num, bulan
-            ORDER BY tahun_num ASC, bulan_num ASC
-        ", [$idKategori, $limitBulan, $waktuBatas])->getResultArray();
+    //     // 2. Ambil mutasi bulanan
+    //     $mutasi = $this->db->query("
+    //         SELECT 
+    //             DATE_FORMAT(created_at, '%M') as bulan,
+    //             SUM(CASE WHEN jenis = 'pemasukan' THEN jumlah ELSE 0 END) as masuk,
+    //             SUM(CASE WHEN jenis = 'pengeluaran' THEN jumlah ELSE 0 END) as keluar,
+    //             MONTH(created_at) as bulan_num,
+    //             YEAR(created_at) as tahun_num
+    //         FROM keuangan
+    //         WHERE id_kategori_keuangan = ?
+    //         AND created_at >= DATE_SUB(NOW(), INTERVAL ? MONTH)
+    //         AND created_at <= ?
+    //         AND deleted_at IS NULL
+    //         GROUP BY tahun_num, bulan_num, bulan
+    //         ORDER BY tahun_num ASC, bulan_num ASC
+    //     ", [$idKategori, $limitBulan, $waktuBatas])->getResultArray();
 
-        // 3. Hitung Saldo Akhir Kumulatif tiap bulan
-        foreach ($mutasi as &$m) {
-            $saldoBerjalan += ($m['masuk'] - $m['keluar']);
-            $m['saldo_akhir'] = $saldoBerjalan;
+    //     // 3. Hitung Saldo Akhir Kumulatif tiap bulan
+    //     foreach ($mutasi as &$m) {
+    //         $saldoBerjalan += ($m['masuk'] - $m['keluar']);
+    //         $m['saldo_akhir'] = $saldoBerjalan;
+    //     }
+
+    //     return $mutasi;
+    // }
+
+    public function getSaldoPerKategori(
+        $idKategori,
+        $limitBulan = 6,
+        bool $isCurrent = true,
+        $idAlokasi = null,
+        $idDetail = null
+    ) {
+
+        $waktuBatas = $isCurrent
+            ? date('Y-m-d H:i:s')
+            : date('Y-m-d', strtotime('last thursday')) . ' 23:59:59';
+
+        $startDate = date('Y-m-01', strtotime('-' . ($limitBulan - 1) . ' months'));
+
+        // =====================================
+        // Filter dinamis
+        // =====================================
+
+        $where = "
+            keuangan.id_kategori_keuangan = ?
+            AND keuangan.deleted_at IS NULL
+        ";
+
+        $paramsAwal   = [$idKategori];
+        $paramsMutasi = [$idKategori];
+
+        if (!empty($idAlokasi)) {
+            $where .= " AND detail_alokasi.id_alokasi = ?";
+            $paramsAwal[]   = $idAlokasi;
+            $paramsMutasi[] = $idAlokasi;
         }
 
-        return $mutasi;
+        if (!empty($idDetail)) {
+            $where .= " AND keuangan.id_detail_alokasi = ?";
+            $paramsAwal[]   = $idDetail;
+            $paramsMutasi[] = $idDetail;
+        }
+
+        // =====================================
+        // Nilai awal
+        // =====================================
+
+        // Jika memakai filter Alokasi / Detail
+        // gunakan NETTO mulai dari 0
+        if (!empty($idAlokasi) || !empty($idDetail)) {
+
+            $saldoBerjalan = 0;
+
+        } else {
+
+            // Tanpa filter gunakan saldo historis
+
+            $paramsAwal[] = $startDate;
+
+            $awal = $this->db->query("
+                SELECT
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN keuangan.jenis='pemasukan'
+                                    THEN keuangan.jumlah
+                                ELSE
+                                    -keuangan.jumlah
+                            END
+                        ),0
+                    ) saldo_awal
+
+                FROM keuangan
+
+                LEFT JOIN detail_alokasi
+                    ON detail_alokasi.id_detail_alokasi = keuangan.id_detail_alokasi
+
+                WHERE {$where}
+                AND keuangan.created_at < ?
+
+            ", $paramsAwal)->getRowArray();
+
+            $saldoBerjalan = (float) $awal['saldo_awal'];
+        }
+
+        // =====================================
+        // Mutasi per bulan
+        // =====================================
+
+        $paramsMutasi[] = $startDate;
+        $paramsMutasi[] = $waktuBatas;
+
+        $mutasi = $this->db->query("
+            SELECT
+                YEAR(keuangan.created_at) tahun_num,
+                MONTH(keuangan.created_at) bulan_num,
+
+                SUM(
+                    CASE
+                        WHEN keuangan.jenis='pemasukan'
+                            THEN keuangan.jumlah
+                        ELSE 0
+                    END
+                ) masuk,
+
+                SUM(
+                    CASE
+                        WHEN keuangan.jenis='pengeluaran'
+                            THEN keuangan.jumlah
+                        ELSE 0
+                    END
+                ) keluar
+
+            FROM keuangan
+
+            LEFT JOIN detail_alokasi
+                ON detail_alokasi.id_detail_alokasi = keuangan.id_detail_alokasi
+
+            WHERE {$where}
+            AND keuangan.created_at >= ?
+            AND keuangan.created_at <= ?
+
+            GROUP BY
+                YEAR(keuangan.created_at),
+                MONTH(keuangan.created_at)
+
+            ORDER BY
+                YEAR(keuangan.created_at),
+                MONTH(keuangan.created_at)
+
+        ", $paramsMutasi)->getResultArray();
+
+        // =====================================
+        // Index mutasi
+        // =====================================
+
+        $mutasiIndex = [];
+
+        foreach ($mutasi as $m) {
+
+            $key = $m['tahun_num'] . '-' . str_pad($m['bulan_num'], 2, '0', STR_PAD_LEFT);
+
+            $mutasiIndex[$key] = [
+                'masuk'  => (float) $m['masuk'],
+                'keluar' => (float) $m['keluar']
+            ];
+        }
+
+        // =====================================
+        // Bangun data chart
+        // =====================================
+
+        $hasil = [];
+
+        $tanggal = new \DateTime($startDate);
+        $akhir   = new \DateTime(date('Y-m-01', strtotime($waktuBatas)));
+
+        while ($tanggal <= $akhir) {
+
+            $key = $tanggal->format('Y-m');
+
+            $masuk  = $mutasiIndex[$key]['masuk'] ?? 0;
+            $keluar = $mutasiIndex[$key]['keluar'] ?? 0;
+
+            if (!empty($idAlokasi) || !empty($idDetail)) {
+
+                // Filter aktif → tampilkan netto bulan tersebut
+                $nilaiChart = $masuk - $keluar;
+
+            } else {
+
+                // Tanpa filter → tampilkan saldo berjalan
+                $saldoBerjalan += ($masuk - $keluar);
+                $nilaiChart = $saldoBerjalan;
+
+            }
+
+            $hasil[] = [
+                'bulan'       => $tanggal->format('F'),
+                'bulan_num'   => (int) $tanggal->format('m'),
+                'tahun_num'   => (int) $tanggal->format('Y'),
+                'masuk'       => $masuk,
+                'keluar'      => $keluar,
+                'saldo_akhir' => $nilaiChart
+            ];
+
+            $tanggal->modify('+1 month');
+        }
+
+        return $hasil;
     }
 }

@@ -24,10 +24,11 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-600 mb-2">Tema Kegiatan</label>
+                            <label class="block text-sm font-semibold text-gray-600 mb-2">Tema Kegiatan (Opsional)</label>
                             <input type="text" name="tema" value="<?= old('tema', $agenda['tema'] ?? '') ?>" 
                                 class="w-full px-5 py-3 rounded-2xl border <?= isset(session('errors')['tema']) ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200' ?> focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                placeholder="Contoh: Kajian Rutin Pekanan">
+                                placeholder="Contoh: Kajian Rutin.">
+                            <p class="text-xs text-emerald-700 mt-2">Untuk Agenda Sholat Jum'at Dapat Dikosongkan / (-) Bila Belum Ada Tema.</p>
                             <?php if (isset(session('errors')['tema'])) : ?>
                                 <p class="text-xs text-red-500 mt-2"><?= session('errors')['tema'] ?></p>
                             <?php endif; ?>
@@ -73,6 +74,16 @@
                             + Tambah Pengisi
                         </button>
                     </div>
+                    <?php if (isset(session('errors')['sdm'])): ?>
+                        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                            <div class="flex items-start gap-2">
+                                <i data-lucide="alert-circle" class="w-5 h-5 text-red-500 mt-0.5"></i>
+                                <p class="text-sm text-red-700">
+                                    <?= session('errors')['sdm'] ?>
+                                </p>
+                            </div>
+                        </div>
+                    <?php endif; ?>
 
                     <div class="space-y-4">
                         <template x-for="(item, index) in sdmList" :key="index">
@@ -134,7 +145,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-600 mb-2">Waktu Selesai</label>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Waktu Selesai (Opsional / Otomatis) </label>
                         <input type="datetime-local" name="waktu_selesai" value="<?= isset($agenda) ? date('Y-m-d\TH:i', strtotime($agenda['waktu_selesai'])) : old('waktu_selesai') ?>" 
                             class="w-full px-5 py-3 rounded-2xl border <?= isset(session('errors')['waktu_selesai']) ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-200' ?> outline-none focus:ring-2 focus:ring-blue-500">
                         <?php if (isset(session('errors')['waktu_selesai'])) : ?>
@@ -158,10 +169,27 @@
     </form>
 </div>
 
+<?php
+    $sdmOld = [];
+
+    if (old('sdm_id')) {
+        foreach (old('sdm_id') as $i => $id) {
+            $sdmOld[] = [
+                'id_sdm' => $id,
+                'id_kategori_sdm' => old('sdm_role')[$i] ?? ''
+            ];
+        }
+    }
+?>
+
 <script>
     function agendaForm() {
         return {
-            sdmList: <?= isset($currentSdm) ? json_encode($currentSdm) : '[{id_sdm: "", id_kategori_sdm: ""}]' ?>,
+            sdmList: <?= json_encode(
+                !empty($sdmOld)
+                    ? $sdmOld
+                    : ($currentSdm ?? [['id_sdm'=>'','id_kategori_sdm'=>'']])
+            ) ?>,
             
             addSdm() {
                 this.sdmList.push({id_sdm: '', id_kategori_sdm: ''});

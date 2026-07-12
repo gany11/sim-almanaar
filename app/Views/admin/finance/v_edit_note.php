@@ -7,8 +7,8 @@
             <h2 class="text-2xl font-bold text-gray-800">Edit Catatan Laporan</h2>
             <p class="text-sm text-gray-500"><?= $report['judul'] ?></p>
         </div>
-        <a href="<?= base_url('admin/finance/routine') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar keuangan rutin
+        <a href="<?= base_url('admin/finance/report/weekly') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
         </a>
     </div>
 

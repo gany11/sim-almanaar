@@ -7,13 +7,13 @@
             <h2 class="text-2xl font-bold text-gray-800"><?= isset($keuangan) ? 'Edit Transaksi' : 'Catat Transaksi Baru' ?></h2>
             <p class="text-sm text-gray-500">Formulir arus kas harian/mingguan Masjid Al-Manaar.</p>
         </div>
-        <a href="<?= base_url('admin/finance/routine') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+        <a href="<?= base_url('admin/finance/data') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar keuangan rutin
         </a>
     </div>
 
     <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        <form action="<?= isset($keuangan) ? base_url('admin/finance/routine/update/'.$keuangan['id_keuangan']) : base_url('admin/finance/routine/save') ?>" method="post" enctype="multipart/form-data" class="p-8">
+        <form action="<?= isset($keuangan) ? base_url('admin/finance/data/update/'.$keuangan['id_keuangan']) : base_url('admin/finance/data/save') ?>" method="post" enctype="multipart/form-data" class="p-8">
             <?= csrf_field() ?>
             
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">

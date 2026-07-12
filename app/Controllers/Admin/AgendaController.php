@@ -9,6 +9,9 @@ use App\Models\KategoriSdmModel;
 use App\Models\KeteranganWaktuModel;
 use App\Models\SdmAgendaModel;
 
+use IslamicNetwork\PrayerTimes\PrayerTimes;
+use IslamicNetwork\PrayerTimes\Method;
+
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
 
@@ -103,13 +106,88 @@ class AgendaController extends BaseController
     protected function _store($id = null)
     {
         $rules = $this->agendaModel->validationRules;
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+
+        $idKategoriAgenda = $this->request->getPost('id_kategori_agenda');
+
+        if ($idKategoriAgenda == 1) {
+            $rules['tema'] = [
+                'rules' => 'permit_empty|max_length[255]',
+                'errors' => [
+                    'max_length' => 'Tema agenda maksimal 255 karakter.',
+                ]
+            ];
         }
 
-        $currentUserId = session()->get('id_akun'); // Ambil ID akun dari session
+        $errors = [];
+
+        // Validasi bawaan CI4
+        if (!$this->validate($rules)) {
+            $errors = $this->validator->getErrors();
+        }
+
+        // Validasi SDM
+        $sdmIds   = $this->request->getPost('sdm_id') ?? [];
+        $sdmRoles = $this->request->getPost('sdm_role') ?? [];
+
+        if (empty($sdmIds)) {
+            $errors['sdm'] = 'Minimal harus ada satu pengisi.';
+        } else {
+            foreach ($sdmIds as $i => $sdmId) {
+
+                // Jika salah satu nama atau peran kosong
+                if (empty($sdmId) || empty($sdmRoles[$i])) {
+                    $errors['sdm'] = 'Semua pengisi beserta perannya wajib diisi.';
+                    break; // cukup satu pesan saja
+                }
+            }
+        }
+
+        // Satu kali redirect
+        if (!empty($errors)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('errors', $errors);
+        }
+
+        $currentUserId = session()->get('id_akun');
         $startStr = $this->request->getPost('waktu_mulai');
         $endStr   = $this->request->getPost('waktu_selesai');
+
+        if ($idKategoriAgenda == 1) {
+            // Ambil tanggal saja
+            $tanggal = date('Y-m-d', strtotime($startStr));
+
+            // Pastikan hari Jumat
+            if (date('N', strtotime($tanggal)) != 5) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('errors', [
+                        'waktu_mulai' => 'Sholat Jumat hanya dapat dijadwalkan pada hari Jumat.'
+                    ]);
+            }
+
+            // $latitude  = -6.190834662826311;
+            // $longitude = 106.80125993207903;
+            // $timezone  = 'Asia/Jakarta';
+
+            // $pt = new PrayerTimes(Method::METHOD_SINGAPORE);
+
+            // $date = new \DateTime($tanggal, new \DateTimeZone('Asia/Jakarta'));
+
+            // $times = $pt->getTimes(
+            //     $date,
+            //     $latitude,
+            //     $longitude
+            // );
+
+            // $dhuhr = $times['Dhuhr']; 
+            // $startStr = $tanggal . ' ' . $dhuhr;
+            // $endStr = date('Y-m-d H:i', strtotime($startStr . ' +1 hour'));
+        }
+
+        if (empty($endStr)) {
+            $endStr = date('Y-m-d H:i', strtotime($startStr . ' +1 hour'));
+        }
 
         if (strtotime($endStr) <= strtotime($startStr)) {
             return redirect()->back()->withInput()->with('errors', ['waktu_selesai' => 'Waktu selesai harus lebih besar dari waktu mulai.']);
@@ -119,13 +197,13 @@ class AgendaController extends BaseController
         $db->transStart();
 
         $dataAgenda = [
-            'id_kategori_agenda'         => $this->request->getPost('id_kategori_agenda'),
-            'tema'                       => $this->request->getPost('tema'),
+            'id_kategori_agenda'         => $idKategoriAgenda,
+            'tema'                       => ($idKategoriAgenda == 1 && trim($this->request->getPost('tema')) === '')? '-' : $this->request->getPost('tema'),
             'judul'                      => $this->request->getPost('judul'),
             'deskripsi'                  => $this->request->getPost('deskripsi'),
             'tempat'                     => $this->request->getPost('tempat'),
-            'waktu_mulai'                => str_replace('T', ' ', $startStr),
-            'waktu_selesai'              => str_replace('T', ' ', $endStr),
+            'waktu_mulai'                => date('Y-m-d H:i:s', strtotime($startStr)),
+            'waktu_selesai'              => date('Y-m-d H:i:s', strtotime($endStr)),
             'id_keterangan_waktu_mulai'   => $this->request->getPost('id_keterangan_waktu_mulai') ?: null,
             'id_keterangan_waktu_selesai' => $this->request->getPost('id_keterangan_waktu_selesai') ?: null,
         ];
@@ -140,9 +218,6 @@ class AgendaController extends BaseController
             $dataAgenda['created_by'] = $currentUserId;
             $agendaID = $this->agendaModel->insert($dataAgenda);
         }
-
-        $sdmIds   = $this->request->getPost('sdm_id');
-        $sdmRoles = $this->request->getPost('sdm_role');
 
         if ($agendaID) {
             $this->sdmAgendaModel->where('id_agenda', $agendaID)->delete();

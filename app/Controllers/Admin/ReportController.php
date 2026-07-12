@@ -40,11 +40,11 @@ class ReportController extends BaseController
     // public function detail($id)
     // {
     //     $report = $this->laporanModel->find($id);
-    //     if (!$report) return redirect()->to('admin/finance/routine')->with('error', 'Laporan tidak ditemukan.');
+    //     if (!$report) return redirect()->to('admin/finance/report/weekly')->with('error', 'Laporan tidak ditemukan.');
         
     //     $hariIni = date('Y-m-d');
     //     if ($report['ended_at'] > $hariIni) {
-    //         return redirect()->to('admin/finance/routine')->with('error', 'Laporan pekan berjalan belum dapat dilihat detailnya sampai periode berakhir.');
+    //         return redirect()->to('admin/finance/report/weekly')->with('error', 'Laporan pekan berjalan belum dapat dilihat detailnya sampai periode berakhir.');
     //     }
 
     //     // 1. Ambil data saldo awal (Saldo akhir dari laporan sebelumnya)
@@ -128,7 +128,7 @@ class ReportController extends BaseController
     //             ->findAll();
     //     }
 
-    //     return view('admin/finance/v_report_detail', [
+    //     return view('admin/finance/report/v_report_weekly_detail', [
     //         'title'  => 'Pratinjau Laporan Rutin',
     //         'report' => $report,
     //         'grouped' => $groupedData,
@@ -191,7 +191,7 @@ class ReportController extends BaseController
     //         ];
     //     }
 
-    //     return view('admin/finance/v_report_periodic', [
+    //     return view('admin/finance/report/v_report_periodic', [
     //         'title'   => 'Laporan Periodik Kas',
     //         'grouped' => $groupedData,
     //         'start'   => $start,
@@ -204,13 +204,13 @@ class ReportController extends BaseController
         $report = $this->laporanModel->find($id);
         
         if (!$report) {
-            return redirect()->to('admin/finance/routine')->with('error', 'Laporan tidak ditemukan.');
+            return redirect()->to('admin/finance/report/weekly')->with('error', 'Laporan tidak ditemukan.');
         }
 
         // Cek validasi 30 hari
         $limit = strtotime($report['ended_at'] . ' +30 days');
         if (time() > $limit) {
-            return redirect()->to('admin/finance/routine')->with('error', 'Batas waktu edit catatan (30 hari) sudah berakhir.');
+            return redirect()->to('admin/finance/report/weekly')->with('error', 'Batas waktu edit catatan (30 hari) sudah berakhir.');
         }
 
         return view('admin/finance/v_edit_note', [
@@ -229,19 +229,19 @@ class ReportController extends BaseController
             'updated_by' => session()->get('id_akun')
         ]);
 
-        return redirect()->to('admin/finance/routine')->with('success', 'Catatan laporan berhasil diperbarui.');
+        return redirect()->to('admin/finance/report/weekly')->with('success', 'Catatan laporan berhasil diperbarui.');
     }
 
     // Iterasi 2
     public function detail($id)
     {
         $report = $this->laporanModel->find($id);
-        if (!$report) return redirect()->to('admin/finance/routine')->with('error', 'Laporan tidak ditemukan.');
+        if (!$report) return redirect()->to('admin/finance/report/weekly')->with('error', 'Laporan tidak ditemukan.');
 
-        $hariIni = date('Y-m-d');
-        if ($report['ended_at'] > $hariIni) {
-            return redirect()->to('admin/finance/routine')->with('error', 'Laporan pekan berjalan belum dapat dilihat detailnya sampai periode berakhir.');
-        }
+        // $hariIni = date('Y-m-d');
+        // if ($report['ended_at'] > $hariIni) {
+        //     // return redirect()->to('admin/finance/report/weekly')->with('error', 'Laporan pekan berjalan belum dapat dilihat detailnya sampai periode berakhir.');
+        // }
 
         $transactions = $this->keuanganModel
             ->select('keuangan.*, rp.nama_ringkasan_protokol, da.detail_alokasi, da.id_ringkasan_protokol')
@@ -253,9 +253,10 @@ class ReportController extends BaseController
             ->findAll();
 
         $mapping = [
-            'A' => ['name' => 'Kas Yatim & PKU', 'ids' => [3, 4]],
-            'B' => ['name' => 'Kas Masjid', 'ids' => [1]],
-            'C' => ['name' => 'Kas Perawatan & Renovasi', 'ids' => [2]],
+            'A' => ['name' => 'Kas Yatim', 'ids' => [3]],
+            'B' => ['name' => 'Kas PKU', 'ids' => [4]],
+            'C' => ['name' => 'Kas Masjid', 'ids' => [1]],
+            'D' => ['name' => 'Kas Perawatan & Renovasi', 'ids' => [2]],
         ];
 
         $groupedData = [];
@@ -285,7 +286,9 @@ class ReportController extends BaseController
 
             foreach ($items as $item) {
                 $isGrouped = !empty($item['id_ringkasan_protokol']);
-                $groupKey = $isGrouped ? 'protokol_' . $item['id_ringkasan_protokol'] : 'raw_' . $item['id_keuangan'];
+                $groupKey = $isGrouped 
+                            ? 'protokol_' . $item['id_ringkasan_protokol'] . '_' . $item['jenis'] 
+                            : 'raw_' . $item['id_keuangan'] . '_' . $item['jenis'];
                 
                 if (!isset($summary[$groupKey])) {
                     $namaJenis = ucfirst($item['jenis']); 
@@ -318,7 +321,7 @@ class ReportController extends BaseController
             ];
         }
 
-        // Logika Agenda (Tetap sama)
+        // Logika Agenda
         $nextWeekStart = date('Y-m-d 00:00:00', strtotime($report['ended_at'] . ' +1 day'));
         $nextWeekEnd   = date('Y-m-d 23:59:59', strtotime($nextWeekStart . ' +6 days'));
 
@@ -340,8 +343,8 @@ class ReportController extends BaseController
                 ->findAll();
         }
 
-        return view('admin/finance/v_report_detail', [
-            'title'         => 'Pratinjau Laporan Rutin',
+        return view('admin/report/v_report_weekly_detail', [
+            'title'         => 'Detail Laporan Mingguan',
             'report'        => $report,
             'grouped'       => $groupedData,
             'agendas'       => $agendas,
@@ -353,13 +356,12 @@ class ReportController extends BaseController
 
     public function periodic()
     {
-        $start = $this->request->getGet('start_date') ?? date('Y-m-01');
-        $end   = $this->request->getGet('end_date') ?? date('Y-m-d');
-
         $today = date('Y-m-d');
-        if ($end == $today) {
-            $end = date('Y-m-d', strtotime('last thursday'));
-        }
+
+        $defaultEnd = date('Y-m-d', strtotime('last thursday'));
+
+        $end = $this->request->getPost('end_date') ?? $defaultEnd;
+        $start = $this->request->getPost('start_date') ?? date('Y-m-01', strtotime($end));
         
         $endTime = $end . ' 23:59:59';
         $startTime = $start . ' 00:00:00';
@@ -410,23 +412,365 @@ class ReportController extends BaseController
         }
         $data['mapped_transaksi'] = $mapped;
 
-        $data['detail_transaksi'] = $this->keuanganModel->select('keuangan.*, kategori_keuangan.kategori, detail_alokasi.detail_alokasi')
+        $data['detail_transaksi'] = $this->keuanganModel->select('keuangan.*, kategori_keuangan.kategori, detail_alokasi.detail_alokasi, alokasi.nama_alokasi as alokasi')
             ->join('kategori_keuangan', 'kategori_keuangan.id_kategori_keuangan = keuangan.id_kategori_keuangan')
             ->join('detail_alokasi', 'detail_alokasi.id_detail_alokasi = keuangan.id_detail_alokasi')
+            ->join('alokasi', 'alokasi.id_alokasi = detail_alokasi.id_alokasi')
             ->where('keuangan.created_at >=', $startTime)
             ->where('keuangan.created_at <=', $endTime)
             ->where('keuangan.deleted_at', null)
-            ->orderBy('keuangan.created_at', 'ASC')
+            ->orderBy('keuangan.id_kategori_keuangan', 'ASC')
+            ->orderBy('DATE(keuangan.created_at)', 'ASC')
+            ->orderBy('keuangan.jenis', 'ASC')
+            // ->orderBy('keuangan.created_at', 'ASC')
             ->findAll();
 
         // 5. Data Tambahan untuk View
-        $data['title'] = 'Laporan Periodik Kas';
+        $data['title'] = 'Laporan Keuangan Periodik';
         $data['start'] = $start;
         $data['end']   = $end;
         $data['tgl_akhir_laporan'] = $endTime;
 
         // dd($data);
 
-        return view('admin/finance/v_report_periodic', $data);
+        return view('admin/report/v_report_periodic', $data);
+    }
+
+    // Iterasi 3
+    public function weekly() {
+        $data['years'] = $this->laporanModel
+            ->select('YEAR(created_at) as year')
+            ->groupBy('year')
+            ->orderBy('year', 'DESC')
+            ->findAll();
+        $data['title'] = 'Laporan Keuangan Mingguan';
+
+        return view('admin/report/v_report_weekly_list', $data);
+    }
+
+    public function getWeeklyHistoryAjax()
+    {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(403)->setJSON(['error' => 'Akses ditolak.']);
+        }
+
+        $tahun = $this->request->getGet('tahun') ?? date('Y');
+
+        $builder = $this->laporanModel->where('YEAR(ended_at)', $tahun);
+
+        $historyData = $builder->orderBy('ended_at', 'DESC')->findAll();
+
+        $id_peran = session()->get('id_peran');
+
+        $response = [];
+        foreach ($historyData as $h) {
+            // Logika 30 hari untuk edit
+            $canEdit = (time() <= strtotime($h['ended_at'] . ' +30 days'));
+
+            $response[] = [
+                'id_laporan_mingguan' => $h['id_laporan_mingguan'],
+                'judul'               => $h['judul'],
+                'catatan'             => $h['catatan'] ? strip_tags($h['catatan']) : '-',
+                'can_view'            => in_array($id_peran, [2, 3, 4]),
+                'can_edit'            => in_array($id_peran, [4]) && $canEdit,
+            ];
+        }
+
+        return $this->response->setJSON($response);
+    }
+
+    public function monthly() {
+        $endDate = date('Y-m-d', strtotime('last thursday')) . ' 23:59:59';
+        $data['years'] = $this->keuanganModel->select("YEAR(created_at) as year")
+                         ->where("created_at <=", $endDate)
+                         ->where("deleted_at", null)
+                         ->groupBy("year")
+                         ->orderBy("year", "DESC")
+                         ->findAll();
+        $data['title'] = 'Laporan Keuangan Bulanan';
+
+        return view('admin/report/v_report_monthly_list', $data);
+    }
+
+    public function detailMonthly($tahun, $bulan)
+    {
+        $now = date('Y-m-d H:i:s');
+        $currentYear = date('Y');
+        
+        $cutOff = date('Y-m-d', strtotime('last thursday'));
+
+        $cutOffMonth = date('m', strtotime($cutOff));
+        $cutOffYear  = date('Y', strtotime($cutOff));
+        
+        $reportMonth = strtotime(sprintf('%04d-%02d-01', $tahun, $bulan));
+        $availableMonth = strtotime(date('Y-m-01', strtotime($cutOff)));
+
+        if ($reportMonth > $availableMonth) {
+            return redirect()
+                ->to('admin/finance/report/monthly')
+                ->with('error', 'Belum ada data final bulan ini.');
+        }
+
+        // Jika yang dibuka adalah bulan cut-off,
+        // tampilkan data sampai tanggal cut-off.
+        if ($tahun == $cutOffYear && $bulan == $cutOffMonth) {
+            $endDate = $cutOff . ' 23:59:59';
+        } else {
+            $endDate = date('Y-m-t', strtotime("$tahun-$bulan-01")) . ' 23:59:59';
+        }
+
+        // Saldo awal selalu dihitung dari sebelum tanggal 1 bulan terpilih
+        $targetDate = "$tahun-" . sprintf('%02d', $bulan) . "-01 00:00:00";
+        
+        // 1. Cek apakah ada transaksi di periode tersebut (sampai batas Kamis jika bulan ini)
+        $cekTransaksi = $this->keuanganModel->where("created_at <=", $endDate)
+                                            ->where("YEAR(created_at)", $tahun)
+                                            ->where("MONTH(created_at)", $bulan)
+                                            ->countAllResults();
+        
+        if ($cekTransaksi == 0) {
+            return redirect()->to('admin/finance/report/monthly')->with('error', 'Laporan tidak tersedia atau belum ada transaksi hingga batas tutup buku.');
+        }
+
+        // 2. Hitung Saldo Awal (Semua transaksi SEBELUM bulan ini)
+        $data['saldo_awal'] = $this->kategoriModel->select('kategori_keuangan.kategori, kategori_keuangan.id_kategori_keuangan')
+            ->select('(COALESCE(SUM(CASE WHEN keu.jenis = "pemasukan" AND keu.created_at < "'.$targetDate.'" AND keu.deleted_at IS NULL THEN keu.jumlah ELSE 0 END), 0) - 
+                    COALESCE(SUM(CASE WHEN keu.jenis = "pengeluaran" AND keu.created_at < "'.$targetDate.'" AND keu.deleted_at IS NULL THEN keu.jumlah ELSE 0 END), 0)) as saldo')
+            ->join('keuangan keu', 'keu.id_kategori_keuangan = kategori_keuangan.id_kategori_keuangan', 'left')
+            ->groupBy('kategori_keuangan.id_kategori_keuangan')
+            ->findAll();
+
+        // 3. Ambil Data Alokasi & Details
+        $alokasi = $this->alokasiModel->orderBy('urutan', 'ASC')->get()->getResultArray();
+        foreach ($alokasi as &$al) {
+            $al['details'] = $this->detailAlokasiModel
+                                ->where('id_alokasi', $al['id_alokasi'])
+                                ->orderBy('id_detail_alokasi', 'ASC')
+                                ->get()->getResultArray();
+        }
+        $data['alokasi'] = $alokasi;
+
+        // 4. Mapped Transaksi dengan Filter End Date
+        $rawTransaksi = $this->keuanganModel->select('id_detail_alokasi, id_kategori_keuangan, jenis, SUM(jumlah) as total')
+            ->where("created_at <=", $endDate)
+            ->where("YEAR(created_at)", $tahun)
+            ->where("MONTH(created_at)", $bulan)
+            ->groupBy('id_detail_alokasi, id_kategori_keuangan, jenis')
+            ->findAll();
+
+        $mapped = [];
+        foreach ($rawTransaksi as $rt) {
+            $mapped[$rt['id_detail_alokasi']][$rt['id_kategori_keuangan']][$rt['jenis']] = $rt['total'];
+        }
+        $data['mapped_transaksi'] = $mapped;
+
+        // 5. Detail Transaksi (Tabel Bawah) dengan Filter End Date
+        $data['detail_transaksi'] = $this->keuanganModel->select('keuangan.*, kategori_keuangan.kategori, kategori_keuangan.class_color, detail_alokasi.detail_alokasi, alokasi.nama_alokasi as alokasi')
+            ->join('kategori_keuangan', 'kategori_keuangan.id_kategori_keuangan = keuangan.id_kategori_keuangan')
+            ->join('detail_alokasi', 'detail_alokasi.id_detail_alokasi = keuangan.id_detail_alokasi')
+            ->join('alokasi', 'alokasi.id_alokasi = detail_alokasi.id_alokasi')
+            ->where("keuangan.created_at <=", $endDate)
+            ->where("YEAR(keuangan.created_at)", $tahun)
+            ->where("MONTH(keuangan.created_at)", $bulan)
+            ->orderBy('keuangan.id_kategori_keuangan', 'ASC')
+            ->orderBy('DATE(keuangan.created_at)', 'ASC')
+            ->orderBy('keuangan.jenis', 'ASC')
+            // ->orderBy('keuangan.created_at', 'ASC')
+            ->findAll();
+
+        $data['isDraft'] = (
+            (int)$tahun === (int)$cutOffYear &&
+            (int)$bulan === (int)$cutOffMonth
+        );
+        
+        $data['bulan_txt'] = format_indo($targetDate, 'month_year');
+        $data['tgl_akhir_laporan'] = $endDate;
+        $data['title'] = "Detail Laporan " . $data['bulan_txt'];
+        return view('admin/report/v_report_monthly_detail', $data);
+    }
+
+    public function chart()
+    {
+        $startDate = date('Y-m-01', strtotime('-5 months'));
+        $endDate   = date('Y-m-d H:i:s');
+
+        $data['alokasi'] = $this->alokasiModel
+            ->select('alokasi.id_alokasi, alokasi.nama_alokasi')
+            ->join('detail_alokasi', 'detail_alokasi.id_alokasi = alokasi.id_alokasi')
+            ->join('keuangan', 'keuangan.id_detail_alokasi = detail_alokasi.id_detail_alokasi')
+            ->where('keuangan.deleted_at', null)
+            ->where('keuangan.created_at >=', $startDate)
+            ->where('keuangan.created_at <=', $endDate)
+            ->groupBy('alokasi.id_alokasi')
+            ->orderBy('alokasi.urutan', 'ASC')
+            ->findAll();
+
+        $data['title'] = 'Grafik Statistik';
+
+        return view('admin/report/v_report_chart', $data);
+    }
+
+    public function getDetailAlokasi()
+    {
+        $idAlokasi = $this->request->getGet('id_alokasi');
+
+        $startDate = date('Y-m-01', strtotime('-5 months'));
+        $endDate   = date('Y-m-d H:i:s');
+
+        $builder = $this->detailAlokasiModel
+            ->select('detail_alokasi.id_detail_alokasi, detail_alokasi.detail_alokasi')
+            ->join('keuangan', 'keuangan.id_detail_alokasi = detail_alokasi.id_detail_alokasi')
+            ->where('keuangan.deleted_at', null)
+            ->where('keuangan.created_at >=', $startDate)
+            ->where('keuangan.created_at <=', $endDate);
+
+        if (!empty($idAlokasi)) {
+            $builder->where('detail_alokasi.id_alokasi', $idAlokasi);
+        }
+
+        $detail = $builder
+            ->groupBy('detail_alokasi.id_detail_alokasi')
+            ->orderBy('detail_alokasi.detail_alokasi', 'ASC')
+            ->findAll();
+
+        return $this->response->setJSON($detail);
+    }
+
+    public function getChartData()
+    {
+        return $this->response->setJSON([
+
+            'line' => $this->chartLine(),
+
+            'kategori_masuk' => $this->pieKategori('pemasukan'),
+
+            'kategori_keluar' => $this->pieKategori('pengeluaran'),
+
+            'alokasi' => $this->pieAlokasi(),
+
+            'detail' => $this->pieDetail(),
+
+        ]);
+    }
+
+    private function buildFilter($builder)
+    {
+        $startDate = date('Y-m-01', strtotime('-5 months'));
+
+        $builder
+            ->join('detail_alokasi', 'detail_alokasi.id_detail_alokasi = keuangan.id_detail_alokasi')
+            ->where('keuangan.deleted_at', null)
+            ->where('keuangan.created_at >=', $startDate);
+
+        $alokasi = $this->request->getGet('alokasi');
+        $detail  = $this->request->getGet('detail');
+
+        if (!empty($alokasi)) {
+            $builder->where('detail_alokasi.id_alokasi', $alokasi);
+        }
+
+        if (!empty($detail)) {
+            $builder->where('keuangan.id_detail_alokasi', $detail);
+        }
+
+        return $builder;
+    }
+
+    private function chartLine()
+    {
+        $idAlokasi = $this->request->getGet('alokasi');
+        $idDetail  = $this->request->getGet('detail');
+
+        $kategoriList = $this->kategoriModel
+            ->orderBy('id_kategori_keuangan', 'ASC')
+            ->findAll();
+
+        $chart = [];
+
+        foreach ($kategoriList as $kat) {
+
+            $data = $this->keuanganModel->getSaldoPerKategori(
+                $kat['id_kategori_keuangan'],
+                6,
+                true,
+                $idAlokasi,
+                $idDetail
+            );
+
+            $adaTransaksi = false;
+
+            foreach ($data as $row) {
+                if ($row['masuk'] != 0 || $row['keluar'] != 0) {
+                    $adaTransaksi = true;
+                    break;
+                }
+            }
+
+            if ($adaTransaksi) {
+                $chart[$kat['kategori']] = $data;
+            }
+        }
+
+        return $chart;
+    }
+
+    private function pieKategori($jenis)
+    {
+        $builder = $this->keuanganModel;
+
+        $this->buildFilter($builder);
+
+        return $builder
+            ->join(
+                'kategori_keuangan',
+                'kategori_keuangan.id_kategori_keuangan=keuangan.id_kategori_keuangan'
+            )
+            ->select("
+                kategori_keuangan.kategori,
+                SUM(keuangan.jumlah) total,
+                COUNT(*) transaksi
+            ", false)
+            ->where('keuangan.jenis', $jenis)
+            ->groupBy('kategori_keuangan.id_kategori_keuangan')
+            ->orderBy('total', 'DESC')
+            ->findAll();
+    }
+
+    private function pieAlokasi()
+    {
+        $builder = $this->keuanganModel;
+
+        $this->buildFilter($builder);
+
+        return $builder
+            ->join(
+                'alokasi',
+                'alokasi.id_alokasi=detail_alokasi.id_alokasi'
+            )
+            ->select("
+                alokasi.nama_alokasi,
+                SUM(keuangan.jumlah) total,
+                COUNT(*) transaksi
+            ", false)
+            ->groupBy('alokasi.id_alokasi')
+            ->orderBy('total','DESC')
+            ->findAll();
+    }
+
+    private function pieDetail()
+    {
+        $builder = $this->keuanganModel;
+
+        $this->buildFilter($builder);
+
+        return $builder
+            ->select("
+                detail_alokasi.detail_alokasi,
+                SUM(keuangan.jumlah) total,
+                COUNT(*) transaksi
+            ", false)
+            ->groupBy('detail_alokasi.id_detail_alokasi')
+            ->orderBy('total','DESC')
+            ->findAll();
     }
 }

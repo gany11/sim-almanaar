@@ -9,7 +9,7 @@ class CreateToken extends Migration
     public function up()
     {
         $this->forge->addField([
-            'id_otp' => [
+            'id_token' => [
                 'type'           => 'INT',
                 'constraint'     => 11,
                 'unsigned'       => true,
@@ -31,7 +31,7 @@ class CreateToken extends Migration
             'deleted_at' => ['type' => 'DATETIME', 'null' => true],
         ]);
 
-        $this->forge->addKey('id_otp', true);
+        $this->forge->addKey('id_token', true);
         $this->forge->addForeignKey('id_akun', 'akun', 'id_akun', 'CASCADE', 'CASCADE');
         $this->forge->createTable('token');
     }

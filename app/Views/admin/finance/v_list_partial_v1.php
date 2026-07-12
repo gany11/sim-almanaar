@@ -27,7 +27,7 @@
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex flex-col">
-                            <span class="font-bold text-gray-800 leading-tight"><?= $row['keterangan'] ?> (<?= format_indo($row['tanggal'], 'slash') ?>)</span>
+                            <span class="font-bold text-gray-800 leading-tight"><?= $row['keterangan'] ?></span>
                             <div class="mt-1.5 space-y-0.5">
                                 <span class="text-[9px] text-blue-400 block italic">
                                     <i class="inline-block w-1.5 h-1.5 bg-blue-400 rounded-full mr-1"></i>
@@ -55,12 +55,50 @@
                                 </a>
                             <?php endif; ?>
                             <?php if (in_array(session()->get('id_peran'), [4])): ?>
-                                <a href="<?= base_url('admin/finance/data/edit/' . $row['id_keuangan']) ?>" class="p-2 bg-blue-50 text-blue-600 rounded-lg shadow-sm hover:bg-blue-600 hover:text-white transition-all" title="Edit Transaksi">
+                                <a href="<?= base_url('admin/finance/routine/edit/' . $row['id_keuangan']) ?>" class="p-2 bg-blue-50 text-blue-600 rounded-lg shadow-sm hover:bg-blue-600 hover:text-white transition-all" title="Edit Transaksi">
                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
                                 </a>
                                 <button type="button" class="btn-delete p-2 bg-red-50 text-red-600 rounded-lg shadow-sm hover:bg-red-600 hover:text-white transition-all" data-id="<?= $row['id_keuangan'] ?>" data-judul="<?= $row['keterangan'] ?>" title="Hapus Transaksi">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
+                            <?php endif; ?>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </tbody>
+</table>
+
+<table id="source-history-data" class="hidden">
+    <tbody>
+        <?php if (empty($history)): ?>
+            <tr><td colspan="3" class="px-6 py-10 text-center text-gray-400 italic">Belum ada riwayat laporan.</td></tr>
+        <?php else: ?>
+            <?php foreach ($history as $h): ?>
+                <?php 
+                    $canEdit = (time() <= strtotime($h['ended_at'] . ' +30 days')); 
+                ?>
+                <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <td class="px-6 py-4">
+                        <span class="font-bold text-gray-700 block"><?= $h['judul'] ?></span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="text-xs text-gray-500 line-clamp-1 italic"><?= $h['catatan'] ? strip_tags($h['catatan']) : '-' ?></div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex justify-center gap-2">
+                            <?php if (in_array(session()->get('id_peran'), [2,3,4])): ?>
+                                <a href="<?= base_url('admin/finance/report/detail/' . $h['id_laporan_mingguan']) ?>" class="p-2 bg-gray-50 text-gray-600 rounded-lg shadow-sm hover:bg-gray-600 hover:text-white transition-all" title="Lihat Rincian">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </a>
+                            <?php endif; ?>
+                            <?php if (in_array(session()->get('id_peran'), [4])): ?>
+                                <?php if($canEdit): ?>
+                                    <a href="<?= base_url('admin/finance/report/edit-note/' . $h['id_laporan_mingguan']) ?>" class="p-2 bg-emerald-50 text-emerald-600 rounded-lg shadow-sm hover:bg-emerald-600 hover:text-white transition-all" title="Edit Catatan">
+                                        <i data-lucide="message-square-more" class="w-4 h-4"></i>
+                                    </a>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </div>
                     </td>

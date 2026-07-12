@@ -43,10 +43,10 @@ class AgendaModel extends Model
             'rules'  => 'required', 
             'errors' => ['required' => 'Waktu mulai harus diisi.']
         ],
-        'waktu_selesai' => [
-            'rules'  => 'required',
-            'errors' => ['required' => 'Waktu selesai harus diisi.']
-        ],
+        // 'waktu_selesai' => [
+        //     'rules'  => 'required',
+        //     'errors' => ['required' => 'Waktu selesai harus diisi.']
+        // ],
     ];
 
     public function getAgendaMendatang($limit = 5)

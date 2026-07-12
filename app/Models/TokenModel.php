@@ -8,7 +8,7 @@ use CodeIgniter\I18n\Time;
 class TokenModel extends Model
 {
     protected $table            = 'token';
-    protected $primaryKey       = 'id_otp';
+    protected $primaryKey       = 'id_token';
     protected $useAutoIncrement = true;
     protected $returnType       = 'object';
     protected $allowedFields    = [

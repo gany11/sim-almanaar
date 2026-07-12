@@ -124,23 +124,74 @@
                     <span class="text-[10px] font-bold uppercase tracking-widest text-white">Keuangan</span>
                 </li>
 
-                <li>
-                    <a href="<?= base_url('admin/finance/routine') ?>" 
+                <!-- <li>
+                    <a href="<?= base_url('admin/finance/data') ?>" 
                     class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 
-                    <?= url_is('admin/finance/routine*') ? 'bg-white text-blue-600 shadow-lg font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                    <?= url_is('admin/finance/data*') ? 'bg-white text-blue-600 shadow-lg font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
                         <i data-lucide="wallet" class="w-5 h-5"></i>
                         <span class="text-sm font-medium">Keuangan Rutin</span>
                     </a>
-                </li>
+                </li> -->
                 <?php if (in_array(session()->get('id_peran'), [4])): ?>
                     <li>
+                        <a href="<?= base_url('admin/finance/data') ?>" 
+                        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 
+                        <?= url_is('admin/finance/data*') ? 'bg-white text-blue-600 shadow-lg font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                            <i data-lucide="wallet" class="w-5 h-5"></i>
+                            <span class="text-sm font-medium">Pengolahan Data</span>
+                        </a>
+                    </li>
+                <?php endif; ?>
+                <?php if (in_array(session()->get('id_peran'), [2,3,4])): ?>
+                    <li x-data="{ open: <?= url_is('admin/finance/report*') ? 'true' : 'false' ?> }">
+                        <button @click="open = !open"
+                            class="w-full flex justify-between items-center px-4 py-2.5 rounded-lg transition-all duration-200 
+                            <?= url_is('admin/finance/report*') ? 'bg-white text-blue-600 shadow-lg' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                            
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="file-pie-chart" class="w-5 h-5"></i>
+                                <span class="font-medium">Laporan</span>
+                            </div>
+
+                            <i data-lucide="chevron-right" 
+                            class="w-4 h-4 transition-transform duration-300" 
+                            :class="open ? 'rotate-90 text-blue-600' : 'text-current'"></i>
+                        </button>
+
+                        <div x-show="open" x-cloak x-transition class="mt-2 space-y-1">
+                            <a href="<?= base_url('admin/finance/report/weekly') ?>"
+                                class="flex items-center gap-3 ml-4 px-4 py-2 rounded-lg transition-all duration-200 
+                                <?= url_is('admin/finance/report/weekly*') ? 'bg-white text-blue-600 font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                                <i data-lucide="circle" class="w-2 h-2"></i> <span class="text-sm">Laporan Mingguan</span>
+                            </a>
+
+                            <?php if (in_array(session()->get('id_peran'), [4])): ?>
+                                <a href="<?= base_url('admin/finance/report/monthly') ?>"
+                                    class="flex items-center gap-3 ml-4 px-4 py-2 rounded-lg transition-all duration-200 
+                                    <?= url_is('admin/finance/report/monthly*') ? 'bg-white text-blue-600 font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                                    <i data-lucide="circle" class="w-2 h-2"></i> <span class="text-sm">Laporan Bulanan</span>
+                                </a>
+                                <a href="<?= base_url('admin/finance/report/periodic') ?>"
+                                    class="flex items-center gap-3 ml-4 px-4 py-2 rounded-lg transition-all duration-200 
+                                    <?= url_is('admin/finance/report/periodic') ? 'bg-white text-blue-600 font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                                    <i data-lucide="circle" class="w-2 h-2"></i> <span class="text-sm">Laporan Periodik</span>
+                                </a>
+                                <a href="<?= base_url('admin/finance/report/chart') ?>"
+                                    class="flex items-center gap-3 ml-4 px-4 py-2 rounded-lg transition-all duration-200 
+                                    <?= url_is('admin/finance/report/chart') ? 'bg-white text-blue-600 font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                                    <i data-lucide="circle" class="w-2 h-2"></i> <span class="text-sm">Grafik Statistik</span>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </li>
+                    <!-- <li>
                         <a href="<?= base_url('admin/finance/report/periodic') ?>" 
                         class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 
                         <?= url_is('admin/finance/report/periodic*') ? 'bg-white text-blue-600 shadow-lg font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
                             <i data-lucide="file-pie-chart" class="w-5 h-5"></i>
                             <span class="text-sm font-medium">Laporan Periodik</span>
                         </a>
-                    </li>
+                    </li> -->
                 <?php endif; ?>
             <?php endif; ?>
 

@@ -34,7 +34,7 @@ class FinanceController extends BaseController
     public function index()
     {
         // $db     = \Config\Database::connect();
-        $now    = date('Y-m-d H:i:s');
+        // $now    = date('Y-m-d H:i:s');
 
         // 1. Ringkasan Kategori (Card Saldo)
         // $data['summary_categories'] = $this->keuanganModel->getSummaryPerKategori();
@@ -186,60 +186,91 @@ class FinanceController extends BaseController
     public function getMonthlyReportAjax()
     {
         try {
-            $selectedYear = $this->request->getGet('tahun') ?? date('Y');
-            $currentMonth = (int)date('m');
-            $currentYear  = (int)date('Y');
+            $selectedYear = (int)($this->request->getGet('tahun') ?? date('Y'));
 
-            if ($selectedYear == $currentYear) {
-                $endDate = date('Y-m-d', strtotime('last thursday')) . ' 23:59:59';
+            $currentYear = date('Y');
+            $currentMonth = date('m');
+
+            // Tentukan cut-off (Kamis terakhir)
+            $cutOff = date('Y-m-d', strtotime('last thursday'));
+            $cutOffYear = date('Y', strtotime($cutOff));
+            $cutOffMonth = date('m', strtotime($cutOff));
+
+            // Untuk tahun berjalan hanya sampai cut-off
+            if ($selectedYear == $cutOffYear) {
+                $endDate = $cutOff . ' 23:59:59';
             } else {
                 $endDate = $selectedYear . '-12-31 23:59:59';
             }
 
-            $dbData = $this->keuanganModel->select("MONTH(created_at) as bulan_num")
-                            ->where("YEAR(created_at)", $selectedYear)
-                            ->where("created_at <=", $endDate)
-                            ->where("deleted_at", null)
-                            ->groupBy("bulan_num")
-                            ->orderBy("bulan_num", "DESC")
-                            ->findAll();
+            $dbData = $this->keuanganModel
+                ->select("MONTH(created_at) as bulan_num")
+                ->where("YEAR(created_at)", $selectedYear)
+                ->where("created_at <=", $endDate)
+                ->where("deleted_at", null)
+                ->groupBy("bulan_num")
+                ->orderBy("bulan_num", "DESC")
+                ->findAll();
 
             $monthlyData = [];
 
             foreach ($dbData as $row) {
+
                 $m = (int)$row['bulan_num'];
-                
-                $status = ($selectedYear == $currentYear && $m == $currentMonth) ? 'On Process' : 'Final';
-                
-                $dateString = $selectedYear . '-' . sprintf('%02d', $m) . '-01';
-                
+
+                // Bulan terakhir (sesuai cut-off) masih On Process
+                $status = (
+                    $selectedYear == $cutOffYear &&
+                    $m == $cutOffMonth
+                ) ? 'On Process' : 'Final';
+
+                $dateString = sprintf('%04d-%02d-01', $selectedYear, $m);
+
                 $monthlyData[] = [
-                    'bulan_num'  => $m,
-                    'bulan_name' => format_indo($dateString, 'month_year'),
-                    'bulan_short'=> substr(format_indo($dateString, 'month_only'), 0, 3),
-                    'tahun'      => $selectedYear,
-                    'status'     => $status,
-                    'url'        => base_url("keuangan/$selectedYear/$m")
+                    'bulan_num'   => $m,
+                    'bulan_name'  => format_indo($dateString, 'month_year'),
+                    'bulan_short' => substr(format_indo($dateString, 'month_only'), 0, 3),
+                    'tahun'       => $selectedYear,
+                    'status'      => $status,
+                    'url'         => base_url("keuangan/$selectedYear/$m")
                 ];
             }
 
             return $this->response->setJSON($monthlyData);
 
         } catch (\Exception $e) {
-            return $this->response->setStatusCode(500)->setJSON(['error' => $e->getMessage()]);
+
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'error' => $e->getMessage()
+                ]);
         }
     }
 
     public function detail($tahun, $bulan)
     {
         $now = date('Y-m-d H:i:s');
-        $currentMonth = date('m');
-        $currentYear  = date('Y');
+        $currentYear = date('Y');
+        
+        $cutOff = date('Y-m-d', strtotime('last thursday'));
 
-        // Menentukan Batas Akhir Transaksi (End Date)
-        // Jika melihat bulan ini, batasi sampai hari Kamis terakhir jam 23:59:59
-        if ($tahun == $currentYear && $bulan == $currentMonth) {
-            $endDate = date('Y-m-d', strtotime('last thursday')) . ' 23:59:59';
+        $cutOffMonth = date('m', strtotime($cutOff));
+        $cutOffYear  = date('Y', strtotime($cutOff));
+        
+        $reportMonth = strtotime(sprintf('%04d-%02d-01', $tahun, $bulan));
+        $availableMonth = strtotime(date('Y-m-01', strtotime($cutOff)));
+
+        if ($reportMonth > $availableMonth) {
+            return redirect()
+                ->to('keuangan')
+                ->with('error', 'Belum ada data final bulan ini.');
+        }
+
+        // Jika yang dibuka adalah bulan cut-off,
+        // tampilkan data sampai tanggal cut-off.
+        if ($tahun == $cutOffYear && $bulan == $cutOffMonth) {
+            $endDate = $cutOff . ' 23:59:59';
         } else {
             $endDate = date('Y-m-t', strtotime("$tahun-$bulan-01")) . ' 23:59:59';
         }
@@ -290,19 +321,27 @@ class FinanceController extends BaseController
         $data['mapped_transaksi'] = $mapped;
 
         // 5. Detail Transaksi (Tabel Bawah) dengan Filter End Date
-        $data['detail_transaksi'] = $this->keuanganModel->select('keuangan.*, kategori_keuangan.kategori, detail_alokasi.detail_alokasi')
+        $data['detail_transaksi'] = $this->keuanganModel->select('keuangan.*, kategori_keuangan.kategori, kategori_keuangan.class_color, detail_alokasi.detail_alokasi, alokasi.nama_alokasi as alokasi')
             ->join('kategori_keuangan', 'kategori_keuangan.id_kategori_keuangan = keuangan.id_kategori_keuangan')
             ->join('detail_alokasi', 'detail_alokasi.id_detail_alokasi = keuangan.id_detail_alokasi')
+            ->join('alokasi', 'alokasi.id_alokasi = detail_alokasi.id_alokasi')
             ->where("keuangan.created_at <=", $endDate)
             ->where("YEAR(keuangan.created_at)", $tahun)
             ->where("MONTH(keuangan.created_at)", $bulan)
-            ->orderBy('keuangan.created_at', 'ASC')
+            ->orderBy('keuangan.id_kategori_keuangan', 'ASC')
+            ->orderBy('DATE(keuangan.created_at)', 'ASC')
+            ->orderBy('keuangan.jenis', 'ASC')
+            // ->orderBy('keuangan.created_at', 'ASC')
             ->findAll();
 
+        $data['isDraft'] = (
+            (int)$tahun === (int)$cutOffYear &&
+            (int)$bulan === (int)$cutOffMonth
+        );
+        
         $data['bulan_txt'] = format_indo($targetDate, 'month_year');
         $data['tgl_akhir_laporan'] = $endDate;
         $data['title'] = "Detail Laporan " . $data['bulan_txt'];
-        
         return view('landing/finance/v_finance_detail', $data);
     }
 }

@@ -43,10 +43,10 @@
     <?php endif; ?>
     
     <!-- Top Section: Chart & Card Saldo -->
-    <div class="flex flex-col xl:flex-row gap-6 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         
         <!-- Main Chart -->
-        <div class="w-full xl:w-[60%] bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <i data-lucide="bar-chart-3" class="text-blue-600"></i>
                 Tren Saldo Kas (6 Bulan Terakhir)
@@ -57,32 +57,21 @@
         </div>
 
         <!-- Card Saldo Per Kategori -->
-        <div class="w-full xl:w-[40%] bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <!-- <i data-lucide="wallet" class="text-blue-600"></i> -->
+                <i data-lucide="wallet" class="text-blue-600"></i>
                 Saldo Kas
             </h3>
-            <div class="grid grid-cols-2 gap-3">
-                <?php foreach ($summary_categories as $cat): ?>
-                    <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 border-l-4 <?= $cat['class_color'] ?: 'border-blue-500' ?>">
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase font-semibold tracking-wide">
-                                <?= $cat['kategori'] ?>
-                            </p>
-
-                            <p class="text-xl font-bold text-gray-800 mt-1">
-                                Rp <?= number_format($cat['saldo'], 0, ',', '.') ?>
-                            </p>
-
-                            <p class="text-[10px] text-gray-400 mt-2">
-                                Per <?= format_indo($cat['tanggal_penghitungan'], 'full') ?>
-                            </p>
-                        </div>
-
-                        <!-- <div class="flex items-center justify-center w-12 h-12 rounded-full bg-gray-50">
-                            <i data-lucide="wallet" class="w-6 h-6 text-gray-500"></i>
-                        </div> -->
-                    </div>
+            <div class="space-y-4 max-h-80 overflow-y-auto custom-scrollbar">
+                <?php foreach($summary_categories as $cat): ?>
+                <div class="p-4 rounded-lg border-l-4 <?= $cat['class_color'] ?: 'border-blue-500' ?>">
+                    <p class="text-xs text-gray-500 uppercase font-semibold"><?= $cat['kategori'] ?></p>
+                    <p class="text-lg font-bold text-gray-800">Rp <?= number_format($cat['saldo'], 0, ',', '.') ?></p>
+                    <!-- Iterasi 2 -->
+                    <p class="text-[9px] text-gray-400 italic mt-1 pt-1 border-t border-gray-200/50">
+                        Saldo akhir per: <?= format_indo($cat['tanggal_penghitungan'], 'full') ?>
+                    </p>
+                </div>
                 <?php endforeach; ?>
             </div>
         </div>

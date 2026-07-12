@@ -16,7 +16,7 @@
                 <span>Import Excel</span>
             </button>
 
-            <a href="<?= base_url('admin/finance/data/create') ?>" 
+            <a href="<?= base_url('admin/finance/routine/create') ?>" 
                 class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> 
                 <span>Catat Transaksi</span>
@@ -149,6 +149,24 @@
         </div>
     </div>
 
+    <div class="flex items-center gap-3 mb-4">
+        <div class="h-8 w-1.5 bg-gray-400 rounded-full"></div>
+        <h3 class="font-bold text-gray-800 uppercase tracking-tight italic">Riwayat Laporan Mingguan</h3>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-6">
+        <div class="overflow-x-auto">
+            <table id="tableHistory" class="w-full text-sm text-left">
+                <thead class="text-xs text-gray-500 uppercase bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-4">Judul Laporan</th>
+                        <th class="px-6 py-4 text-center">Catatan</th>
+                        <th class="px-6 py-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="load-history"></tbody>
+            </table>
+        </div>
+    </div>
     <div x-show="openImport" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
@@ -207,13 +225,15 @@
     document.addEventListener("DOMContentLoaded", function() {
         const loadData = () => {
             const routineTable = '#tableRoutine';
+            const historyTable = '#tableHistory';
 
             if ($.fn.DataTable.isDataTable(routineTable)) $(routineTable).DataTable().clear().destroy();
+            if ($.fn.DataTable.isDataTable(historyTable)) $(historyTable).DataTable().clear().destroy();
 
-            $('#load-routine').html('<tr><td colspan="4" class="text-center py-20 text-gray-400 italic">Memuat data transaksi...</td></tr>');
+            $('#load-routine, #load-history').html('<tr><td colspan="4" class="text-center py-20 text-gray-400 italic">Memuat data transaksi...</td></tr>');
 
             $.ajax({
-                url: "<?= base_url('admin/finance/data/list') ?>",
+                url: "<?= base_url('admin/finance/routine/list') ?>",
                 type: "POST",
                 data: {
                     id_kategori_keuangan: $('#filter-cat').val(),
@@ -224,11 +244,42 @@
                     const $temp = $('<div>').append(res);
                     
                     $('#load-routine').html($temp.find('#source-routine-data tbody').html());
+                    $('#load-history').html($temp.find('#source-history-data tbody').html());
 
                     const source = $temp.find('#source-report-title');
                     $('#current-title').text(source.data('title'));
                     
                     updateActionUI(source.data('id'), source.data('note'));
+
+                    if ($('#load-history').find('td[colspan]').length === 0) {
+                    new DataTable(historyTable, {
+                        responsive: false,
+                        pageLength: 5,
+                        ordering: false,
+                        lengthMenu: [5, 10, 25, 50],
+                        language: {
+                            search: "Cari Laporan:",
+                            lengthMenu: "Tampilkan _MENU_ data", 
+                            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ laporan",
+                            infoEmpty: "Menampilkan 0 sampai 0 dari 0 laporan",
+                            infoFiltered: "(disaring dari _MAX_ total laporan)",
+                            emptyTable: "Belum ada riwayat laporan.",
+                            zeroRecords: "Laporan tidak ditemukan.",
+                            paginate: {
+                                next: '<i data-lucide="chevron-right" class="w-4 h-4"></i>',
+                                previous: '<i data-lucide="chevron-left" class="w-4 h-4"></i>'
+                            }
+                        },
+                        dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>',
+                        drawCallback: function() {
+                            if (window.reinitIcons) {
+                                window.reinitIcons();
+                            } else if (typeof lucide !== 'undefined') {
+                                lucide.createIcons();
+                            }
+                        }
+                    });
+                }
 
                     if ($('#load-routine').find('td[colspan]').length === 0) {
                         new DataTable(routineTable, {
@@ -253,7 +304,7 @@
                 },
                 error: function(xhr) {
                     console.error(xhr.responseText);
-                    $('#load-routine').html('<tr><td colspan="4" class="text-center py-10 text-red-400">Gagal memuat data.</td></tr>');
+                    $('#load-routine, #load-history').html('<tr><td colspan="4" class="text-center py-10 text-red-400">Gagal memuat data.</td></tr>');
                 }
             });
         };
@@ -261,16 +312,9 @@
         function updateActionUI(reportId, reportNote) {
             let actionBtn = '';
             if (reportId) {
-                actionBtn = `
-                    <div class="flex items-center gap-2">
-                        <a href="<?= base_url('admin/finance/report/weekly') ?>/${reportId}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider shadow-lg shadow-blue-100 transition-all active:scale-95 flex items-center justify-center gap-2">
-                            <i data-lucide="eye" class="w-3.5 h-3.5"></i> Preview Laporan
-                        </a>
-                        <a href="<?= base_url('admin/finance/report/edit-note') ?>/${reportId}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider shadow-lg shadow-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2">
-                            <i data-lucide="message-square-plus" class="w-3.5 h-3.5"></i> Catatan Laporan
-                        </a>
-                    </div>
-                `;
+                actionBtn = `<a href="<?= base_url('admin/finance/report/edit-note') ?>/${reportId}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider shadow-lg shadow-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <i data-lucide="message-square-plus" class="w-3.5 h-3.5"></i> Catatan Laporan
+                </a>`;
             }
             $('#current-report-action').html(actionBtn);
 
@@ -309,7 +353,7 @@
                     Swal.showLoading();
 
                     $.ajax({
-                        url: "<?= base_url('admin/finance/data/delete') ?>",
+                        url: "<?= base_url('admin/finance/routine/delete') ?>",
                         type: "POST",
                         data: {
                             id_keuangan: id, // Sesuaikan primary key db

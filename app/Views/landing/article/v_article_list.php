@@ -30,7 +30,7 @@
     <div class="max-w-7xl mx-auto px-4">
         <?php if (empty($article)): ?>
             <div class="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
-                <i data-lucide="articlepaper" class="w-16 h-16 text-gray-200 mx-auto mb-4"></i>
+                <i data-lucide="newspaper" class="w-16 h-16 text-gray-200 mx-auto mb-4"></i>
                 <p class="text-gray-400 italic">Belum ada artikel yang diterbitkan.</p>
             </div>
         <?php else: ?>

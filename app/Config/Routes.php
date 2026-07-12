@@ -93,26 +93,35 @@ $routes->post('admin/article/update/(:num)', 'Admin\ArticleController::update/$1
 $routes->post('admin/article/delete', 'Admin\ArticleController::delete', ['filter' => ['auth:true', 'role:3']]);
 
 // ===================== FINANCE =====================
-$routes->get('admin/finance/routine', 'Admin\FinanceController::index', ['filter' => ['auth:true', 'role:2,3,4']]);
-$routes->post('admin/finance/routine/list', 'Admin\FinanceController::list', ['filter' => ['auth:true', 'role:2,3,4']]);
+$routes->get('admin/finance/data', 'Admin\FinanceController::index', ['filter' => ['auth:true', 'role:2,3,4']]);
+$routes->post('admin/finance/data/list', 'Admin\FinanceController::list', ['filter' => ['auth:true', 'role:2,3,4']]);
 
-$routes->get('admin/finance/routine/create', 'Admin\FinanceController::create', ['filter' => ['auth:true', 'role:4']]);
-$routes->post('admin/finance/routine/save', 'Admin\FinanceController::save', ['filter' => ['auth:true', 'role:4']]);
-$routes->get('admin/finance/routine/edit/(:num)', 'Admin\FinanceController::edit/$1', ['filter' => ['auth:true', 'role:4']]);
-$routes->post('admin/finance/routine/update/(:num)', 'Admin\FinanceController::update/$1', ['filter' => ['auth:true', 'role:4']]);
-$routes->post('admin/finance/routine/delete', 'Admin\FinanceController::delete', ['filter' => ['auth:true', 'role:4']]);
+$routes->get('admin/finance/data/create', 'Admin\FinanceController::create', ['filter' => ['auth:true', 'role:4']]);
+$routes->post('admin/finance/data/save', 'Admin\FinanceController::save', ['filter' => ['auth:true', 'role:4']]);
+$routes->get('admin/finance/data/edit/(:num)', 'Admin\FinanceController::edit/$1', ['filter' => ['auth:true', 'role:4']]);
+$routes->post('admin/finance/data/update/(:num)', 'Admin\FinanceController::update/$1', ['filter' => ['auth:true', 'role:4']]);
+$routes->post('admin/finance/data/delete', 'Admin\FinanceController::delete', ['filter' => ['auth:true', 'role:4']]);
 
 // Iterasi 2
 $routes->post('admin/finance/get-detail-alokasi', 'Admin\FinanceController::getDetailAlokasi', ['filter' => 'apiGuard']);
 $routes->post('admin/finance/import-excel', 'Admin\FinanceController::importExcel', ['filter' => ['auth:true', 'role:4']]);
 
 // Report
-$routes->get('admin/finance/report/detail/(:num)', 'Admin\ReportController::detail/$1', ['filter' => ['auth:true', 'role:2,3,4']]);
+$routes->get('admin/finance/report/weekly/(:num)', 'Admin\ReportController::detail/$1', ['filter' => ['auth:true', 'role:2,3,4']]);
 
 $routes->get('admin/finance/report/edit-note/(:num)', 'Admin\ReportController::editNote/$1', ['filter' => ['auth:true', 'role:4']]);
 $routes->post('admin/finance/report/update-note', 'Admin\ReportController::updateNote', ['filter' => ['auth:true', 'role:4']]);
 
-$routes->get('admin/finance/report/periodic', 'Admin\ReportController::periodic', ['filter' => ['auth:true', 'role:4']]);
+$routes->add('admin/finance/report/periodic', 'Admin\ReportController::periodic', ['filter' => ['auth:true', 'role:4']]);
+
+//Iterasi 3
+$routes->get('admin/finance/report/weekly', 'Admin\ReportController::weekly', ['filter' => ['auth:true', 'role:2,3,4']]);
+$routes->get('admin/finance/report/monthly', 'Admin\ReportController::monthly', ['filter' => ['auth:true', 'role:4']]);
+$routes->get('admin/finance/report/monthly/(:num)/(:num)', 'Admin\ReportController::detailMonthly/$1/$2', ['filter' => ['auth:true', 'role:4']]);
+$routes->get('admin/finance/report/getWeeklyHistoryAjax', 'Admin\ReportController::getWeeklyHistoryAjax', ['filter' => 'apiGuard']);
+$routes->get('admin/finance/report/chart', 'Admin\ReportController::chart', ['filter' => ['auth:true', 'role:4']]);
+$routes->get('admin/report/chart/detail-alokasi', 'Admin\ReportController::getDetailAlokasi', ['filter' => 'apiGuard']);
+$routes->get('admin/report/chart/chart-data', 'Admin\ReportController::getChartData', ['filter' => 'apiGuard']);
 
 // ===================== AGENDA =====================
 $routes->get('admin/agenda', 'Admin\AgendaController::index', ['filter' => ['auth:true', 'role:2,3,5']]);
@@ -123,5 +132,6 @@ $routes->post('admin/agenda/save', 'Admin\AgendaController::save', ['filter' => 
 $routes->get('admin/agenda/edit/(:num)', 'Admin\AgendaController::edit/$1', ['filter' => ['auth:true', 'role:3,5']]);
 $routes->post('admin/agenda/update/(:num)', 'Admin\AgendaController::update/$1', ['filter' => ['auth:true', 'role:3,5']]);
 $routes->post('admin/agenda/delete', 'Admin\AgendaController::delete', ['filter' => ['auth:true', 'role:3,5']]);
+$routes->post('admin/agenda/import-excel', 'Admin\AgendaController::importExcel', ['filter' => ['auth:true', 'role:3,5']]);
 
-// $routes->get('/sholat', 'SholatController::index');
+$routes->get('/sholat', 'SholatController::index');

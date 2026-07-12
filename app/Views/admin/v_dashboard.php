@@ -126,7 +126,7 @@
                         </div>
                     <?php endif; ?>
                 </div>
-                <a href="<?= base_url('admin/agenda') ?>" class="block w-full text-center py-3 mt-8 bg-gray-50 text-gray-500 rounded-2xl text-xs font-bold hover:bg-gray-100 transition-all uppercase tracking-widest">
+                <a href="<?= base_url('agenda') ?>" class="block w-full text-center py-3 mt-8 bg-gray-50 text-gray-500 rounded-2xl text-xs font-bold hover:bg-gray-100 transition-all uppercase tracking-widest">
                     Lihat Semua Agenda
                 </a>
             </div>
