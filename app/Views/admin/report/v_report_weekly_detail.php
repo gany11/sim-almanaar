@@ -182,11 +182,17 @@
                                             <?php else: ?>
                                                 <?php foreach ($data['summary'] as $row): ?>
                                                     <tr>
-                                                        <td class="border-2 border-black p-1 pl-6 italic">
-                                                            - <?= $row['keterangan'] ?> 
+                                                        <td class="border-2 border-black p-1 italic pl-6">
+                                                            <div class="<?= ($row['jenis'] == 'pengeluaran') ? 'pl-6' : '' ?>">
+                                                                - <?= $row['keterangan'] ?> 
+                                                            </div>
                                                         </td>
                                                         <td class="border-2 border-black p-1 text-right">
-                                                            Rp<?= number_format($row['total'], 0, ',', '.') ?>
+                                                            <?php if ($row['jenis'] == 'pengeluaran'): ?>
+                                                                (Rp<?= number_format($row['total'], 0, ',', '.') ?>)
+                                                            <?php else: ?>
+                                                                Rp<?= number_format($row['total'], 0, ',', '.') ?>
+                                                            <?php endif; ?>
                                                         </td>
                                                     </tr>
                                                 <?php endforeach; ?>

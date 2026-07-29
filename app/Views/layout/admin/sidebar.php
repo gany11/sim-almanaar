@@ -17,7 +17,7 @@
                 class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 
                 <?= url_is('admin/dashboard') ? 'bg-white text-blue-600 shadow-lg' : 'text-white hover:bg-white hover:text-blue-600' ?>">
                     <i data-lucide="gauge" class="w-5 h-5"></i>
-                    <span class="font-medium">Dashboard</span>
+                    <span class="text-sm font-medium">Dashboard</span>
                 </a>
             </li>
 
@@ -34,7 +34,7 @@
                         
                         <div class="flex items-center gap-3">
                             <i data-lucide="newspaper" class="w-5 h-5"></i>
-                            <span class="font-medium">Berita</span>
+                            <span class="text-sm font-medium">Berita</span>
                         </div>
 
                         <i data-lucide="chevron-right" 
@@ -66,7 +66,7 @@
                         
                         <div class="flex items-center gap-3">
                             <i data-lucide="file-text" class="w-5 h-5"></i>
-                            <span class="font-medium">Artikel</span>
+                            <span class="text-sm font-medium">Artikel</span>
                         </div>
 
                         <i data-lucide="chevron-right" 
@@ -150,7 +150,7 @@
                             
                             <div class="flex items-center gap-3">
                                 <i data-lucide="file-pie-chart" class="w-5 h-5"></i>
-                                <span class="font-medium">Laporan</span>
+                                <span class="text-sm font-medium">Laporan</span>
                             </div>
 
                             <i data-lucide="chevron-right" 

@@ -300,7 +300,7 @@ function printReport() {
     doc.open();
     doc.write('<html><head><title>Cetak Laporan Bulanan</title>');
     doc.write('<style>');
-    doc.write('@page { size: 330mm 215mm; margin: 15mm; }');
+    doc.write('@page { size: A3 portrait; margin: 15mm; }');
     doc.write('body { font-family: "Times New Roman", serif; font-size: 11pt; line-height: 1.2; color: black; background: white; padding: 0; margin: 0; position: relative; }');
     
     /* CSS Tabled Border */

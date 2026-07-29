@@ -244,12 +244,13 @@ class ReportController extends BaseController
         // }
 
         $transactions = $this->keuanganModel
-            ->select('keuangan.*, rp.nama_ringkasan_protokol, da.detail_alokasi, da.id_ringkasan_protokol')
+            ->select('keuangan.*, rp.nama_ringkasan_protokol, rp.kalimat_pemasukan, rp.kalimat_pengeluaran, da.detail_alokasi, da.id_ringkasan_protokol')
             ->join('detail_alokasi da', 'da.id_detail_alokasi = keuangan.id_detail_alokasi', 'left')
             ->join('ringkasan_protokol rp', 'rp.id_ringkasan_protokol = da.id_ringkasan_protokol', 'left')
             ->where('keuangan.created_at >=', $report['started_at'])
             ->where('keuangan.created_at <=', $report['ended_at'])
             ->where('keuangan.deleted_at', null)
+            ->orderBy('keuangan.jenis', 'ASC')
             ->findAll();
 
         $mapping = [
@@ -292,10 +293,21 @@ class ReportController extends BaseController
                 
                 if (!isset($summary[$groupKey])) {
                     $namaJenis = ucfirst($item['jenis']); 
+                    if ($isGrouped) {
+                        if ($item['jenis'] === 'pemasukan' && !empty($item['kalimat_pemasukan'])) {
+                            $teksKeterangan = $item['kalimat_pemasukan'];
+                        } elseif ($item['jenis'] === 'pengeluaran' && !empty($item['kalimat_pengeluaran'])) {
+                            $teksKeterangan = $item['kalimat_pengeluaran'];
+                        } else {
+                            $teksKeterangan = $namaJenis . ' ' . $item['nama_ringkasan_protokol'];
+                        }
+                    } else {
+                        $teksKeterangan = $namaJenis . ' ' . $item['keterangan'];
+                    }
 
                     $summary[$groupKey] = [
                         'jenis'      => $item['jenis'],
-                        'keterangan' => $namaJenis . ' ' . ($isGrouped ? $item['nama_ringkasan_protokol'] : $item['keterangan']),
+                        'keterangan' => $teksKeterangan,
                         'alokasi'    => [],
                         'total'      => 0
                     ];
@@ -310,6 +322,14 @@ class ReportController extends BaseController
                     $summary[$groupKey]['alokasi'][] = $item['detail_alokasi'];
                 }
             }
+
+            uasort($summary, function($a, $b) {
+                if ($a['jenis'] !== $b['jenis']) {
+                    return ($a['jenis'] === 'pemasukan') ? -1 : 1;
+                }
+                
+                return strcmp($a['keterangan'], $b['keterangan']);
+            });
 
             $groupedData[$key] = [
                 'judul'       => $map['name'],

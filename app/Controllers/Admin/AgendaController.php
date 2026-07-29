@@ -137,7 +137,7 @@ class AgendaController extends BaseController
                 // Jika salah satu nama atau peran kosong
                 if (empty($sdmId) || empty($sdmRoles[$i])) {
                     $errors['sdm'] = 'Semua pengisi beserta perannya wajib diisi.';
-                    break; // cukup satu pesan saja
+                    break;
                 }
             }
         }
@@ -207,16 +207,20 @@ class AgendaController extends BaseController
             'id_keterangan_waktu_mulai'   => $this->request->getPost('id_keterangan_waktu_mulai') ?: null,
             'id_keterangan_waktu_selesai' => $this->request->getPost('id_keterangan_waktu_selesai') ?: null,
         ];
-
+                
         if ($id) {
             // Logika Update
             $dataAgenda['updated_by'] = $currentUserId;
-            $this->agendaModel->update($id, $dataAgenda);
+            $this->agendaModel
+                ->skipValidation(true)
+                ->update($id, $dataAgenda);
             $agendaID = $id;
         } else {
             // Logika Create
             $dataAgenda['created_by'] = $currentUserId;
-            $agendaID = $this->agendaModel->insert($dataAgenda);
+            $agendaID = $this->agendaModel
+                            ->skipValidation(true)
+                            ->insert($dataAgenda);
         }
 
         if ($agendaID) {
@@ -284,4 +288,6 @@ class AgendaController extends BaseController
             'message' => 'Gagal menghapus agenda.'
         ])->setStatusCode(500);
     }
+
+    
 }

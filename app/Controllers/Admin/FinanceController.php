@@ -362,8 +362,9 @@ class FinanceController extends BaseController
                 'jumlah'               => $cleanNominal,
                 'jenis'                => $jenis,
                 'keterangan'           => $row[3],
-            ])->where('created_at >=', $startOfWeek)
-            ->where('created_at <=', $endOfWeek)
+            ])
+            // ->where('created_at >=', $startOfWeek)
+            // ->where('created_at <=', $endOfWeek)
             ->countAllResults();
 
             if ($isExist > 0) {
@@ -396,7 +397,7 @@ class FinanceController extends BaseController
             $this->keuanganModel->insertBatch($dataToInsert);
             
             $msg = count($dataToInsert) . " transaksi baru berhasil diimport.";
-            if ($skippedCount > 0) $msg .= " ({$skippedCount} data lama dilewati).";
+            if ($skippedCount > 0) $msg .= " ({$skippedCount} data yang sudah ada dilewati).";
             
             // dd($dataToInsert);
             return redirect()->to('admin/finance/data')->with('success', $msg);
@@ -536,7 +537,7 @@ class FinanceController extends BaseController
             $this->keuanganModel->insertBatch($dataToInsert);
             
             $msg = count($dataToInsert) . " transaksi baru berhasil diimport.";
-            if ($skippedCount > 0) $msg .= " ({$skippedCount} data lama dilewati).";
+            if ($skippedCount > 0) $msg .= " ({$skippedCount} data yang sudah ada dilewati).";
             
             // dd($dataToInsert);
             return redirect()->to('admin/finance/data')->with('success', $msg);
