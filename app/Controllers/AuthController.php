@@ -45,6 +45,8 @@ class AuthController extends BaseController
                     return redirect()->back()->with('error', 'Akun Anda tidak aktif. Silakan hubungi admin.');
                 }
 
+                $returnUrl = session()->get('redirect_after_login');
+
                 $sessionData = [
                     'id_akun'    => $user->id_akun,
                     'id_peran'   => $user->id_peran,
@@ -54,7 +56,13 @@ class AuthController extends BaseController
                 ];
                 session()->set($sessionData);
 
-                return redirect()->to('admin/dashboard')->with('success', "Selamat datang, {$user->nama}!");
+                session()->remove('redirect_after_login');
+
+                // Jika ada URL sebelumnya, kembali ke sana
+                if ($returnUrl) {
+                    return redirect()->to($returnUrl);
+                }
+                return redirect()->to('admin/dashboard');
             } else {
                 return redirect()->back()->with('error', 'Username atau password yang Anda masukkan salah!');
             }

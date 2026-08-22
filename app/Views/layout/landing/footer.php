@@ -36,7 +36,7 @@
                     </li>
                     <li>
                         <a href="<?= base_url('keuangan') ?>" class="hover:text-blue-600 transition-colors flex items-center gap-2">
-                            <i data-lucide="chevron-right" class="w-3 h-3"></i> Laporan Kas
+                            <i data-lucide="chevron-right" class="w-3 h-3"></i> Laporan Keuangan
                         </a>
                     </li>
                     <li>
@@ -64,12 +64,12 @@
                     </li>
                     <li class="flex gap-3">
                         <i data-lucide="mail" class="w-5 h-5 text-blue-600 shrink-0"></i>
-                        <span>info@almanaar-slipi.id</span>
+                        <span>info@almanaar-slipi.org</span>
                     </li>
-                    <li class="flex gap-3">
+                    <!-- <li class="flex gap-3">
                         <i data-lucide="phone" class="w-5 h-5 text-blue-600 shrink-0"></i>
                         <span>(021) 1234 5678</span>
-                    </li>
+                    </li> -->
                 </ul>
             </div>
 

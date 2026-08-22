@@ -1,33 +1,34 @@
 <?= $this->extend('layout/landing/main') ?>
 
 <?= $this->section('content') ?>
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="max-w-7xl mx-auto px-4 py-10">
 
-    <div class="mb-8">
-        <nav class="flex mb-4" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm font-medium">
-                <li class="inline-flex items-center">
-                    <a href="<?= base_url() ?>" class="inline-flex items-center text-gray-700 hover:text-blue-600">
-                        <i data-lucide="home" class="w-4 h-4 mr-2"></i>
-                        Beranda
-                    </a>
-                </li>
-                <li aria-current="page">
-                    <div class="flex items-center">
-                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                        <span class="ml-1 text-gray-400 md:ml-2 truncate max-w-[150px] md:max-w-none">
-                            Keuangan
-                        </span>
-                    </div>
-                </li>
-            </ol>
-        </nav>
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-2 text-sm font-medium">
+            <li>
+                <a href="<?= base_url() ?>" class="text-gray-700 hover:text-blue-600 flex items-center">
+                    <i data-lucide="home" class="w-4 h-4 mr-2"></i>
+                    Beranda
+                </a>
+            </li>
 
-        <div class="text-center">
-            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 uppercase tracking-tight">
-                Laporan Keuangan
-            </h1>
-        </div>
+            <li>
+                <div class="flex items-center">
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                    <span class="ml-2 text-gray-400">Keuangan</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-8 text-center">
+        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">
+            LAPORAN KEUANGAN
+        </h1>
+        <p class="text-gray-500 mt-2 italic">
+            Laporan Keuangan Masjid Al Manaar Slipi
+        </p>
     </div>
 
     <?php if (session()->getFlashdata('error')) : ?>

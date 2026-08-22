@@ -19,7 +19,7 @@ class NewsController extends BaseController
     public function index()
     {
         $data = [
-            'title' => 'Berita Masjid Al-Manaar',
+            'title' => 'Berita',
             'news'  => $this->publikasiModel
                             ->where(['id_jenis_publikasi' => 1, 'status' => 'aktif'])
                             ->orderBy('created_at', 'DESC')

@@ -23,6 +23,11 @@ $routes->get('keuangan/(:num)/(:num)', 'Landing\FinanceController::detail/$1/$2'
 $routes->get('keuangan/getMonthlyReportAjax', 'Landing\FinanceController::getMonthlyReportAjax', ['filter' => 'apiGuard']);
 
 /**
+ * Donasi
+ */
+$routes->get('donasi', 'Landing\DonasiController::index');
+
+/**
  * Agenda (FullCalendar)
  */
 $routes->get('agenda', 'Landing\AgendaController::index');
@@ -41,6 +46,9 @@ $routes->get('artikel', 'Landing\ArticleController::index');
 $routes->get('artikel/(:num)/(:segment)', 'Landing\ArticleController::detail/$1/$2');
 
 // Login (Admin)
+$routes->get('admin', static function () {
+    return redirect()->to('/admin/login');
+});
 $routes->get('admin/login', 'AuthController::index', ['filter' => 'auth:false']);
 $routes->post('admin/login/in', 'AuthController::login', ['filter' => 'auth:false']);
 
@@ -71,6 +79,13 @@ $routes->post('admin/account/save', 'Admin\AccountController::save', ['filter' =
 $routes->get('admin/account', 'Admin\AccountController::index', ['filter' => ['auth:true', 'role:1,2']]);
 $routes->post('admin/account/list', 'Admin\AccountController::list', ['filter' => ['auth:true', 'role:1,2']]);
 $routes->post('admin/account/status', 'Admin\AccountController::updateStatus', ['filter' => ['auth:true', 'role:1,2']]);
+
+// Whatsapp
+$routes->get('admin/whatsapp', 'Admin\WhatsAppController::index', ['filter' => ['auth:true', 'role:1']]);
+$routes->get('admin/whatsapp/status', 'Admin\WhatsAppController::status', ['filter' => ['auth:true', 'role:1']]);
+$routes->get('admin/whatsapp/qr', 'Admin\WhatsAppController::qr', ['filter' => ['auth:true', 'role:1']]);
+$routes->get('admin/whatsapp/groups', 'Admin\WhatsAppController::group', ['filter' => ['auth:true', 'role:1']]);
+$routes->post('admin/whatsapp/logout', 'Admin\WhatsAppController::logout', ['filter' => ['auth:true', 'role:1']]);
 
 // ===================== NEWS =====================
 $routes->get('admin/news', 'Admin\NewsController::index', ['filter' => ['auth:true', 'role:2,3']]);

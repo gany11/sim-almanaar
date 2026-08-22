@@ -19,6 +19,11 @@
                     Laporan Keuangan
                 </a>
 
+                <a href="<?= base_url('donasi') ?>" 
+                    class="px-4 py-2 rounded-lg transition-all duration-200 <?= url_is('donasi*') ? 'text-blue-600 font-bold bg-blue-50' : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50' ?>">
+                     Donasi
+                </a>
+
                 <a href="<?= base_url('agenda') ?>" 
                    class="px-4 py-2 rounded-lg transition-all duration-200 <?= url_is('agenda*') ? 'text-blue-600 font-bold bg-blue-50' : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50' ?>">
                     Agenda
@@ -61,6 +66,11 @@
             <a href="<?= base_url('keuangan') ?>" 
                class="block px-3 py-2.5 rounded-md text-base <?= url_is('keuangan*') ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-600 hover:bg-gray-50' ?>">
                 Laporan Keuangan
+            </a>
+
+            <a href="<?= base_url('donasi') ?>" 
+                class="block px-3 py-2.5 rounded-md text-base <?= url_is('donasi*') ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-600 hover:bg-gray-50' ?>">
+                Donasi
             </a>
 
             <a href="<?= base_url('agenda') ?>" 

@@ -333,19 +333,30 @@ class FinanceController extends BaseController
                 continue;
             }
             
-            // --- LOGIKA NOMINAL BARU (LEBIH FLEXIBLE) ---
-            $nominalRaw = (string)$row[4];
-            
-            // 1. Cek apakah ada koma yang berfungsi sebagai desimal (format Indo: 31.111,00)
-            if (strpos($nominalRaw, ',') !== false) {
-                $parts = explode(',', $nominalRaw);
-                if (isset($parts[1]) && strlen(trim($parts[1])) <= 2) {
-                    $nominalRaw = $parts[0];
-                }
+            $nominalRaw = trim((string) $row[4]);
+
+            if (strpos($nominalRaw, '-') !== false) {
+                $importErrors[] = "Baris {$rowNumber}: Nominal '{$row[4]}' tidak boleh bernilai negatif.";
+                continue;
             }
-            
-            // 2. Hapus semua karakter yang BUKAN angka.
-            $cleanNominal = preg_replace('/[^0-9]/', '', $nominalRaw);
+
+            $nominalRaw = preg_replace('/Rp\s*/i', '', $nominalRaw);
+            $nominalRaw = trim($nominalRaw);
+
+            if (preg_match('/^(.+)\.(\d{1,2})$/', $nominalRaw, $matches)) {
+                $nominalRaw = $matches[1];
+            }
+
+            $cleanNominal = str_replace(',', '', $nominalRaw);
+
+            $cleanNominal = preg_replace('/[^0-9]/', '', $cleanNominal);
+
+            if ($cleanNominal === '' || (int) $cleanNominal <= 0) {
+                $importErrors[] = "Baris {$rowNumber}: Nominal '{$row[4]}' harus lebih dari 0.";
+                continue;
+            }
+
+            $cleanNominal = (int) $cleanNominal;
 
             $jenis = strtolower($row[2]);
 
@@ -383,13 +394,15 @@ class FinanceController extends BaseController
                 'method_input'         => 'import',
                 'created_by'           => session()->get('id_akun'),
             ];
-        }
 
+        }
+        
+        // dd([$dataRaw, $dataToInsert]);
         // 5. Eksekusi
         if (!empty($importErrors)) {
             return redirect()->to('admin/finance/data')->with('error_list', $importErrors);
         }
-
+        
         if (!empty($dataToInsert)) {
             $nowTime = date('Y-m-d H:i:s');
             $this->_ensureReportExists($nowTime);
@@ -468,19 +481,30 @@ class FinanceController extends BaseController
                 continue;
             }
 
-            // --- LOGIKA NOMINAL BARU (LEBIH FLEXIBLE) ---
-            $nominalRaw = (string)$row[4];
-            
-            // 1. Cek apakah ada koma yang berfungsi sebagai desimal (format Indo: 31.111,00)
-            if (strpos($nominalRaw, ',') !== false) {
-                $parts = explode(',', $nominalRaw);
-                if (isset($parts[1]) && strlen(trim($parts[1])) <= 2) {
-                    $nominalRaw = $parts[0];
-                }
+            $nominalRaw = trim((string) $row[4]);
+
+            if (strpos($nominalRaw, '-') !== false) {
+                $importErrors[] = "Baris {$rowNumber}: Nominal '{$row[4]}' tidak boleh bernilai negatif.";
+                continue;
             }
-            
-            // 2. Hapus semua karakter yang BUKAN angka.
-            $cleanNominal = preg_replace('/[^0-9]/', '', $nominalRaw);
+
+            $nominalRaw = preg_replace('/Rp\s*/i', '', $nominalRaw);
+            $nominalRaw = trim($nominalRaw);
+
+            if (preg_match('/^(.+)\.(\d{1,2})$/', $nominalRaw, $matches)) {
+                $nominalRaw = $matches[1];
+            }
+
+            $cleanNominal = str_replace(',', '', $nominalRaw);
+
+            $cleanNominal = preg_replace('/[^0-9]/', '', $cleanNominal);
+
+            if ($cleanNominal === '' || (int) $cleanNominal <= 0) {
+                $importErrors[] = "Baris {$rowNumber}: Nominal '{$row[4]}' harus lebih dari 0.";
+                continue;
+            }
+
+            $cleanNominal = (int) $cleanNominal;
 
             $jenis = strtolower($row[2]);
 

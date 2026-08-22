@@ -1,37 +1,43 @@
 <?= $this->extend('layout/landing/main') ?>
 
 <?= $this->section('content') ?>
-<div class="max-w-5xl mx-auto px-4 py-10">
-    <nav class="flex mb-4" aria-label="Breadcrumb">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3 text-sm font-medium">
-            <li class="inline-flex items-center">
-                <a href="<?= base_url() ?>" class="inline-flex items-center text-gray-700 hover:text-blue-600">
+<div class="max-w-7xl mx-auto px-4 py-10">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-2 text-sm font-medium">
+            <li>
+                <a href="<?= base_url() ?>" class="text-gray-700 hover:text-blue-600 flex items-center">
                     <i data-lucide="home" class="w-4 h-4 mr-2"></i>
                     Beranda
                 </a>
             </li>
+
             <li>
                 <div class="flex items-center">
                     <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                    <a href="<?= base_url('keuangan') ?>" class="ml-1 text-gray-700 hover:text-blue-600 md:ml-2">
+                    <a href="<?= base_url('keuangan') ?>" class="ml-2 text-gray-700 hover:text-blue-600 flex items-center">
                         Keuangan
                     </a>
                 </div>
             </li>
-            <li aria-current="page">
+
+            <li>
                 <div class="flex items-center">
                     <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                    <span class="ml-1 text-gray-400 md:ml-2 truncate max-w-[150px] md:max-w-none">
-                        Detail Laporan
-                    </span>
+                    <span class="ml-2 text-gray-400">Detail Laporan</span>
                 </div>
             </li>
         </ol>
     </nav>
 
+    <!-- Header -->
     <div class="mb-8 text-center">
-        <h1 class="text-3xl font-extrabold text-gray-900 uppercase tracking-tight">Laporan Keuangan Bulan <?= esc($bulan_txt) ?></h1>
-        <p>Waktu Perolehan Data: <?= format_indo(date('Y-m-d H:i:s'), 'datetime') ?> WIB</p>
+        <h1 class="text-3xl font-extrabold text-gray-900 uppercase tracking-tight">
+            Laporan Keuangan Bulan <?= esc($bulan_txt) ?>
+        </h1>
+        <p class="text-gray-500 mt-2 italic">
+            Waktu Perolehan Data: <?= format_indo(date('Y-m-d H:i:s'), 'datetime') ?> WIB
+        </p>
     </div>
 
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 report-container">
@@ -266,7 +272,7 @@
         pointer-events:none;
         user-select:none;
 
-        z-index:9999;
+        z-index:2;
     }
 
     .watermark-layer span{

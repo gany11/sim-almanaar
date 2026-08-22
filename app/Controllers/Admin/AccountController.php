@@ -7,6 +7,7 @@ use App\Models\PeranModel;
 use App\Models\TokenModel;
 use CodeIgniter\I18n\Time;
 
+use App\Services\WhatsAppService;
 
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -16,12 +17,14 @@ class AccountController extends BaseController
     protected $akunModel;
     protected $peranModel;
     protected $tokenModel;
+    protected WhatsAppService $whatsappService;
 
     public function __construct()
     {
         $this->akunModel  = new AkunModel();
         $this->peranModel = new PeranModel();
         $this->tokenModel = new TokenModel();
+        $this->whatsappService = new WhatsAppService();
     }
 
     public function index() {
@@ -68,28 +71,186 @@ class AccountController extends BaseController
     {
         $input = $this->request->getPost();
 
-        $input['password'] = password_hash('AlManaar' . rand(100, 999), PASSWORD_DEFAULT);
-        $input['status']   = 'aktif';
+        $input['password'] = password_hash(
+            'AlManaar' . rand(100, 999),
+            PASSWORD_DEFAULT
+        );
 
-        if ($this->akunModel->save($input)) {
-            $newUserId = $this->akunModel->getInsertID();
+        $input['status'] = 'aktif';
 
-            $token = bin2hex(random_bytes(32));
+        if (!$this->akunModel->validate($input)) {
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with(
+                    'errors',
+                    $this->akunModel->errors()
+                )
+                ->with(
+                    'error',
+                    'Gagal mendaftarkan akun. Silakan periksa kolom yang berwarna merah.'
+                );
+        }
+
+        $phone = $input['telepon'];
+
+        try {
+
+            $checkNumber =
+                $this->whatsappService->checkNumber(
+                    $phone
+                );
+
+
+            log_message(
+                'debug',
+                'CHECK WA PHONE: ' . $phone
+            );
+
+            log_message(
+                'debug',
+                'CHECK WA RESULT: ' .
+                json_encode(
+                    $checkNumber,
+                    JSON_UNESCAPED_UNICODE |
+                    JSON_UNESCAPED_SLASHES
+                )
+            );
+
+
+            $registered =
+                $checkNumber['data']['registered']
+                ?? false;
+
+            $valid =
+                $checkNumber['data']['valid']
+                ?? false;
+
+            if (
+                !$registered ||
+                !$valid
+            ) {
+
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with(
+                        'errors',
+                        [
+                            'telepon' =>
+                                'Nomor WhatsApp tidak terdaftar atau tidak valid.'
+                        ]
+                    )
+                    ->with(
+                        'error',
+                        'Gagal mendaftarkan akun. Silakan periksa kolom yang berwarna merah.'
+                    );
+            }
+
+
+        } catch (\Throwable $e) {
+
+            log_message(
+                'error',
+                'WhatsApp check-number error: ' .
+                $e->getMessage()
+            );
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with(
+                    'errors',
+                    [
+                        'telepon' =>
+                            'Nomor WhatsApp tidak dapat diverifikasi. Silakan coba lagi.'
+                    ]
+                )
+                ->with(
+                    'error',
+                    'Gagal mendaftarkan akun. Silakan periksa kolom yang berwarna merah.'
+                );
+        }
+
+        if (
+            $this->akunModel->save($input)
+        ) {
+
+            $newUserId =
+                $this->akunModel->getInsertID();
+
+
+            /*
+            * =====================================================
+            * TOKEN AKTIVASI
+            * =====================================================
+            */
+
+            $token =
+                bin2hex(
+                    random_bytes(32)
+                );
+
+
             $this->tokenModel->save([
-                'id_akun'    => $newUserId,
-                'token'      => $token,
-                'expired_at' => Time::now('Asia/Jakarta')->addDays(1)->toDateTimeString(),
+
+                'id_akun' =>
+                    $newUserId,
+
+                'token' =>
+                    $token,
+
+                'expired_at' =>
+                    Time::now(
+                        'Asia/Jakarta'
+                    )
+                    ->addDays(1)
+                    ->toDateTimeString(),
+
             ]);
 
-            $this->sendActivationEmail($input['email'], $input['nama'], $token, $input['username']);
 
-            return redirect()->to('admin/account')->with('success', 'Akun berhasil dibuat dan email aktivasi telah dikirim.');
-        } else {
-            return redirect()->back()
-                ->withInput()
-                ->with('errors', $this->akunModel->errors())
-                ->with('error', 'Gagal mendaftarkan akun. Silakan periksa kolom yang berwarna merah.');
+            /*
+            * =====================================================
+            * EMAIL AKTIVASI
+            * =====================================================
+            */
+
+            $this->sendActivationEmail(
+                $input['email'],
+                $input['nama'],
+                $token,
+                $input['username']
+            );
+
+
+            return redirect()
+                ->to('admin/account')
+                ->with(
+                    'success',
+                    'Akun berhasil dibuat dan email aktivasi telah dikirim.'
+                );
         }
+
+
+        /*
+        * =========================================================
+        * GAGAL SAVE
+        * =========================================================
+        */
+
+        return redirect()
+            ->back()
+            ->withInput()
+            ->with(
+                'errors',
+                $this->akunModel->errors()
+            )
+            ->with(
+                'error',
+                'Gagal mendaftarkan akun. Silakan periksa kolom yang berwarna merah.'
+            );
     }
 
     private function sendActivationEmail($to, $nama, $token, $username)

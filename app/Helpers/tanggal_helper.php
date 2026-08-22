@@ -67,22 +67,17 @@ if (!function_exists('format_hijriah')) {
 
         // 3. Panggil Model Khgt
         $khgtModel = new KhgtModel();
-        $data = $khgtModel->where('masehi', $masehi)->first();
+        $data = $khgtModel->find($masehi);
 
         // 4. Jika data tidak ditemukan di tabel KHGT, return strip
         if (!$data) {
             return '-';
         }
 
-        // 5. Olah data hijriah (Asumsi format di DB: YYYY-MM-DD)
-        $parts = explode('-', $data['hijriah']);
-        if (count($parts) !== 3) {
-            return $data['hijriah'];
-        }
-
-        $thn = $parts[0];
-        $bln = (int)$parts[1];
-        $tgl = (int)$parts[2];
+        // 5. Olah data hijriah
+        $tgl = (int) $data['hijriah_tanggal'];
+        $bln = (int) $data['hijriah_bulan'];
+        $thn = (int) $data['hijriah_tahun'];
 
         $bulanHijriah = [
             1 => "Muharram", "Safar", "Rabi'ul Awal", "Rabi'ul Akhir",

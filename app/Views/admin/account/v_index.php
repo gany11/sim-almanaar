@@ -55,129 +55,129 @@
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const $ = window.jQuery;
-    const DataTable = window.DataTable;
-    const Swal = window.Swal;
+    document.addEventListener("DOMContentLoaded", function() {
+        const $ = window.jQuery;
+        const DataTable = window.DataTable;
+        const Swal = window.Swal;
 
-    const loadData = () => {
-        const tableId = '#tableAkun';
-        const tbodyId = '#load-data';
+        const loadData = () => {
+            const tableId = '#tableAkun';
+            const tbodyId = '#load-data';
 
-        if ($.fn.DataTable.isDataTable(tableId)) {
-            $(tableId).DataTable().clear().destroy();
-        }
+            if ($.fn.DataTable.isDataTable(tableId)) {
+                $(tableId).DataTable().clear().destroy();
+            }
 
-        $(tbodyId).empty();
-        $(tbodyId).html('<tr><td colspan="5" class="text-center py-20 text-gray-400">Memuat data...</td></tr>');
+            $(tbodyId).empty();
+            $(tbodyId).html('<tr><td colspan="5" class="text-center py-20 text-gray-400">Memuat data...</td></tr>');
 
-        $.ajax({
-            url: "<?= base_url('admin/account/list') ?>",
-            type: "POST",
-            data: { 
-                status: $('#filter-status').val(),
-                "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
-            },
-            success: function(response) {
-                $(tbodyId).html(response);
-                
-                const rowCount = $(tbodyId).find('tr').length;
-                const isNoData = $(tbodyId).find('td[colspan]').length > 0;
+            $.ajax({
+                url: "<?= base_url('admin/account/list') ?>",
+                type: "POST",
+                data: { 
+                    status: $('#filter-status').val(),
+                    "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
+                },
+                success: function(response) {
+                    $(tbodyId).html(response);
+                    
+                    const rowCount = $(tbodyId).find('tr').length;
+                    const isNoData = $(tbodyId).find('td[colspan]').length > 0;
 
-                if (!isNoData) {
-                    new DataTable(tableId, {
-                        responsive: false,
-                        pageLength: 10,
-                        lengthMenu: [5, 10, 25, 50],
-                        processing: true,
-                        language: {
-                            search: "Cari:",
-                            lengthMenu: "Tampilkan _MENU_ data",
-                            info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
-                            infoEmpty: "Data tidak ditemukan",
-                            paginate: { next: "Next", previous: "Prev" }
-                        },
-                        columnDefs: [
-                            { targets: [3, 4], orderable: false }
-                        ],
-                        dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>',
-                        drawCallback: function() {
-                            if (window.reinitIcons) {
-                                window.reinitIcons();
-                            } else if (typeof lucide !== 'undefined') {
-                                lucide.createIcons();
+                    if (!isNoData) {
+                        new DataTable(tableId, {
+                            responsive: false,
+                            pageLength: 10,
+                            lengthMenu: [5, 10, 25, 50],
+                            processing: true,
+                            language: {
+                                search: "Cari:",
+                                lengthMenu: "Tampilkan _MENU_ data",
+                                info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
+                                infoEmpty: "Data tidak ditemukan",
+                                paginate: { next: "Next", previous: "Prev" }
+                            },
+                            columnDefs: [
+                                { targets: [3, 4], orderable: false }
+                            ],
+                            dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>',
+                            drawCallback: function() {
+                                if (window.reinitIcons) {
+                                    window.reinitIcons();
+                                } else if (typeof lucide !== 'undefined') {
+                                    lucide.createIcons();
+                                }
                             }
+                        });
+                    }
+
+                    if (window.reinitIcons) {
+                        window.reinitIcons();
+                    }
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    $(tbodyId).html('<tr><td colspan="5" class="text-center py-10 text-red-500">Gagal mengambil data.</td></tr>');
+                }
+            });
+        };
+
+        loadData();
+
+        $('#filter-status').on('change', loadData);
+
+        $('#btn-reset-filter').on('click', function() {
+            $('#filter-status').val("");
+            loadData();
+        });
+
+        $(document).on('click', '.btn-toggle-status', function() {
+            const id = $(this).data('id');
+            const nama = $(this).data('nama');
+            const currentStatus = $(this).data('status');
+            
+            const actionText = currentStatus === 'aktif' ? 'Menonaktifkan' : 'Memulihkan';
+            const targetStatus = currentStatus === 'aktif' ? 'pasif' : 'aktif';
+            const color = currentStatus === 'aktif' ? '#ef4444' : '#22c55e'; // Merah : Hijau
+
+            Swal.fire({
+                title: 'Konfirmasi',
+                html: `Apakah Anda yakin ingin <b>${actionText}</b> akun <b>${nama}</b>?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: color,
+                confirmButtonText: 'Ya, Lanjutkan!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "<?= base_url('admin/account/status') ?>",
+                        type: "POST",
+                        data: {
+                            id_akun: id,
+                            status: targetStatus,
+                            "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
+                        },
+                        success: function(res) {
+                            if(res.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: res.message,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                                loadData();
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'Gagal memperbarui status akun.', 'error');
                         }
                     });
                 }
-
-                if (window.reinitIcons) {
-                    window.reinitIcons();
-                }
-            },
-            error: function(xhr) {
-                console.error(xhr.responseText);
-                $(tbodyId).html('<tr><td colspan="5" class="text-center py-10 text-red-500">Gagal mengambil data.</td></tr>');
-            }
-        });
-    };
-
-    loadData();
-
-    $('#filter-status').on('change', loadData);
-
-    $('#btn-reset-filter').on('click', function() {
-        $('#filter-status').val("");
-        loadData();
-    });
-
-    $(document).on('click', '.btn-toggle-status', function() {
-        const id = $(this).data('id');
-        const nama = $(this).data('nama');
-        const currentStatus = $(this).data('status');
-        
-        const actionText = currentStatus === 'aktif' ? 'Menonaktifkan' : 'Memulihkan';
-        const targetStatus = currentStatus === 'aktif' ? 'pasif' : 'aktif';
-        const color = currentStatus === 'aktif' ? '#ef4444' : '#22c55e'; // Merah : Hijau
-
-        Swal.fire({
-            title: 'Konfirmasi',
-            html: `Apakah Anda yakin ingin <b>${actionText}</b> akun <b>${nama}</b>?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: color,
-            confirmButtonText: 'Ya, Lanjutkan!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: "<?= base_url('admin/account/status') ?>",
-                    type: "POST",
-                    data: {
-                        id_akun: id,
-                        status: targetStatus,
-                        "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
-                    },
-                    success: function(res) {
-                        if(res.status === 'success') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                text: res.message,
-                                timer: 1500,
-                                showConfirmButton: false
-                            });
-                            loadData();
-                        }
-                    },
-                    error: function() {
-                        Swal.fire('Error', 'Gagal memperbarui status akun.', 'error');
-                    }
-                });
-            }
+            });
         });
     });
-});
 </script>
 <?= $this->endSection() ?>

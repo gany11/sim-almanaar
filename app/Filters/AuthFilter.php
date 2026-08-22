@@ -18,6 +18,10 @@ class AuthFilter implements FilterInterface
         if ($shouldBeLoggedIn) {
             // HALAMAN PRIVATE: Jika belum login, tendang ke login
             if (!$isLoggedIn) {
+                $returnUrl = current_url();
+
+                session()->set('redirect_after_login', $returnUrl);
+                
                 return redirect()->to(base_url('admin/login'))->with('error', 'Silakan login terlebih dahulu.');
             }
         } else {

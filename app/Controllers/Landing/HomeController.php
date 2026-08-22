@@ -20,7 +20,7 @@ class HomeController extends BaseController
         $publikasiModel = new PublikasiModel();
 
         $data = [
-            'title'      => 'Beranda - Masjid Al-Manaar Slipi',
+            'title'      => 'Beranda',
             'carousels'  => $carouselModel->getActiveCarousel(),
             // 'finance'    => $keuanganModel->getSummaryPerKategori(),
             // Iterasi 2
