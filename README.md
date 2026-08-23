@@ -113,4 +113,4 @@ Aplikasi sekarang dapat diakses melalui browser pada `http://localhost:8080`.
 
 ## 👨‍💻 Pengembang
 
-Dikembangkan dan di-maintain oleh **Fany Andisa**.
+Dikembangkan dan di-maintain oleh **[Gany Andisa](https://ganyandisa.my.id)**.
