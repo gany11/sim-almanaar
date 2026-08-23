@@ -26,11 +26,11 @@ class CreateAgendaRutin extends Migration
             'tema' => [
                 'type'       => 'VARCHAR',
                 'constraint' => '255',
-                'null'       => true,
             ],
             'judul' => [
                 'type'       => 'VARCHAR',
                 'constraint' => '255',
+                'null'       => true,
             ],
             'deskripsi' => [
                 'type' => 'TEXT',

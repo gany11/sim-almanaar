@@ -34,12 +34,18 @@ class AgendaRutinModel extends Model
                 'is_not_unique' => 'Kategori agenda rutin yang dipilih tidak valid.'
             ]
         ],
-        'judul' => [
+        'tema' => [
             'rules'  => 'required|min_length[3]|max_length[255]',
             'errors' => [
-                'required'   => 'Judul agenda rutin harus diisi.',
-                'min_length' => 'Judul agenda rutin minimal 3 karakter.',
-                'max_length' => 'Judul agenda rutin maksimal 255 karakter.',
+                'required'   => 'Tema agenda rutin harus diisi.',
+                'min_length' => 'Tema agenda rutin minimal 3 karakter.',
+                'max_length' => 'Tema agenda rutin maksimal 255 karakter.',
+            ]
+        ],
+        'judul' => [
+            'rules'  => 'permit_empty|max_length[255]',
+            'errors' => [
+                'max_length' => 'Judul materi maksimal 255 karakter.',
             ]
         ],
         'waktu_mulai' => [

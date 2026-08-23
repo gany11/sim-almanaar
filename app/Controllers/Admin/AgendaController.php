@@ -129,19 +129,19 @@ class AgendaController extends BaseController
             $errors = $this->validator->getErrors();
         }
 
-        // Validasi SDM
+        // Validasi Custom (SDM)
         $sdmIds   = $this->request->getPost('sdm_id') ?? [];
         $sdmRoles = $this->request->getPost('sdm_role') ?? [];
 
-        if (empty($sdmIds)) {
+        // Cek jika array benar-benar kosong ATAU hanya ada 1 baris tapi KEDUANYA (nama & peran) kosong
+        if (empty($sdmIds) || (count($sdmIds) === 1 && empty($sdmIds[0]) && empty($sdmRoles[0]))) {
             $errors['sdm'] = 'Minimal harus ada satu pengisi.';
         } else {
             foreach ($sdmIds as $i => $sdmId) {
-
-                // Jika salah satu nama atau peran kosong
+                // Jika salah satu (nama atau peran) kosong pada baris manapun
                 if (empty($sdmId) || empty($sdmRoles[$i])) {
-                    $errors['sdm'] = 'Semua pengisi beserta perannya wajib diisi.';
-                    break;
+                    $errors['sdm'] = 'Semua pengisi beserta perannya wajib dilengkapi.';
+                    break; 
                 }
             }
         }

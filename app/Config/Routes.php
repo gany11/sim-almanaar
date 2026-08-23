@@ -149,4 +149,14 @@ $routes->post('admin/agenda/update/(:num)', 'Admin\AgendaController::update/$1',
 $routes->post('admin/agenda/delete', 'Admin\AgendaController::delete', ['filter' => ['auth:true', 'role:3,5']]);
 $routes->post('admin/agenda/import-excel', 'Admin\AgendaController::importExcel', ['filter' => ['auth:true', 'role:3,5']]);
 
+// ===================== AGENDA RUTIN =====================
+$routes->get('admin/agenda-rutin', 'Admin\AgendaRutinController::index', ['filter' => ['auth:true', 'role:2,3,5']]);
+$routes->post('admin/agenda-rutin/list', 'Admin\AgendaRutinController::list', ['filter' => ['auth:true', 'role:2,3,5']]);
+
+$routes->get('admin/agenda-rutin/create', 'Admin\AgendaRutinController::create', ['filter' => ['auth:true', 'role:3,5']]);
+$routes->post('admin/agenda-rutin/save', 'Admin\AgendaRutinController::save', ['filter' => ['auth:true', 'role:3,5']]);
+$routes->get('admin/agenda-rutin/edit/(:num)', 'Admin\AgendaRutinController::edit/$1', ['filter' => ['auth:true', 'role:3,5']]);
+$routes->post('admin/agenda-rutin/update/(:num)', 'Admin\AgendaRutinController::update/$1', ['filter' => ['auth:true', 'role:3,5']]);
+$routes->post('admin/agenda-rutin/delete', 'Admin\AgendaRutinController::delete', ['filter' => ['auth:true', 'role:3,5']]);
+
 $routes->get('/sholat', 'SholatController::index');

@@ -86,7 +86,7 @@
                     <?php endif; ?>
 
                     <div class="space-y-4">
-                        <template x-for="(item, index) in sdmList" :key="index">
+                        <template x-for="(item, index) in sdmList" :key="item._key">
                             <div class="flex flex-col md:flex-row gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 relative" x-init="initSelect2()">
                                 <div class="flex-1">
                                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Nama SDM</label>
@@ -185,14 +185,19 @@
 <script>
     function agendaForm() {
         return {
+            // Setup untuk Alpine.js SDM List
             sdmList: <?= json_encode(
                 !empty($sdmOld)
                     ? $sdmOld
                     : ($currentSdm ?? [['id_sdm'=>'','id_kategori_sdm'=>'']])
-            ) ?>,
+            ) ?>.map(item => ({ ...item, _key: Math.random().toString(36).substring(2, 9) })),
             
             addSdm() {
-                this.sdmList.push({id_sdm: '', id_kategori_sdm: ''});
+                this.sdmList.push({
+                    id_sdm: '', 
+                    id_kategori_sdm: '', 
+                    _key: Math.random().toString(36).substring(2, 9) // <-- Tambahkan ini
+                });
                 this.$nextTick(() => { 
                     if (window.reinitIcons) window.reinitIcons(); 
                 });
