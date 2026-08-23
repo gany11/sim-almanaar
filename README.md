@@ -1,69 +1,116 @@
-# CodeIgniter 4 Application Starter
+# SIMAS (Sistem Informasi Manajemen) - Al-Manaar
 
-## What is CodeIgniter?
+![SIMAS Banner](https://almanaar-slipi.org/uploads/carousel/Latar%20Al%20Manaar.png)
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+SIMAS adalah sistem informasi manajemen terintegrasi yang dirancang untuk mengelola berbagai aktivitas operasional pangkalan data dan administrasi. Sistem ini mencakup manajemen agenda, pencatatan keuangan yang akurat, serta administrasi Sumber Daya Manusia (SDM). 
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+Aplikasi ini mengedepankan antarmuka pengguna yang modern, responsif, dan memberikan efisiensi tinggi melalui fitur pengolahan data massal berbasis *spreadsheet* (Excel).
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+---
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+## ✨ Fitur Utama
 
-## Installation & updates
+- **📅 Manajemen Agenda:** Penjadwalan dan pengelolaan agenda secara komprehensif, mencakup pembuatan agenda rutin maupun insidental.
+- **💰 Manajemen Keuangan:** Pencatatan arus kas (pemasukan & pengeluaran) dan administrasi operasional secara *real-time*.
+- **👥 Manajemen SDM:** Pengelolaan data staf, pengurus, dan sumber daya manusia terkait.
+- **📥 Import Data Massal:** Mendukung *import* data langsung dari format Excel (`.xlsx`) untuk mempercepat proses entri data Agenda dan Keuangan.
+- **⚡ Asset Bundling & Caching:** Menggunakan integrasi Vite untuk kompilasi CSS (Tailwind) dan JavaScript yang menghasilkan *loading* aplikasi super cepat.
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+---
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+## 🚀 Teknologi yang Digunakan
 
-## Setup
+Proyek ini dibangun di atas tumpukan teknologi modern untuk memastikan skalabilitas dan kenyamanan *developer*:
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+- **Backend:** [CodeIgniter 4](https://codeigniter.com/) (PHP Framework)
+- **Frontend:** [Tailwind CSS](https://tailwindcss.com/), JavaScript Vanilla
+- **Build Tool:** [Vite](https://vitejs.dev/)
+- **Database:** MySQL / MariaDB
+- **Hosting/Deployment:** Terkonfigurasi secara stabil dengan layanan Cloudflare untuk keamanan DNS dan dapat berjalan lancar di InfinityFree atau VPS.
 
-## Important Change with index.php
+---
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+## 🛠️ Panduan Instalasi (Development)
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+Ikuti instruksi di bawah ini untuk menjalankan SIMAS di mesin lokal Anda.
 
-**Please** read the user guide for a better explanation of how CI4 works!
+### Persyaratan Sistem
+- PHP >= 8.1
+- Composer
+- Node.js & npm (untuk Vite)
+- MySQL Database
 
-## Repository Management
+### Langkah-langkah Instalasi
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+**1. Kloning Repository**
+```bash
+git clone https://github.com/gany11/sim-almanaar.git
+cd sim-almanaar
+```
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+**2. Instalasi Dependensi Backend (PHP)**
+```bash
+composer install
+```
 
-## Server Requirements
+**3. Instalasi Dependensi Frontend (Node.js)**
+```bash
+npm install
+```
 
-PHP version 8.2 or higher is required, with the following extensions installed:
+**4. Konfigurasi Environment**
+Salin file `env` menjadi `.env`.
+```bash
+cp env .env
+```
+Buka file `.env` dan atur konfigurasi berikut:
+```env
+# Aktifkan mode development
+CI_ENVIRONMENT = development
 
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+# Konfigurasi Database
+database.default.hostname = localhost
+database.default.database = nama_database_simas
+database.default.username = root
+database.default.password = 
+database.default.DBDriver = MySQLi
+```
 
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - The end of life date for PHP 8.1 was December 31, 2025.
-> - If you are still using below PHP 8.2, you should upgrade immediately.
-> - The end of life date for PHP 8.2 will be December 31, 2026.
+**5. Migrasi Database**
+Jalankan migrasi untuk men-generate tabel database secara otomatis (termasuk tabel Agenda, SDM, Keuangan).
+```bash
+php spark migrate
+```
 
-Additionally, make sure that the following extensions are enabled in your PHP:
+**6. Jalankan Server Development**
+Proyek ini membutuhkan dua server lokal yang berjalan secara paralel (satu untuk PHP, satu untuk Vite). Buka dua jendela terminal/command prompt:
 
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+**Terminal 1: Menjalankan Vite (Asset Bundler)**
+```bash
+npm run dev
+```
+
+**Terminal 2: Menjalankan CodeIgniter Server**
+```bash
+php spark serve
+```
+
+Aplikasi sekarang dapat diakses melalui browser pada `http://localhost:8080`.
+
+---
+
+## 📁 Struktur Direktori Utama
+
+- `app/` - Direktori utama MVC CodeIgniter (Controllers, Models, Views).
+- `public/` - Dokumen *root* yang dapat diakses publik (CSS, JS, Images, Uploads).
+  - `public/build/` - Hasil kompilasi Vite (jangan diubah manual).
+  - `public/assets/templates/` - Berisi file *template* Excel untuk fitur import.
+- `src/` - *Source files* untuk Tailwind dan JavaScript sebelum di-*compile*.
+
+> **Penting:** Pastikan folder `public/uploads` dan `public/build/uploads` tidak di-commit ke Git agar tidak memenuhi *repository* (sudah diatur di `.gitignore`).
+
+---
+
+## 👨‍💻 Pengembang
+
+Dikembangkan dan di-maintain oleh **Fany Andisa**.
