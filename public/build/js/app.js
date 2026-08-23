@@ -10,6 +10,10 @@ import select2 from 'select2'
 import tinymce from 'tinymce'
 import flatpickr from "flatpickr";
 
+import { Calendar } from '@fullcalendar/core'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import interactionPlugin from '@fullcalendar/interaction'
+
 
 // ===================== IMPORT CSS LOKAL =====================
 import 'datatables.net-dt/css/dataTables.dataTables.css'; 
@@ -64,6 +68,58 @@ window.initEditor = () => {
     }
 }
 
+window.initCalendar = () => {
+    const calendarEl = document.getElementById('calendar');
+    if (calendarEl) {
+        const calendar = new Calendar(calendarEl, {
+            plugins: [dayGridPlugin, interactionPlugin],
+            initialView: 'dayGridMonth',
+            locale: 'id',
+            eventSources: [{
+                url: '/api/agenda',
+                method: 'GET',
+                fetchOptions: {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }
+            }],
+            eventClick: function(info) {
+                const props = info.event.extendedProps;
+                
+                let timeStr = info.event.start.toLocaleDateString('id-ID', { dateStyle: 'full' });
+                let clockStr = (props.ket_mulai || info.event.start.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
+                
+                if (info.event.end || props.ket_selesai) {
+                    clockStr += ' s/d ' + (props.ket_selesai || info.event.end.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
+                }
+
+                let speakerHtml = 'Tidak ada pengisi.';
+                if (props.pengisi && props.pengisi.length > 0) {
+                    speakerHtml = props.pengisi.map(p => `<div><span class='text-blue-600'>${p.peran}:</span> ${p.nama}</div>`).join('');
+                }
+
+                window.dispatchEvent(new CustomEvent('open-agenda', {
+                    detail: {
+                        id: info.event.id || props.id_agenda || props.id,
+                        category: props.nama_kategori,
+                        theme: props.tema || 'Kegiatan Rutin',
+                        title: props.judul,
+                        time: timeStr + ' (' + clockStr + ')',
+                        loc: props.tempat || 'Masjid Al-Manaar',
+                        speaker: speakerHtml,
+                        desc: props.deskripsi || '<em class="text-gray-400">Tidak ada deskripsi tambahan.</em>'
+                    }
+                }));
+            }
+        });
+
+        window.calendarInstance = calendar;
+        
+        calendar.render();
+    }
+}
+
 window.confirmLogout = function() {
     Swal.fire({
         title: 'Konfirmasi Logout',
@@ -89,6 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
         tags: true,
         width: '100%'
     });
+    window.initCalendar();
 
     window.initEditor();
 

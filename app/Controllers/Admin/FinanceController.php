@@ -277,7 +277,13 @@ class FinanceController extends BaseController
         $reader = new Xlsx();
         $spreadsheet = $reader->load($file->getTempName());
         $dataRaw = $spreadsheet->getActiveSheet()->toArray();
+        
+        $templateVersion = trim($spreadsheet->getActiveSheet()->getCell('H3')->getValue());
 
+        if ($templateVersion !== '26.8.23') {
+            return redirect()->to('admin/finance/data')->with('error', 'Gunakan file template terbaru!');
+        }
+        
         $dataToInsert = [];
         $importErrors = [];
         $skippedCount = 0;
@@ -427,6 +433,12 @@ class FinanceController extends BaseController
         $reader = new Xlsx();
         $spreadsheet = $reader->load($file->getTempName());
         $dataRaw = $spreadsheet->getActiveSheet()->toArray();
+
+        $templateVersion = trim($spreadsheet->getActiveSheet()->getCell('H3')->getValue());
+
+        if ($templateVersion !== '26.8.23') {
+            return redirect()->to('admin/finance/data')->with('error', 'Gunakan file template terbaru!');
+        }
 
         $dataToInsert = [];
         $importErrors = [];

@@ -46,6 +46,8 @@ $RECYCLE.BIN/
 Vagrantfile
 app/Config/Constants.php
 app/Config/Email.php
+public/uploads/*
+public/build/uploads/*
 
 #-------------------------
 # Temporary Files

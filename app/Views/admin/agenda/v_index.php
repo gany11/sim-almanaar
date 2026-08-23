@@ -12,11 +12,11 @@
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Agenda
             </a> -->
             <div class="flex flex-wrap items-center gap-3">
-                <!-- <button @click="openImport = true" 
+                <button @click="openImport = true" 
                     class="flex items-center gap-2 px-5 py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl font-bold text-sm hover:bg-emerald-50 transition-all active:scale-95 shadow-sm shadow-emerald-50">
                     <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> 
                     <span>Import Excel</span>
-                </button> -->
+                </button>
 
                 <a href="<?= base_url('admin/agenda/create') ?>" 
                     class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
@@ -69,6 +69,14 @@
     <?php endif; ?>
 
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 mx-4 md:mx-0">
+        <div id="calendar-loading" class="hidden text-center py-4 text-blue-600 font-bold animate-pulse">
+            Memperbarui Agenda...
+        </div>
+        
+        <div id="calendar" class="min-h-[600px]"></div>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 mx-4 md:mx-0">
         <div class="flex flex-wrap items-end gap-4">
             <div class="w-full md:w-64">
                 <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Filter Kategori</label>
@@ -90,10 +98,10 @@
             <table id="tableAgenda" class="w-full text-left border-collapse">
                 <thead class="bg-blue-600">
                     <tr>
+                        <th class="px-6 py-4 text-xs font-bold text-white uppercase tracking-widest">Waktu</th>
                         <th class="px-6 py-4 text-xs font-bold text-white uppercase tracking-widest">Info Agenda</th>
                         <th class="px-6 py-4 text-xs font-bold text-white uppercase tracking-widest">Kategori</th>
                         <th class="px-6 py-4 text-xs font-bold text-white uppercase tracking-widest">Pengisi / SDM</th>
-                        <th class="px-6 py-4 text-xs font-bold text-white uppercase tracking-widest">Waktu</th>
                         <th class="px-6 py-4 text-xs font-bold text-white uppercase tracking-widest">Tempat</th>
                         <th class="px-6 py-4 text-xs font-bold text-white uppercase tracking-widest text-center">Aksi</th>
                     </tr>
@@ -104,7 +112,7 @@
         </div>
     </div>
 
-    <!-- <div x-show="openImport" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div x-show="openImport" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 class="font-bold text-gray-800">Import Data Agenda</h3>
@@ -155,102 +163,216 @@
                 </div>
             </form>
         </div>
-    </div> -->
+    </div>
+    <div x-data="{ open: false, id: '', category: '', theme: '', title: '', time: '', loc: '', speaker: '', desc: '' }" 
+         @open-agenda.window="
+            open = true; 
+            id = $event.detail.id; // <-- Tambahkan baris ini untuk menangkap ID agenda
+            category = $event.detail.category;
+            theme = $event.detail.theme;
+            title = $event.detail.title; 
+            time = $event.detail.time; 
+            loc = $event.detail.loc;
+            speaker = $event.detail.speaker;
+            desc = $event.detail.desc;
+            
+            // Reinit icon untuk tombol yang dirender oleh Alpine
+            setTimeout(() => { if(typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
+         ">
+        
+        <div x-show="open" 
+             class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+             x-transition.opacity
+             style="display: none;">
+            
+            <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl" @click.away="open = false">
+                <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+                    <span class="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold uppercase rounded-full" x-text="category"></span>
+                    <button @click="open = false" class="text-gray-400 hover:text-red-500 transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+    
+                <div class="p-6 space-y-4">
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tema / Judul</p>
+                        <h3 class="text-xl font-bold text-gray-900">
+                            <span x-text="theme"></span> 
+                            <template x-if="title">
+                                <span class="text-gray-500 font-medium" x-text="' (' + title + ')'"></span>
+                            </template>
+                        </h3>
+                    </div>
+    
+                    <div class="grid grid-cols-2 gap-4 pt-2">
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="calendar" class="w-4 h-4 text-blue-600 mt-1"></i>
+                            <div class="text-xs text-gray-600">
+                                <p class="font-bold">Waktu</p>
+                                <p x-text="time"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-blue-600 mt-1"></i>
+                            <div class="text-xs text-gray-600">
+                                <p class="font-bold">Tempat</p>
+                                <p x-text="loc"></p>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="pt-2">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Pengisi / Pengajar</p>
+                        <div class="text-sm text-gray-800 font-medium flex flex-col gap-1" x-html="speaker"></div>
+                    </div>
+    
+                    <div class="pt-4 border-t border-gray-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Deskripsi</p>
+                        <div class="text-sm text-gray-600 leading-relaxed prose prose-sm max-w-none" x-html="desc"></div>
+                    </div>
+    
+                    <!-- TOMBOL AKSI DI DALAM MODAL -->
+                    <?php if (in_array(session()->get('id_peran'), [3,5])): ?>
+                    <div class="pt-4 mt-2 border-t border-gray-100 flex justify-end gap-2">
+                        <!-- Tombol Edit (Binding URL dengan Alpine) -->
+                        <a :href="'<?= base_url('admin/agenda/edit/') ?>' + id" 
+                           class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm font-medium text-sm">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i> Edit
+                        </a>
+                        
+                        <!-- Tombol Hapus (Men-trigger class .btn-delete agar terbaca oleh jQuery) -->
+                        <button type="button" 
+                            class="btn-delete flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm font-medium text-sm"
+                            :data-id="id" 
+                            :data-tema="theme"
+                            @click="open = false"> <!-- Tutup modal saat tombol hapus diklik -->
+                            <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus
+                        </button>
+                    </div>
+                    <?php endif; ?>
+    
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const $ = window.jQuery;
-    const DataTable = window.DataTable;
+    document.addEventListener("DOMContentLoaded", function() {
+        const $ = window.jQuery;
+        const DataTable = window.DataTable;
 
-    const loadData = () => {
-        const tableId = '#tableAgenda';
-        if ($.fn.DataTable.isDataTable(tableId)) $(tableId).DataTable().clear().destroy();
+        const loadData = () => {
+            const tableId = '#tableAgenda';
+            if ($.fn.DataTable.isDataTable(tableId)) $(tableId).DataTable().clear().destroy();
 
-        $('#load-data').html('<tr><td colspan="6" class="text-center py-20 text-gray-400">Memuat jadwal agenda...</td></tr>');
+            $('#load-data').html('<tr><td colspan="6" class="text-center py-20 text-gray-400">Memuat jadwal agenda...</td></tr>');
 
-        $.ajax({
-            url: "<?= base_url('admin/agenda/list') ?>",
-            type: "POST",
-            data: { 
-                id_kategori_agenda: $('#filter-kategori').val(),
-                "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
-            },
-            success: function(response) {
-                $('#load-data').html(response);
-                
-                if ($('#load-data').find('td[colspan]').length === 0) {
-                    new DataTable(tableId, {
-                        responsive: false,
-                        pageLength: 10,
-                        columnDefs: [{ targets: [2, 5], orderable: false }],
-                        dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>',
-                        drawCallback: function() {
-                            if (window.reinitIcons) {
-                                window.reinitIcons();
-                            } else if (typeof lucide !== 'undefined') {
-                                lucide.createIcons();
+            $.ajax({
+                url: "<?= base_url('admin/agenda/list') ?>",
+                type: "POST",
+                data: { 
+                    id_kategori_agenda: $('#filter-kategori').val(),
+                    "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
+                },
+                success: function(response) {
+                    $('#load-data').html(response);
+                    
+                    if ($('#load-data').find('td[colspan]').length === 0) {
+                        new DataTable(tableId, {
+                            responsive: false,
+                            pageLength: 10,
+                            ordering: false,
+                            order: [],
+                            columnDefs: [{ targets: [2, 5], orderable: false }],
+                            dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>',
+                            drawCallback: function() {
+                                if (window.reinitIcons) {
+                                    window.reinitIcons();
+                                } else if (typeof lucide !== 'undefined') {
+                                    lucide.createIcons();
+                                }
                             }
+                        });
+                    }
+                    if (window.reinitIcons) window.reinitIcons();
+                }
+            });
+        };
+
+        loadData();
+
+        $('#filter-kategori').on('change', loadData);
+        $('#btn-reset-filter').on('click', function() {
+            $('#filter-kategori').val("");
+            loadData();
+        });
+
+        $(document).on('click', '.btn-delete', function() {
+            const id = $(this).data('id');
+            const tema = $(this).data('tema');
+
+            window.Swal.fire({
+                title: 'Hapus Agenda?',
+                html: `Yakin ingin menghapus agenda:<br><b>${tema}</b>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "<?= base_url('admin/agenda/delete') ?>",
+                        type: "POST",
+                        data: {
+                            id_agenda: id,
+                            "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
+                        },
+                        success: function(res) {
+                            if (res.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Terhapus!',
+                                    text: res.message,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                                // 1. Refresh DataTable
+                                loadData(); 
+                                
+                                // 2. Refresh FullCalendar
+                                if (window.calendarInstance) {
+                                    // Jika instance kalender disimpan di global variable
+                                    window.calendarInstance.refetchEvents();
+                                } else if (typeof FullCalendar !== 'undefined') {
+                                    // Mengambil instance kalender langsung dari elemen DOM (FullCalendar v5/v6)
+                                    const calendarEl = document.getElementById('calendar');
+                                    const cal = FullCalendar.Calendar.getCalendar(calendarEl);
+                                    if (cal) cal.refetchEvents();
+                                }
+                            } else {
+                                Swal.fire('Gagal', res.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'Gagal menghubungi server.', 'error');
                         }
                     });
                 }
-                if (window.reinitIcons) window.reinitIcons();
-            }
-        });
-    };
-
-    loadData();
-
-    $('#filter-kategori').on('change', loadData);
-    $('#btn-reset-filter').on('click', function() {
-        $('#filter-kategori').val("");
-        loadData();
-    });
-
-    $(document).on('click', '.btn-delete', function() {
-        const id = $(this).data('id');
-        const tema = $(this).data('tema');
-
-        window.Swal.fire({
-            title: 'Hapus Agenda?',
-            html: `Yakin ingin menghapus agenda:<br><b>${tema}</b>`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: "<?= base_url('admin/agenda/delete') ?>",
-                    type: "POST",
-                    data: {
-                        id_agenda: id,
-                        "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
-                    },
-                    success: function(res) {
-                        if (res.status === 'success') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Terhapus!',
-                                text: res.message,
-                                timer: 1500,
-                                showConfirmButton: false
-                            });
-                            loadData(); 
-                        } else {
-                            Swal.fire('Gagal', res.message, 'error');
-                        }
-                    },
-                    error: function() {
-                        Swal.fire('Error', 'Gagal menghubungi server.', 'error');
-                    }
-                });
-            }
+            });
         });
     });
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    if (calendarEl && window.FullCalendar) {
+    }
 });
 </script>
 <?= $this->endSection() ?>

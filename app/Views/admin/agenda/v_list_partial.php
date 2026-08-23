@@ -6,6 +6,18 @@
     <?php foreach ($agenda as $row): ?>
         <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-all">
             <td class="px-6 py-4">
+                <div class="flex flex-col text-xs text-gray-500 gap-1">
+                    <span class="flex items-center gap-1">
+                        <i data-lucide="calendar" class="w-3 h-3"></i> 
+                        <?= date('d/m/Y', strtotime($row['waktu_mulai'])) ?>
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <i data-lucide="clock" class="w-3 h-3"></i> 
+                        <?= date('H:i', strtotime($row['waktu_mulai'])) ?> - <?= date('H:i', strtotime($row['waktu_selesai'])) ?>
+                    </span>
+                </div>
+            </td>
+            <td class="px-6 py-4">
                 <div class="flex flex-col">
                     <span class="font-bold text-gray-800"><?= $row['tema'] ?></span>
                     <?php if ($row['judul']): ?>
@@ -35,18 +47,6 @@
                 </div>
             </td>
 
-            <td class="px-6 py-4">
-                <div class="flex flex-col text-xs text-gray-500 gap-1">
-                    <span class="flex items-center gap-1">
-                        <i data-lucide="calendar" class="w-3 h-3"></i> 
-                        <?= date('d/m/Y', strtotime($row['waktu_mulai'])) ?>
-                    </span>
-                    <span class="flex items-center gap-1">
-                        <i data-lucide="clock" class="w-3 h-3"></i> 
-                        <?= date('H:i', strtotime($row['waktu_mulai'])) ?> - <?= date('H:i', strtotime($row['waktu_selesai'])) ?>
-                    </span>
-                </div>
-            </td>
 
             <td class="px-6 py-4">
                 <span class="text-[11px] text-gray-500 line-clamp-2 w-32" title="<?= $row['tempat'] ?>">

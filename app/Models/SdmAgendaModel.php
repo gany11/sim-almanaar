@@ -12,14 +12,21 @@ class SdmAgendaModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['id_agenda', 'id_sdm', 'id_kategori_sdm'];
+    protected $allowedFields    = ['id_agenda', 'id_agenda_rutin', 'id_sdm', 'id_kategori_sdm']; 
 
     public $validationRules = [
         'id_agenda' => [
-            'rules'  => 'required|is_not_unique[agenda.id_agenda]',
+            'rules'  => 'required_without[id_agenda_rutin]|permit_empty|is_not_unique[agenda.id_agenda]',
             'errors' => [
-                'required'      => 'ID Agenda harus disertakan.',
-                'is_not_unique' => 'Agenda tidak ditemukan.'
+                'required_without' => 'ID Agenda atau ID Agenda Rutin harus disertakan.',
+                'is_not_unique'    => 'Agenda tidak ditemukan.'
+            ]
+        ],
+        'id_agenda_rutin' => [
+            'rules'  => 'required_without[id_agenda]|permit_empty|is_not_unique[agenda_rutin.id_agenda_rutin]',
+            'errors' => [
+                'required_without' => 'ID Agenda atau ID Agenda Rutin harus disertakan.',
+                'is_not_unique'    => 'Agenda Rutin tidak ditemukan.'
             ]
         ],
         'id_sdm' => [

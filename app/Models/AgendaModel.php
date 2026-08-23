@@ -13,9 +13,9 @@ class AgendaModel extends Model
     protected $useSoftDeletes   = true;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'id_kategori_agenda', 'tema', 'judul', 'deskripsi', 'tempat', 
+        'id_kategori_agenda', 'id_agenda_rutin', 'tema', 'judul', 'deskripsi', 'tempat', 
         'waktu_mulai', 'waktu_selesai', 'id_keterangan_waktu_mulai', 
-        'id_keterangan_waktu_selesai', 'created_by', 'updated_by', 'deleted_by'
+        'id_keterangan_waktu_selesai', 'method', 'created_by', 'updated_by', 'deleted_by'
     ];
 
     protected $useTimestamps = true;
@@ -29,6 +29,13 @@ class AgendaModel extends Model
             'errors' => [
                 'required'      => 'Kategori agenda wajib dipilih.',
                 'is_not_unique' => 'Kategori agenda yang dipilih tidak valid.'
+            ]
+        ],
+        // Tambahkan validasi (opsional) untuk mengecek referensi id_agenda_rutin
+        'id_agenda_rutin' => [
+            'rules'  => 'permit_empty|is_not_unique[agenda_rutin.id_agenda_rutin]',
+            'errors' => [
+                'is_not_unique' => 'Agenda rutin yang ditautkan tidak ditemukan.'
             ]
         ],
         'tema' => [
