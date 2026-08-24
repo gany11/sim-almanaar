@@ -9,7 +9,7 @@
         </div>
         <?php if (in_array(session()->get('id_peran'), [3,5])): ?>
             <div class="flex flex-wrap items-center gap-3">
-                <a href="<?= base_url('admin/agenda-rutin/create') ?>" 
+                <a href="<?= base_url('admin/routine-agenda/create') ?>" 
                     class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
                     <i data-lucide="plus-circle" class="w-4 h-4"></i> 
                     <span>Tambah Agenda Rutin</span>
@@ -96,95 +96,6 @@
             </table>
         </div>
     </div>
-
-    <!-- Modal Detail Agenda Rutin -->
-    <div x-data="{ open: false, id: '', category: '', theme: '', title: '', time: '', loc: '', speaker: '', desc: '' }" 
-         @open-agenda.window="
-            open = true; 
-            id = $event.detail.id;
-            category = $event.detail.category;
-            theme = $event.detail.theme;
-            title = $event.detail.title; 
-            time = $event.detail.time; 
-            loc = $event.detail.loc;
-            speaker = $event.detail.speaker;
-            desc = $event.detail.desc;
-            
-            setTimeout(() => { if(typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
-         ">
-        
-        <div x-show="open" 
-             class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-             x-transition.opacity
-             style="display: none;">
-            
-            <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl" @click.away="open = false">
-                <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-                    <span class="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold uppercase rounded-full" x-text="category"></span>
-                    <button @click="open = false" class="text-gray-400 hover:text-red-500 transition-colors">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
-                </div>
-    
-                <div class="p-6 space-y-4">
-                    <div>
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tema / Judul</p>
-                        <h3 class="text-xl font-bold text-gray-900">
-                            <span x-text="theme"></span> 
-                            <template x-if="title">
-                                <span class="text-gray-500 font-medium" x-text="' (' + title + ')'"></span>
-                            </template>
-                        </h3>
-                    </div>
-    
-                    <div class="grid grid-cols-2 gap-4 pt-2">
-                        <div class="flex items-start gap-3">
-                            <i data-lucide="clock" class="w-4 h-4 text-blue-600 mt-1"></i>
-                            <div class="text-xs text-gray-600">
-                                <p class="font-bold">Waktu & Pola</p>
-                                <p x-html="time"></p> <!-- Menggunakan x-html jika ada tag br dari view list -->
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <i data-lucide="map-pin" class="w-4 h-4 text-blue-600 mt-1"></i>
-                            <div class="text-xs text-gray-600">
-                                <p class="font-bold">Tempat</p>
-                                <p x-text="loc"></p>
-                            </div>
-                        </div>
-                    </div>
-    
-                    <div class="pt-2">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Pengisi / Pengajar</p>
-                        <div class="text-sm text-gray-800 font-medium flex flex-col gap-1" x-html="speaker"></div>
-                    </div>
-    
-                    <div class="pt-4 border-t border-gray-100">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Deskripsi</p>
-                        <div class="text-sm text-gray-600 leading-relaxed prose prose-sm max-w-none" x-html="desc"></div>
-                    </div>
-    
-                    <!-- TOMBOL AKSI DI DALAM MODAL -->
-                    <?php if (in_array(session()->get('id_peran'), [3,5])): ?>
-                    <div class="pt-4 mt-2 border-t border-gray-100 flex justify-end gap-2">
-                        <a :href="'<?= base_url('admin/agenda-rutin/edit/') ?>' + id" 
-                           class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm font-medium text-sm">
-                            <i data-lucide="edit-3" class="w-4 h-4"></i> Edit
-                        </a>
-                        
-                        <button type="button" 
-                            class="btn-delete flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm font-medium text-sm"
-                            :data-id="id" 
-                            :data-tema="theme"
-                            @click="open = false"> 
-                            <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus
-                        </button>
-                    </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <script>
@@ -199,11 +110,11 @@
             $('#load-data').html('<tr><td colspan="6" class="text-center py-20 text-gray-400">Memuat jadwal agenda rutin...</td></tr>');
 
             $.ajax({
-                url: "<?= base_url('admin/agenda-rutin/list') ?>",
+                url: "<?= base_url('admin/routine-agenda/list') ?>",
                 type: "POST",
                 data: { 
                     id_kategori_agenda: $('#filter-kategori').val(),
-                    status: $('#filter-status').val(), // <-- TAMBAHAN PARAMETER STATUS
+                    status: $('#filter-status').val(),
                     "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
                 },
                 success: function(response) {
@@ -257,7 +168,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: "<?= base_url('admin/agenda-rutin/delete') ?>",
+                        url: "<?= base_url('admin/routine-agenda/delete') ?>",
                         type: "POST",
                         data: {
                             id_agenda_rutin: id,

@@ -12,7 +12,7 @@ use App\Models\SdmAgendaModel;
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
 
-class AgendaRutinController extends BaseController
+class RoutineAgendaController extends BaseController
 {
     protected $agendaRutinModel;
     protected $sdmModel;
@@ -33,7 +33,7 @@ class AgendaRutinController extends BaseController
 
     public function index()
     {
-        return view('admin/agenda-routine/v_index', [
+        return view('admin/routine-agenda/v_index', [
             'title'      => 'Manajemen Agenda Rutin',
             'categories' => $this->katAgendaModel->findAll()
         ]);
@@ -70,12 +70,12 @@ class AgendaRutinController extends BaseController
         }
 
         $data['agenda_rutin'] = $agendaFinal;
-        return view('admin/agenda-routine/v_list_partial', $data);
+        return view('admin/routine-agenda/v_list_partial', $data);
     }
 
     public function create()
     {
-        return view('admin/agenda-routine/v_form', [
+        return view('admin/routine-agenda/v_form', [
             'title'      => 'Tambah Agenda Rutin Baru',
             'categories' => $this->katAgendaModel->findAll(),
             'sdm_roles'  => $this->katSdmModel->findAll(),
@@ -87,12 +87,12 @@ class AgendaRutinController extends BaseController
     public function edit($id)
     {
         $agenda_rutin = $this->agendaRutinModel->find($id);
-        if (!$agenda_rutin) return redirect()->to('admin/agenda-rutin')->with('error', 'Agenda rutin tidak ditemukan.');
+        if (!$agenda_rutin) return redirect()->to('admin/routine-agenda')->with('error', 'Agenda rutin tidak ditemukan.');
 
         // Ambil relasi SDM yang sudah ada khusus untuk agenda rutin ini
         $currentSdm = $this->sdmAgendaModel->where('id_agenda_rutin', $id)->findAll();
 
-        return view('admin/agenda-routine/v_form', [
+        return view('admin/routine-agenda/v_form', [
             'title'        => 'Edit Agenda Rutin',
             'agenda_rutin' => $agenda_rutin,
             'currentSdm'   => $currentSdm,
@@ -231,7 +231,7 @@ class AgendaRutinController extends BaseController
                 return redirect()->back()->withInput()->with('error', 'Gagal menyimpan data agenda rutin.');
             }
 
-            return redirect()->to('admin/agenda-rutin')->with('success', 'Agenda rutin berhasil disimpan!');
+            return redirect()->to('admin/routine-agenda')->with('success', 'Agenda rutin berhasil disimpan!');
 
         } catch (\Exception $e) {
             $db->transRollback();

@@ -96,8 +96,7 @@
             <td class="px-6 py-4">
                 <div class="flex justify-center gap-2">
                     <?php if (in_array(session()->get('id_peran'), [3,5])): ?>
-                        <!-- Ganti URL ke admin/agenda-rutin -->
-                        <a href="<?= base_url('admin/agenda-rutin/edit/' . $row['id_agenda_rutin']) ?>" 
+                        <a href="<?= base_url('admin/routine-agenda/edit/' . $row['id_agenda_rutin']) ?>" 
                         class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm">
                             <i data-lucide="edit-3" class="w-4 h-4"></i>
                         </a>

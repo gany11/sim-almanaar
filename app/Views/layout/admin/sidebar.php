@@ -99,10 +99,10 @@
                 </li>
 
                 <!-- Menu 1: Agenda Biasa / Insidental -->
-                <li x-data="{ open: <?= (url_is('admin/agenda') || url_is('admin/agenda/*')) && !url_is('admin/agenda-rutin*') ? 'true' : 'false' ?> }">
+                <li x-data="{ open: <?= (url_is('admin/agenda') || url_is('admin/agenda/*')) && !url_is('admin/routine-agenda*') ? 'true' : 'false' ?> }">
                     <button @click="open = !open"
                         class="w-full flex justify-between items-center px-4 py-2.5 rounded-lg transition-all duration-200 
-                        <?= (url_is('admin/agenda') || url_is('admin/agenda/*')) && !url_is('admin/agenda-rutin*') ? 'bg-white text-blue-600 shadow-lg' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                        <?= (url_is('admin/agenda') || url_is('admin/agenda/*')) && !url_is('admin/routine-agenda*') ? 'bg-white text-blue-600 shadow-lg' : 'text-white hover:bg-white hover:text-blue-600' ?>">
                         
                         <div class="flex items-center gap-3">
                             <i data-lucide="calendar-days" class="w-5 h-5"></i>
@@ -132,10 +132,10 @@
                 </li>
 
                 <!-- Menu 2: Agenda Rutin -->
-                <li x-data="{ open: <?= url_is('admin/agenda-rutin*') ? 'true' : 'false' ?> }" class="mt-1">
+                <li x-data="{ open: <?= url_is('admin/routine-agenda*') ? 'true' : 'false' ?> }" class="mt-1">
                     <button @click="open = !open"
                         class="w-full flex justify-between items-center px-4 py-2.5 rounded-lg transition-all duration-200 
-                        <?= url_is('admin/agenda-rutin*') ? 'bg-white text-blue-600 shadow-lg' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                        <?= url_is('admin/routine-agenda*') ? 'bg-white text-blue-600 shadow-lg' : 'text-white hover:bg-white hover:text-blue-600' ?>">
                         
                         <div class="flex items-center gap-3">
                             <i data-lucide="calendar-clock" class="w-5 h-5"></i>
@@ -148,16 +148,16 @@
                     </button>
 
                     <div x-show="open" x-cloak x-transition class="mt-2 space-y-1">
-                        <a href="<?= base_url('admin/agenda-rutin'); ?>"
+                        <a href="<?= base_url('admin/routine-agenda'); ?>"
                         class="flex items-center gap-3 ml-4 px-4 py-2 rounded-lg transition-all duration-200 
-                        <?= url_is('admin/agenda-rutin') || url_is('admin/agenda-rutin/edit/*') ? 'bg-white text-blue-600 font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                        <?= url_is('admin/routine-agenda') || url_is('admin/routine-agenda/edit/*') ? 'bg-white text-blue-600 font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
                             <i data-lucide="circle" class="w-2 h-2"></i> <span class="text-sm">Daftar Agenda Rutin</span>
                         </a>
 
                         <?php if (in_array(session()->get('id_peran'), [3, 5])): ?>
-                            <a href="<?= base_url('admin/agenda-rutin/create'); ?>"
+                            <a href="<?= base_url('admin/routine-agenda/create'); ?>"
                             class="flex items-center gap-3 ml-4 px-4 py-2 rounded-lg transition-all duration-200 
-                            <?= url_is('admin/agenda-rutin/create') ? 'bg-white text-blue-600 font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                            <?= url_is('admin/routine-agenda/create') ? 'bg-white text-blue-600 font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
                                 <i data-lucide="plus" class="w-2 h-2"></i> <span class="text-sm">Tambah Agenda Rutin</span>
                             </a>
                         <?php endif; ?>
