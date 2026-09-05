@@ -171,14 +171,6 @@
                     <span class="text-[10px] font-bold uppercase tracking-widest text-white">Keuangan</span>
                 </li>
 
-                <!-- <li>
-                    <a href="<?= base_url('admin/finance/data') ?>" 
-                    class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 
-                    <?= url_is('admin/finance/data*') ? 'bg-white text-blue-600 shadow-lg font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
-                        <i data-lucide="wallet" class="w-5 h-5"></i>
-                        <span class="text-sm font-medium">Keuangan Rutin</span>
-                    </a>
-                </li> -->
                 <?php if (in_array(session()->get('id_peran'), [4])): ?>
                     <li>
                         <a href="<?= base_url('admin/finance/data') ?>" 
@@ -240,6 +232,75 @@
                         </a>
                     </li> -->
                 <?php endif; ?>
+            <?php endif; ?>
+
+            <!-- ===================== MANAJEMEN DONASI & DONATUR ===================== -->
+            <?php if (in_array(session()->get('id_peran'), [4])): ?>
+                <li class="pt-4 pb-1 px-4">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-white/80">Manajemen Donasi</span>
+                </li>
+
+                <!-- Menu 1: Donatur -->
+                <li x-data="{ open: <?= (url_is('admin/donors') || url_is('admin/donors/*')) ? 'true' : 'false' ?> }">
+                    <button @click="open = !open"
+                        class="w-full flex justify-between items-center px-4 py-2.5 rounded-lg transition-all duration-200 
+                        <?= (url_is('admin/donors') || url_is('admin/donors/*')) ? 'bg-white text-blue-600 shadow-lg' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                        
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                            <span class="text-sm font-medium">Donatur</span>
+                        </div>
+
+                        <i data-lucide="chevron-right" 
+                        class="w-4 h-4 transition-transform duration-300" 
+                        :class="open ? 'rotate-90 text-blue-600' : 'text-current'"></i>
+                    </button>
+
+                    <div x-show="open" x-cloak x-transition class="mt-2 space-y-1">
+                        <a href="<?= base_url('admin/donors'); ?>"
+                        class="flex items-center gap-3 ml-4 px-4 py-2 rounded-lg transition-all duration-200 
+                        <?= url_is('admin/donors') || url_is('admin/donors/edit/*') || url_is('admin/donors/detail/*') ? 'bg-white text-blue-600 font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                            <i data-lucide="circle" class="w-2 h-2"></i> <span class="text-sm">Daftar Donatur</span>
+                        </a>
+
+                        <a href="<?= base_url('admin/donors/create'); ?>"
+                        class="flex items-center gap-3 ml-4 px-4 py-2 rounded-lg transition-all duration-200 
+                        <?= url_is('admin/donors/create') ? 'bg-white text-blue-600 font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                            <i data-lucide="plus" class="w-2 h-2"></i> <span class="text-sm">Tambah Donatur</span>
+                        </a>
+                    </div>
+                </li>
+
+                <!-- Menu 2: Program Donasi -->
+                <li x-data="{ open: <?= (url_is('admin/donations') || url_is('admin/donations/*')) ? 'true' : 'false' ?> }" class="mt-1">
+                    <button @click="open = !open"
+                        class="w-full flex justify-between items-center px-4 py-2.5 rounded-lg transition-all duration-200 
+                        <?= (url_is('admin/donations') || url_is('admin/donations/*')) ? 'bg-white text-blue-600 shadow-lg' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                        
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="heart-handshake" class="w-5 h-5"></i>
+                            <span class="text-sm font-medium">Program Donasi</span>
+                        </div>
+
+                        <i data-lucide="chevron-right" 
+                        class="w-4 h-4 transition-transform duration-300" 
+                        :class="open ? 'rotate-90 text-blue-600' : 'text-current'"></i>
+                    </button>
+
+                    <div x-show="open" x-cloak x-transition class="mt-2 space-y-1">
+                        <a href="<?= base_url('admin/donations'); ?>"
+                        class="flex items-center gap-3 ml-4 px-4 py-2 rounded-lg transition-all duration-200 
+                        <?= url_is('admin/donations') || url_is('admin/donations/edit/*') || url_is('admin/donations/detail/*') ? 'bg-white text-blue-600 font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                            <i data-lucide="circle" class="w-2 h-2"></i> <span class="text-sm">Daftar Donasi</span>
+                        </a>
+
+                        <a href="<?= base_url('admin/donations/create'); ?>"
+                        class="flex items-center gap-3 ml-4 px-4 py-2 rounded-lg transition-all duration-200 
+                        <?= url_is('admin/donations/create') ? 'bg-white text-blue-600 font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                            <i data-lucide="plus" class="w-2 h-2"></i> <span class="text-sm">Tambah Donasi</span>
+                        </a>
+                    </div>
+                </li>
             <?php endif; ?>
 
             <!-- Manajemen Akun -->

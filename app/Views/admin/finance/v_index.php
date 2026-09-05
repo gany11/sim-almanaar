@@ -244,7 +244,6 @@
                     $temp.find('.summary-item').each(function() {
                         const catName = $(this).data('kategori');
                         const newVal = $(this).data('saldo');
-                        // Cari span saldo berdasarkan nama kategori dan update teksnya
                         $(`.saldo-value[data-cat="${catName}"]`).text(newVal);
                     });
                     
@@ -290,6 +289,7 @@
         $('#filter-cat, #filter-type').on('change', loadData);
         $('#btn-reset').on('click', () => { $('#filter-cat, #filter-type').val(""); loadData(); });
 
+        // 1. Handler Hapus Transaksi Keuangan Murni
         $(document).on('click', '.btn-delete', function() {
             const id = $(this).data('id');
             const judul = $(this).data('judul');
@@ -312,7 +312,7 @@
                         url: "<?= base_url('admin/finance/data/delete') ?>",
                         type: "POST",
                         data: {
-                            id_keuangan: id, // Sesuaikan primary key db
+                            id_keuangan: id,
                             "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
                         },
                         success: function(res) {
@@ -331,6 +331,65 @@
                         },
                         error: function() {
                             Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // 2. Handler Hapus Pemasukan Donasi (.btn-delete-candidate)
+        $(document).on('click', '.btn-delete-candidate', function(e) {
+            e.preventDefault();
+            
+            const id = $(this).data('id');
+            const info = $(this).data('info');
+
+            if (!id) {
+                console.error('ID Pemasukan Donasi tidak ditemukan.');
+                return;
+            }
+
+            window.Swal.fire({
+                title: 'Hapus Riwayat Donasi?',
+                html: `Yakin ingin menghapus catatan:<br><b>"${info}"</b>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.showLoading();
+
+                    $.ajax({
+                        url: "<?= base_url('admin/donation-incomes/delete') ?>",
+                        type: "POST",
+                        data: {
+                            id_pemasukan_donasi: id,
+                            "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
+                        },
+                        success: function(res) {
+                            if (res.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Terhapus!',
+                                    text: res.message,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                                loadData(); // Memperbarui tabel keuangan secara instan
+                            } else {
+                                Swal.fire('Gagal', res.message, 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            let errorMsg = 'Gagal menghubungi server.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                            Swal.fire('Error', errorMsg, 'error');
                         }
                     });
                 }

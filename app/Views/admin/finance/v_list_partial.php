@@ -49,16 +49,35 @@
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex justify-center gap-2">
-                            <?php if($row['bukti']): ?>
-                                <a href="<?= base_url('uploads/keuangan/'.$row['bukti']) ?>" target="_blank" class="p-2 bg-amber-50 text-amber-600 rounded-lg shadow-sm hover:bg-amber-600 hover:text-white transition-all" title="Lihat Bukti PDF">
+                            <!-- Tombol Lihat Bukti: Direktori dinamis berdasarkan asal data -->
+                            <?php if (!empty($row['bukti'])): ?>
+                                <?php 
+                                    // Jika memiliki id_pemasukan_donasi, arahkan ke folder donasi/bukti, jika tidak ke keuangan
+                                    $folderBukti = !empty($row['id_pemasukan_donasi']) ? 'uploads/donasi/bukti/' : 'uploads/keuangan/';
+                                ?>
+                                <a href="<?= base_url($folderBukti . $row['bukti']) ?>" target="_blank" class="p-2 bg-amber-50 text-amber-600 rounded-lg shadow-sm hover:bg-amber-600 hover:text-white transition-all" title="Lihat Bukti">
                                     <i data-lucide="file-text" class="w-4 h-4"></i>
                                 </a>
                             <?php endif; ?>
-                            <?php if (in_array(session()->get('id_peran'), [4])): ?>
+
+                            <!-- Tombol Edit & Hapus: Sembunyikan jika ada id_pemasukan_donasi -->
+                            <?php if (empty($row['id_pemasukan_donasi']) && in_array(session()->get('id_peran'), [4])): ?>
                                 <a href="<?= base_url('admin/finance/data/edit/' . $row['id_keuangan']) ?>" class="p-2 bg-blue-50 text-blue-600 rounded-lg shadow-sm hover:bg-blue-600 hover:text-white transition-all" title="Edit Transaksi">
                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
                                 </a>
                                 <button type="button" class="btn-delete p-2 bg-red-50 text-red-600 rounded-lg shadow-sm hover:bg-red-600 hover:text-white transition-all" data-id="<?= $row['id_keuangan'] ?>" data-judul="<?= $row['keterangan'] ?>" title="Hapus Transaksi">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            <?php else: ?>
+                                <a href="<?= base_url('admin/donation-incomes/edit/' . $row['id_pemasukan_donasi']) ?>" 
+                                    class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit Pemasukan Donasi">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </a>
+                                
+                                <button type="button" 
+                                    class="btn-delete-candidate p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus Pemasukan Donasi"
+                                    data-id="<?= $row['id_pemasukan_donasi'] ?>" 
+                                    data-info="<?= htmlspecialchars($row['keterangan'] ?? 'Pemasukan Donasi', ENT_QUOTES) ?>">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             <?php endif; ?>

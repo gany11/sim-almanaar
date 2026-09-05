@@ -127,22 +127,22 @@ class ProfileController extends BaseController
                         );
 
 
-                log_message(
-                    'debug',
-                    'CHECK WA PHONE: ' .
-                    $newPhone
-                );
+                // log_message(
+                //     'debug',
+                //     'CHECK WA PHONE: ' .
+                //     $newPhone
+                // );
 
 
-                log_message(
-                    'debug',
-                    'CHECK WA RESULT: ' .
-                    json_encode(
-                        $checkNumber,
-                        JSON_UNESCAPED_UNICODE |
-                        JSON_UNESCAPED_SLASHES
-                    )
-                );
+                // log_message(
+                //     'debug',
+                //     'CHECK WA RESULT: ' .
+                //     json_encode(
+                //         $checkNumber,
+                //         JSON_UNESCAPED_UNICODE |
+                //         JSON_UNESCAPED_SLASHES
+                //     )
+                // );
 
 
                 $registered =

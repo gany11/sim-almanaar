@@ -22,7 +22,7 @@ class KeuanganModel extends Model
     // Iterasi 2
     protected $allowedFields    = [
         'id_kategori_keuangan', 'id_detail_alokasi', 'tanggal', 'jumlah', 
-        'jenis', 'keterangan', 'pic', 'method_input', 'bukti', 
+        'jenis', 'keterangan', 'pic', 'method_input', 'bukti', 'id_pemasukan_donasi',
         'created_by', 'updated_by', 'deleted_by'
     ];
 
