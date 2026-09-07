@@ -56,7 +56,12 @@
 
             <td class="px-6 py-4">
                 <div class="flex justify-center gap-2">
-                    <?php if (in_array(session()->get('id_peran'), [3,5])): ?>
+                    <?php 
+                        // Hitung batas waktu: waktu mulai + 1 jam
+                        $batas_waktu = strtotime($row['waktu_mulai'] . ' +1 hour');
+                        $waktu_sekarang = time();
+                    ?>
+                    <?php if (in_array(session()->get('id_peran'), [3,5]) && $waktu_sekarang <= $batas_waktu): ?>
                         <a href="<?= base_url('admin/agenda/edit/' . $row['id_agenda']) ?>" 
                         class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm">
                             <i data-lucide="edit-3" class="w-4 h-4"></i>

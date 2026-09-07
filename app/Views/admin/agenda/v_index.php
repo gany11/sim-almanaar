@@ -164,10 +164,30 @@
             </form>
         </div>
     </div>
-    <div x-data="{ open: false, id: '', category: '', theme: '', title: '', time: '', loc: '', speaker: '', desc: '' }" 
-         @open-agenda.window="
+    <div x-data="{ 
+            open: false, 
+            id: '', 
+            category: '', 
+            theme: '', 
+            title: '', 
+            time: '', 
+            loc: '', 
+            speaker: '', 
+            desc: '',
+            waktu_mulai: '',
+            
+            // Fungsi untuk mengecek apakah waktu sekarang <= waktu_mulai + 1 jam
+            canEditOrDelete() {
+                if (!this.waktu_mulai) return false;
+                let waktuMulaiMs = new Date(this.waktu_mulai).getTime();
+                let batasWaktuMs = waktuMulaiMs + (60 * 60 * 1000); // Tambah 1 jam dalam milidetik
+                let waktuSekarangMs = new Date().getTime();
+                return waktuSekarangMs <= batasWaktuMs;
+            }
+        }" 
+        @open-agenda.window="
             open = true; 
-            id = $event.detail.id; // <-- Tambahkan baris ini untuk menangkap ID agenda
+            id = $event.detail.id;
             category = $event.detail.category;
             theme = $event.detail.theme;
             title = $event.detail.title; 
@@ -175,15 +195,15 @@
             loc = $event.detail.loc;
             speaker = $event.detail.speaker;
             desc = $event.detail.desc;
+            waktu_mulai = $event.detail.waktu_mulai;
             
-            // Reinit icon untuk tombol yang dirender oleh Alpine
             setTimeout(() => { if(typeof lucide !== 'undefined') lucide.createIcons(); }, 50);
-         ">
+        ">
         
         <div x-show="open" 
-             class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-             x-transition.opacity
-             style="display: none;">
+            class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            x-transition.opacity
+            style="display: none;">
             
             <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl" @click.away="open = false">
                 <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
@@ -192,7 +212,7 @@
                         <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
                 </div>
-    
+        
                 <div class="p-6 space-y-4">
                     <div>
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tema / Judul</p>
@@ -203,7 +223,7 @@
                             </template>
                         </h3>
                     </div>
-    
+        
                     <div class="grid grid-cols-2 gap-4 pt-2">
                         <div class="flex items-start gap-3">
                             <i data-lucide="calendar" class="w-4 h-4 text-blue-600 mt-1"></i>
@@ -220,37 +240,38 @@
                             </div>
                         </div>
                     </div>
-    
+        
                     <div class="pt-2">
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Pengisi / Pengajar</p>
                         <div class="text-sm text-gray-800 font-medium flex flex-col gap-1" x-html="speaker"></div>
                     </div>
-    
+        
                     <div class="pt-4 border-t border-gray-100">
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Deskripsi</p>
                         <div class="text-sm text-gray-600 leading-relaxed prose prose-sm max-w-none" x-html="desc"></div>
                     </div>
-    
+        
                     <!-- TOMBOL AKSI DI DALAM MODAL -->
                     <?php if (in_array(session()->get('id_peran'), [3,5])): ?>
-                    <div class="pt-4 mt-2 border-t border-gray-100 flex justify-end gap-2">
-                        <!-- Tombol Edit (Binding URL dengan Alpine) -->
+                    <!-- Tombol hanya dirender PHP jika peran sesuai, lalu dikontrol penampilannya secara dinamis via x-show -->
+                    <div class="pt-4 mt-2 border-t border-gray-100 flex justify-end gap-2" x-show="canEditOrDelete()">
+                        <!-- Tombol Edit -->
                         <a :href="'<?= base_url('admin/agenda/edit/') ?>' + id" 
-                           class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm font-medium text-sm">
+                        class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm font-medium text-sm">
                             <i data-lucide="edit-3" class="w-4 h-4"></i> Edit
                         </a>
                         
-                        <!-- Tombol Hapus (Men-trigger class .btn-delete agar terbaca oleh jQuery) -->
+                        <!-- Tombol Hapus -->
                         <button type="button" 
                             class="btn-delete flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm font-medium text-sm"
                             :data-id="id" 
                             :data-tema="theme"
-                            @click="open = false"> <!-- Tutup modal saat tombol hapus diklik -->
+                            @click="open = false">
                             <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus
                         </button>
                     </div>
                     <?php endif; ?>
-    
+        
                 </div>
             </div>
         </div>
@@ -340,30 +361,40 @@
                                     timer: 1500,
                                     showConfirmButton: false
                                 });
-                                // 1. Refresh DataTable
-                                loadData(); 
-                                
-                                // 2. Refresh FullCalendar
-                                if (window.calendarInstance) {
-                                    // Jika instance kalender disimpan di global variable
-                                    window.calendarInstance.refetchEvents();
-                                } else if (typeof FullCalendar !== 'undefined') {
-                                    // Mengambil instance kalender langsung dari elemen DOM (FullCalendar v5/v6)
-                                    const calendarEl = document.getElementById('calendar');
-                                    const cal = FullCalendar.Calendar.getCalendar(calendarEl);
-                                    if (cal) cal.refetchEvents();
-                                }
                             } else {
-                                Swal.fire('Gagal', res.message, 'error');
+                                Swal.fire('Gagal', res.message || 'Terjadi kesalahan.', 'error');
                             }
+                            refreshAgendaView();
                         },
-                        error: function() {
-                            Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+                        error: function(xhr) {
+                            let errorMessage = 'Gagal menghubungi server.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            }
+                            
+                            Swal.fire('Aksi Ditolak', errorMessage, 'error');
+                            
+                            refreshAgendaView();
                         }
                     });
                 }
             });
         });
+
+        function refreshAgendaView() {
+            if (typeof loadData === 'function') {
+                loadData();
+            }
+            
+            // 2. Refresh FullCalendar
+            if (window.calendarInstance) {
+                window.calendarInstance.refetchEvents();
+            } else if (typeof FullCalendar !== 'undefined') {
+                const calendarEl = document.getElementById('calendar');
+                const cal = FullCalendar.Calendar.getCalendar(calendarEl);
+                if (cal) cal.refetchEvents();
+            }
+        }
     });
 </script>
 

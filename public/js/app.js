@@ -108,7 +108,8 @@ window.initCalendar = () => {
                         time: timeStr + ' (' + clockStr + ')',
                         loc: props.tempat || 'Masjid Al-Manaar',
                         speaker: speakerHtml,
-                        desc: props.deskripsi || '<em class="text-gray-400">Tidak ada deskripsi tambahan.</em>'
+                        desc: props.deskripsi || '<em class="text-gray-400">Tidak ada deskripsi tambahan.</em>',
+                        waktu_mulai: props.waktu_mulai || info.event.start.toISOString() 
                     }
                 }));
             }

@@ -90,6 +90,11 @@ class AgendaController extends BaseController
         $agenda = $this->agendaModel->find($id);
         if (!$agenda) return redirect()->to('admin/agenda')->with('error', 'Agenda tidak ditemukan.');
 
+        $batasWaktu = strtotime($agenda['waktu_mulai'] . ' +1 hour');
+        if (time() > $batasWaktu) {
+            return redirect()->to('admin/agenda')->with('error', 'Agenda sudah dimulai lebih dari 1 jam, tidak dapat diedit.');
+        }
+
         // Ambil relasi SDM yang sudah ada
         $currentSdm = $this->sdmAgendaModel->where('id_agenda', $id)->findAll();
 
@@ -105,7 +110,18 @@ class AgendaController extends BaseController
     }
 
     public function save() { return $this->_store(); }
-    public function update($id) { return $this->_store($id); }
+    public function update($id) 
+    { 
+        $agenda = $this->agendaModel->find($id);
+        if (!$agenda) return redirect()->to('admin/agenda')->with('error', 'Agenda tidak ditemukan.');
+
+        $batasWaktu = strtotime($agenda['waktu_mulai'] . ' +1 hour');
+        if (time() > $batasWaktu) {
+            return redirect()->to('admin/agenda')->with('error', 'Agenda sudah dimulai lebih dari 1 jam, tidak dapat diedit.');
+        }
+
+        return $this->_store($id); 
+    }
 
     protected function _store($id = null)
     {
@@ -291,6 +307,14 @@ class AgendaController extends BaseController
                 'status'  => 'error',
                 'message' => 'Data agenda tidak ditemukan.'
             ])->setStatusCode(404);
+        }
+
+        $batasWaktu = strtotime($agenda['waktu_mulai'] . ' +1 hour');
+        if (time() > $batasWaktu) {
+            return $this->response->setJSON([
+                'status'  => 'error',
+                'message' => 'Agenda sudah dimulai lebih dari 1 jam, tidak dapat dihapus.'
+            ])->setStatusCode(403);
         }
 
         $this->agendaModel->update($id, [
