@@ -13,12 +13,25 @@
                 <a href="<?= base_url('admin/finance/report/monthly') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
                     <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
                 </a>
+                <?php if (!$isDraft): ?>
+                    <a href="<?= base_url("admin/finance/report/monthly/export/{$tahun}/{$bulan}") ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>Export Excel
+                    </a>
+                <?php endif; ?>
                 <button type="button" onclick="printReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg">
                     <i data-lucide="printer" class="w-4 h-4"></i> Cetak Laporan
                 </button>
             </div>
         </div>
     </div>
+
+    <?php if (session()->getFlashdata('error')) : ?>
+        <div id="flash-error" data-message="<?= session()->getFlashdata('error') ?>"></div>
+            <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-xl flex items-center gap-3 shadow-sm">
+                <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
+                <span class="text-sm font-medium"><?= session()->getFlashdata('error') ?></span>
+            </div>
+    <?php endif; ?>
 
     <div id="cetak" class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 md:p-12 mx-auto report-container <?= $isDraft ? 'draft-watermark' : '' ?>">       
         <div class="text-center mb-8 pb-4 border-b-2 border-black">

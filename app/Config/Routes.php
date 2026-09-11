@@ -147,6 +147,7 @@ $routes->add('admin/finance/report/periodic', 'Admin\ReportController::periodic'
 $routes->get('admin/finance/report/weekly', 'Admin\ReportController::weekly', ['filter' => ['auth:true', 'role:2,3,4']]);
 $routes->get('admin/finance/report/monthly', 'Admin\ReportController::monthly', ['filter' => ['auth:true', 'role:4']]);
 $routes->get('admin/finance/report/monthly/(:num)/(:num)', 'Admin\ReportController::detailMonthly/$1/$2', ['filter' => ['auth:true', 'role:4']]);
+$routes->get('admin/finance/report/monthly/export/(:num)/(:num)', 'Admin\ReportController::exportMonthly/$1/$2', ['filter' => ['auth:true', 'role:4']]);
 $routes->get('admin/finance/report/getWeeklyHistoryAjax', 'Admin\ReportController::getWeeklyHistoryAjax', ['filter' => 'apiGuard']);
 $routes->get('admin/finance/report/chart', 'Admin\ReportController::chart', ['filter' => ['auth:true', 'role:4']]);
 $routes->get('admin/report/chart/detail-alokasi', 'Admin\ReportController::getDetailAlokasi', ['filter' => 'apiGuard']);

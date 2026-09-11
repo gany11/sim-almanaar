@@ -14,6 +14,9 @@ use App\Models\AgendaModel;
 
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class ReportController extends BaseController
 {
@@ -604,9 +607,243 @@ class ReportController extends BaseController
         );
         
         $data['bulan_txt'] = format_indo($targetDate, 'month_year');
+        $data['tahun'] = (int)$tahun;
+        $data['bulan'] = (int)$bulan;
         $data['tgl_akhir_laporan'] = $endDate;
         $data['title'] = "Detail Laporan " . $data['bulan_txt'];
         return view('admin/report/v_report_monthly_detail', $data);
+    }
+
+    public function exportMonthly($tahun, $bulan)
+    {
+        $tahun = (int) $tahun;
+        $bulan = (int) $bulan;
+
+        // ==========================================
+        // Validasi periode
+        // ==========================================
+
+        $targetDate = sprintf(
+            '%04d-%02d-01 00:00:00',
+            $tahun,
+            $bulan
+        );
+
+        $now = date('Y-m-d H:i:s');
+
+        $cutOff = date('Y-m-d', strtotime('last thursday'));
+
+        $cutOffMonth = date('m', strtotime($cutOff));
+        $cutOffYear  = date('Y', strtotime($cutOff));
+
+        $reportMonth = strtotime(sprintf(
+            '%04d-%02d-01',
+            $tahun,
+            $bulan
+        ));
+
+        $availableMonth = strtotime(
+            date('Y-m-01', strtotime($cutOff))
+        );
+
+        // Jangan izinkan export periode yang belum tersedia
+        if ($reportMonth > $availableMonth) {
+            return redirect()
+                ->to(base_url("admin/finance/report/monthly/{$tahun}/{$bulan}"))
+                ->with('error', 'Periode laporan belum tersedia untuk diekspor.');
+        }
+
+        // ==========================================
+        // Draft bulan berjalan → tidak boleh export
+        // ==========================================
+
+        if (
+            (int) $tahun === (int) $cutOffYear &&
+            (int) $bulan === (int) $cutOffMonth
+        ) {
+            return redirect()
+                ->to(base_url("admin/finance/report/monthly/{$tahun}/{$bulan}"))
+                ->with('error', 'Laporan periode berjalan masih berstatus draft dan belum dapat diekspor.');
+        }
+
+        $endDate = date(
+            'Y-m-t 23:59:59',
+            strtotime(sprintf('%04d-%02d-01', $tahun, $bulan))
+        );
+
+        // ==========================================
+        // Ambil data transaksi
+        // ==========================================
+
+        $transaksi = $this->keuanganModel
+            ->select('
+                keuangan.tanggal,
+                kategori_keuangan.kategori,
+                keuangan.jenis,
+                keuangan.keterangan,
+                keuangan.jumlah,
+                alokasi.nama_alokasi AS alokasi,
+                detail_alokasi.detail_alokasi,
+                keuangan.pic,
+                keuangan.created_at
+            ')
+            ->join(
+                'kategori_keuangan',
+                'kategori_keuangan.id_kategori_keuangan = keuangan.id_kategori_keuangan',
+                'left'
+            )
+            ->join(
+                'detail_alokasi',
+                'detail_alokasi.id_detail_alokasi = keuangan.id_detail_alokasi',
+                'left'
+            )
+            ->join(
+                'alokasi',
+                'alokasi.id_alokasi = detail_alokasi.id_alokasi',
+                'left'
+            )
+            ->where('keuangan.created_at >=', $targetDate)
+            ->where('keuangan.created_at <=', $endDate)
+            ->where('keuangan.deleted_at IS NULL', null, false)
+            ->orderBy('keuangan.id_kategori_keuangan', 'ASC')
+            ->orderBy(
+                "FIELD(keuangan.jenis, 'pemasukan', 'pengeluaran')",
+                '',
+                false
+            )
+            ->orderBy('keuangan.tanggal', 'ASC')
+            ->findAll();
+
+        // ==========================================
+        // Load template Excel
+        // ==========================================
+
+        $templatePath = FCPATH . 'assets/templates/Format Export Data Keuangan.xlsx';
+
+        if (! is_file($templatePath)) {
+            return redirect()
+                ->to(base_url("admin/finance/report/monthly/{$tahun}/{$bulan}"))
+                ->with('error', 'Template export Excel tidak ditemukan.');
+        }
+
+        $spreadsheet = IOFactory::load($templatePath);
+
+        $sheet = $spreadsheet->getSheetByName('DATA IMPORT');
+
+        if ($sheet === null) {
+            return redirect()
+                ->to(base_url("admin/finance/report/monthly/{$tahun}/{$bulan}"))
+                ->with('error', 'Sheet DATA IMPORT tidak ditemukan pada template.');
+        }
+
+        // ==========================================
+        // Informasi periode & waktu unduh
+        // ==========================================
+
+        $sheet->setCellValue(
+            'A2',
+            'Periode : ' . format_indo($targetDate, 'month_year')
+        );
+
+        $sheet->setCellValue(
+            'A3',
+            'Waktu Unduh : ' . format_indo($now, 'full_datetime')
+        );
+
+        // ==========================================
+        // Data mulai baris 4
+        // ==========================================
+
+        $row = 5;
+
+        foreach ($transaksi as $item) {
+
+            $jenis = strtolower($item['jenis'] ?? '');
+
+            $jenisText = match ($jenis) {
+                'pemasukan'  => 'Pemasukan',
+                'pengeluaran' => 'Pengeluaran',
+                default      => ucfirst($jenis),
+            };
+
+            $sheet->setCellValue(
+                "A{$row}",
+                ExcelDate::PHPToExcel(strtotime($item['tanggal']))
+            );
+            $sheet->getStyle("A{$row}")->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+
+            $sheet->setCellValue(
+                "B{$row}",
+                $item['kategori']
+            );
+
+            $sheet->setCellValue(
+                "C{$row}",
+                $jenisText
+            );
+
+            $sheet->setCellValue(
+                "D{$row}",
+                $item['keterangan']
+            );
+
+            $sheet->setCellValue(
+                "E{$row}",
+                $item['jumlah']
+            );
+
+            $sheet->setCellValue(
+                "F{$row}",
+                $item['alokasi']
+            );
+
+            $sheet->setCellValue(
+                "G{$row}",
+                $item['detail_alokasi']
+            );
+
+            $sheet->setCellValue(
+                "H{$row}",
+                $item['pic']
+            );
+
+            $sheet->setCellValue(
+                "I{$row}",
+                ExcelDate::PHPToExcel(strtotime($item['created_at']))
+            );
+            $sheet->getStyle("I{$row}")->getNumberFormat()->setFormatCode('dd/mm/yyyy hh:mm');
+
+            $row++;
+        }
+
+        // ==========================================
+        // Download
+        // ==========================================
+
+        $filename =
+            'Export_Data_Keuangan_' .
+            $tahun . '_' .
+            sprintf('%02d', $bulan) .
+            '.xlsx';
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+
+        // Save to a real temp file instead of php://output + ob_*
+        $tempPath = WRITEPATH . 'uploads/' . uniqid('export_', true) . '.xlsx';
+        $writer->save($tempPath);
+
+        $fileContent = file_get_contents($tempPath);
+
+        // Clean up the temp file right away
+        unlink($tempPath);
+
+        if ($fileContent === false || $fileContent === '') {
+            return redirect()
+                ->to(base_url("admin/finance/report/monthly/{$tahun}/{$bulan}"))
+                ->with('error', 'Gagal membuat file export.');
+        }
+
+        return $this->response->download($filename, $fileContent);
     }
 
     public function chart()
