@@ -3,6 +3,7 @@ module.exports = {
   content: [
     "./app/Views/layout/**/*.{php,html,js}",
     "./app/Views/admin/**/*.{php,html,js}",
+    "./app/Views/tv/**/*.{php,html,js}",
     "./app/Views/landing/**/*.{php,html,js}"
   ],
   safelist: [

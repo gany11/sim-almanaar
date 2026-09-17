@@ -228,3 +228,9 @@ $routes->post('admin/routine-agenda/update/(:num)', 'Admin\RoutineAgendaControll
 $routes->post('admin/routine-agenda/delete', 'Admin\RoutineAgendaController::delete', ['filter' => ['auth:true', 'role:3,5']]);
 
 $routes->get('/sholat', 'SholatController::index');
+$routes->get('tv', 'TvController::index');
+$routes->group('api/tv', static function ($routes) {
+
+    $routes->get('prayer', 'Api\TvPrayerController::index');
+
+});
