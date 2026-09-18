@@ -227,6 +227,31 @@ $routes->get('admin/routine-agenda/edit/(:num)', 'Admin\RoutineAgendaController:
 $routes->post('admin/routine-agenda/update/(:num)', 'Admin\RoutineAgendaController::update/$1', ['filter' => ['auth:true', 'role:3,5']]);
 $routes->post('admin/routine-agenda/delete', 'Admin\RoutineAgendaController::delete', ['filter' => ['auth:true', 'role:3,5']]);
 
+// Manajemen Carousel (Role 1)
+$routes->get('admin/carousel', 'Admin\CarouselController::index', ['filter' => ['auth:true', 'role:1']]);
+$routes->post('admin/carousel/list', 'Admin\CarouselController::list', ['filter' => ['auth:true', 'role:1']]);
+
+$routes->get('admin/carousel/create', 'Admin\CarouselController::create', ['filter' => ['auth:true', 'role:1']]);
+$routes->post('admin/carousel/save', 'Admin\CarouselController::save', ['filter' => ['auth:true', 'role:1']]);
+$routes->get('admin/carousel/edit/(:num)', 'Admin\CarouselController::edit/$1', ['filter' => ['auth:true', 'role:1']]);
+$routes->post('admin/carousel/update/(:num)', 'Admin\CarouselController::update/$1', ['filter' => ['auth:true', 'role:1']]);
+$routes->post('admin/carousel/delete', 'Admin\CarouselController::delete', ['filter' => ['auth:true', 'role:1']]);
+
+// Manajemen SDM
+$routes->get('admin/sdm', 'Admin\SdmController::index', ['filter' => ['auth:true', 'role:1']]);
+$routes->post('admin/sdm/list', 'Admin\SdmController::list', ['filter' => ['auth:true', 'role:1']]);
+
+$routes->get('admin/sdm/create', 'Admin\SdmController::create', ['filter' => ['auth:true', 'role:1']]);
+$routes->post('admin/sdm/save', 'Admin\SdmController::save', ['filter' => ['auth:true', 'role:1']]);
+$routes->get('admin/sdm/edit/(:num)', 'Admin\SdmController::edit/$1', ['filter' => ['auth:true', 'role:1']]);
+$routes->post('admin/sdm/update/(:num)', 'Admin\SdmController::update/$1', ['filter' => ['auth:true', 'role:1']]);
+$routes->post('admin/sdm/delete', 'Admin\SdmController::delete', ['filter' => ['auth:true', 'role:1']]);
+
+// Manajemen KHGT via Sinkronisasi API (Role 1)
+$routes->get('admin/khgt', 'Admin\KhgtController::index', ['filter' => ['auth:true', 'role:1']]);
+$routes->get('admin/khgt/list', 'Admin\KhgtController::list', ['filter' => 'apiGuard']);
+$routes->get('admin/khgt/sync', 'Admin\KhgtController::sync', ['filter' => 'apiGuard']);
+
 $routes->get('/sholat', 'SholatController::index');
 $routes->get('tv', 'TvController::index');
 $routes->group('api/tv', static function ($routes) {

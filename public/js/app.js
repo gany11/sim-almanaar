@@ -68,6 +68,7 @@ window.initEditor = () => {
     }
 }
 
+// 1. KALENDER AGENDA (EXISTING)
 window.initCalendar = () => {
     const calendarEl = document.getElementById('calendar');
     if (calendarEl) {
@@ -79,9 +80,7 @@ window.initCalendar = () => {
                 url: '/api/agenda',
                 method: 'GET',
                 fetchOptions: {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 }
             }],
             eventClick: function(info) {
@@ -116,7 +115,38 @@ window.initCalendar = () => {
         });
 
         window.calendarInstance = calendar;
-        
+        calendar.render();
+    }
+}
+
+// 2. KALENDER KHGT (NEW)
+window.initKhgtCalendar = () => {
+    const khgtEl = document.getElementById('khgt-calendar'); 
+    if (khgtEl) {
+        const calendar = new Calendar(khgtEl, {
+            plugins: [dayGridPlugin, interactionPlugin],
+            initialView: 'dayGridMonth',
+            locale: 'id',
+            eventSources: [{
+                url: '/admin/khgt/list',
+                method: 'GET',
+                fetchOptions: {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }
+            }],
+            eventClick: function(info) {
+                const props = info.event.extendedProps;
+                
+                window.dispatchEvent(new CustomEvent('open-khgt', {
+                    detail: {
+                        masehi: props.masehi_indo || props.masehi, // Menggunakan format Indo
+                        hijriah: info.event.title
+                    }
+                }));
+            }
+        });
+
+        window.khgtCalendarInstance = calendar;
         calendar.render();
     }
 }
@@ -146,10 +176,12 @@ document.addEventListener("DOMContentLoaded", () => {
         tags: true,
         width: '100%'
     });
+    
+    // Inisialisasi kedua kalender (hanya akan berjalan jika ID div nya ditemukan di halaman)
     window.initCalendar();
+    window.initKhgtCalendar(); 
 
     window.initEditor();
-
     window.reinitIcons();
 });
 

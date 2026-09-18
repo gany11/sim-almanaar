@@ -328,6 +328,22 @@
                 </li>
             <?php endif; ?>
 
+            <!-- Manajemen SDM -->
+            <?php if (in_array(session()->get('id_peran'), [1])): ?>
+                <li class="pt-4 pb-1 px-4">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-white/80">Manajemen SDM</span>
+                </li>
+
+                <li>
+                    <a href="<?= base_url('admin/sdm'); ?>" 
+                    class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 
+                    <?= url_is('admin/sdm*') ? 'bg-white text-blue-600 shadow-lg' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                        <i data-lucide="users" class="w-5 h-5"></i>
+                        <span class="text-sm font-medium">Data SDM / Petugas</span>
+                    </a>
+                </li>
+            <?php endif; ?>
+
             <!-- Manajemen WA -->
             <?php if (in_array(session()->get('id_peran'), [1])): ?>
                 <li class="pt-4 pb-1 px-4">
@@ -346,6 +362,38 @@
                         <span class="text-sm font-medium">
                             Koneksi WhatsApp
                         </span>
+                    </a>
+                </li>
+            <?php endif; ?>
+
+            <!-- Manajemen Carousel -->
+            <?php if (in_array(session()->get('id_peran'), [1])): ?>
+                <li class="pt-4 pb-1 px-4">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-white/80">Manajemen Carousel</span>
+                </li>
+
+                <li>
+                    <a href="<?= base_url('admin/carousel'); ?>" 
+                    class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 
+                    <?= url_is('admin/carousel*') ? 'bg-white text-blue-600 shadow-lg' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                        <i data-lucide="image" class="w-5 h-5"></i>
+                        <span class="text-sm font-medium">Daftar Carousel</span>
+                    </a>
+                </li>
+            <?php endif; ?>
+
+            <!-- Manajemen KHGT -->
+            <?php if (in_array(session()->get('id_peran'), [1])): ?>
+                <li class="pt-4 pb-1 px-4">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-white/80">Manajemen KHGT</span>
+                </li>
+
+                <li>
+                    <a href="<?= base_url('admin/khgt'); ?>" 
+                    class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 
+                    <?= url_is('admin/khgt*') ? 'bg-white text-blue-600 shadow-lg' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                        <i data-lucide="calendar-days" class="w-5 h-5"></i>
+                        <span class="text-sm font-medium">Kalender KHGT</span>
                     </a>
                 </li>
             <?php endif; ?>
