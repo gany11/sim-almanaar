@@ -33,24 +33,41 @@
     </div>
 </div>
 
-<div x-data="{ open: false, category: '', theme: '', title: '', time: '', loc: '', speaker: '', desc: '' }" 
+<div x-data="{ 
+        open: false, 
+        category: '', 
+        theme: '', 
+        title: '', 
+        time: '', 
+        loc: '', 
+        speaker: '', 
+        desc: '' 
+     }" 
+     x-init="$watch('open', value => {
+         if (value) {
+             document.body.classList.add('overflow-hidden');
+         } else {
+             document.body.classList.remove('overflow-hidden');
+         }
+     })"
      @open-agenda.window="
-        open = true; 
-        category = $event.detail.category;
-        theme = $event.detail.theme;
-        title = $event.detail.title; 
-        time = $event.detail.time; 
-        loc = $event.detail.loc;
-        speaker = $event.detail.speaker;
-        desc = $event.detail.desc;
+         open = true; 
+         category = $event.detail.category;
+         theme = $event.detail.theme;
+         title = $event.detail.title; 
+         time = $event.detail.time; 
+         loc = $event.detail.loc;
+         speaker = $event.detail.speaker;
+         desc = $event.detail.desc;
      ">
     
     <div x-show="open" 
          class="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
          x-transition.opacity>
-        
-        <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl" @click.away="open = false">
-            <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+         
+        <!-- Tambahkan overflow-y-auto di sini agar isi modal tetap bisa di-scroll jika panjang -->
+        <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl" @click.away="open = false">
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
                 <span class="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold uppercase rounded-full" x-text="category"></span>
                 <button @click="open = false" class="text-gray-400 hover:text-red-500 transition-colors">
                     <i data-lucide="x" class="w-5 h-5"></i>

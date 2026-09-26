@@ -80,7 +80,7 @@
         </div>
     <?php endif; ?>
 
-    <?php if (! session()->get('logged_in')): ?>
+    <?php if (!empty($donationLeaderboard) || !empty($activeDonations)): ?>
 
         <!-- =========================================================
              BELUM LOGIN

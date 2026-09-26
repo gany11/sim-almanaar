@@ -27,9 +27,9 @@ class DonationController extends BaseController
         ];
 
         // Jika belum login, hanya tampilkan halaman
-        if (! session()->get('logged_in')) {
-            return view('landing/donation/v_donation', $data);
-        }
+        // if (! session()->get('logged_in')) {
+        //     return view('landing/donation/v_donation', $data);
+        // }
 
         // Leaderboard 5 pemasukan terbaru
         $data['donationLeaderboard'] =

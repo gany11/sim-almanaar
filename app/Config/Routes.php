@@ -255,7 +255,10 @@ $routes->get('admin/khgt/sync', 'Admin\KhgtController::sync', ['filter' => 'apiG
 $routes->get('/sholat', 'SholatController::index');
 $routes->get('tv', 'TvController::index');
 $routes->group('api/tv', static function ($routes) {
+    $routes->get('prayer', 'Api\TvApiController::getPrayer');
+    $routes->get('jadwal', 'Api\TvApiController::getJadwal');
+    $routes->get('saldo', 'Api\TvApiController::getSaldo');
+    $routes->get('carousel', 'Api\TvApiController::getCarousel');
 
-    $routes->get('prayer', 'Api\TvPrayerController::index');
-
+    $routes->get('info', 'Api\TvApiController::getInfo');
 });

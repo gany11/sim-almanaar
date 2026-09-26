@@ -204,7 +204,7 @@ class TvController extends BaseController
             'iqamah' => [
                             'Subuh'   => 10,
                             'Dzuhur'  => 10,
-                            'Ashar'   => 1,
+                            'Ashar'   => 10,
                             'Maghrib' => 10,
                             'Isya'    => 10,
                         ],

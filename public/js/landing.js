@@ -251,6 +251,23 @@ document.addEventListener("DOMContentLoaded", () => {
     window.reinitIcons();
 });
 
+// ===================== LOADING SCREEN HANDLER =====================
+window.addEventListener('load', () => {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+        // Beri efek transisi memudar (fade-out)
+        loadingScreen.classList.add('opacity-0', 'pointer-events-none');
+        
+        // Kembalikan fungsi scroll pada body
+        document.body.classList.remove('overflow-hidden');
+        
+        // Hapus elemen dari DOM setelah animasi transisi selesai (500ms)
+        setTimeout(() => {
+            loadingScreen.remove();
+        }, 500);
+    }
+});
+
 // ===================== ALPINE =====================
 document.addEventListener('alpine:initialized', () => {
     window.reinitIcons();

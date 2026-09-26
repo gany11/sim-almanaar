@@ -10,7 +10,7 @@
                     <img src="<?= base_url('uploads/carousel/' . $row['file']) ?>" 
                         class="w-24 aspect-video rounded-xl object-cover border border-gray-100 shadow-sm bg-gray-50"
                         alt="Carousel Image">
-                    <span class="text-xs text-gray-400 font-mono"><?= $row['file'] ?></span>
+                    <!-- <span class="text-xs text-gray-400 font-mono"><?= $row['file'] ?></span> -->
                 </div>
             </td>
             <td class="px-6 py-4">
