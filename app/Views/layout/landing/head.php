@@ -14,7 +14,7 @@
 <meta property="og:title" content="<?= esc(empty($title) ? 'SIM Al Manaar Slipi' : $title . ' | SIM Al Manaar Slipi') ?>">
 <meta property="og:description" content="Sistem Informasi Manajemen Masjid Al Manaar Slipi untuk pengelolaan publikasi, agenda, dan informasi masjid.">
 <meta property="og:url" content="<?= current_url() ?>">
-<meta property="og:image" content="<?= base_url('assets/images/Logo Masjid Al Manaar Slipi.png') ?>">
+<meta property="og:image" content="<?= esc($ogImage ?? base_url('assets/images/Logo Masjid Al Manaar Slipi.png')) ?>">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 
@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="<?= esc(empty($title) ? 'SIM Al Manaar Slipi' : $title . ' | SIM Al Manaar Slipi') ?>">
 <meta name="twitter:description" content="Sistem Informasi Manajemen Masjid Al Manaar Slipi untuk pengelolaan publikasi, agenda, dan informasi masjid.">
-<meta name="twitter:image" content="<?= base_url('assets/images/Logo Masjid Al Manaar Slipi.png') ?>">
+<meta name="twitter:image" content="<?= esc($ogImage ?? base_url('assets/images/Logo Masjid Al Manaar Slipi.png')) ?>">
 
 <link href="<?= base_url('css/style.css') ?>" rel="stylesheet">
 

@@ -44,11 +44,16 @@ class NewsController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound("Berita tidak ditemukan.");
         }
 
+        $ogImage = !empty($news['sampul']) 
+                ? base_url('uploads/berita/' . $news['sampul']) 
+                : null;
+
         $data = [
             'title'   => $news['judul'],
             'news'    => $news,
             'terbaru'     => $this->publikasiModel->getTerbaru(5, $news['id_publikasi']),
-            'current_url' => current_url()
+            'current_url' => current_url(),
+            'ogImage'    => $ogImage,
         ];
 
         return view('landing/news/v_news_detail', $data);

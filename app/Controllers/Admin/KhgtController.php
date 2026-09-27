@@ -17,8 +17,21 @@ class KhgtController extends BaseController
 
     public function index()
     {
+        // Ambil data tanggal pembaruan/sinkronisasi terakhir dari tabel khgt
+        $lastSyncRow = $this->khgtModel->orderBy('updated_at', 'DESC')->first();
+        $lastSync = null;
+
+        if ($lastSyncRow) {
+            $lastSyncTime = $lastSyncRow['updated_at'] ?? $lastSyncRow['created_at'] ?? null;
+            if ($lastSyncTime) {
+                // Format menggunakan helper format_indo yang sudah ada di sistem Anda
+                $lastSync = format_indo($lastSyncTime, 'full') . ' ' . date('H:i', strtotime($lastSyncTime)) . ' WIB';
+            }
+        }
+
         return view('admin/khgt/v_index', [
-            'title' => 'Manajemen Kalender Hijriah Global Tunggal (KHGT)'
+            'title'    => 'Manajemen Kalender Hijriah Global Tunggal (KHGT)',
+            'lastSync' => $lastSync
         ]);
     }
 

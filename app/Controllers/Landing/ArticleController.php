@@ -44,11 +44,16 @@ class ArticleController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound("Artikel tidak ditemukan.");
         }
 
+        $ogImage = !empty($article['sampul']) 
+                ? base_url('uploads/artikel/' . $article['sampul']) 
+                : null;
+
         $data = [
             'title'       => $article['judul'],
             'article'     => $article,
             'terbaru'     => $this->publikasiModel->getTerbaru(5, $article['id_publikasi']),
-            'current_url' => current_url()
+            'current_url' => current_url(),
+            'ogImage'    => $ogImage,
         ];
 
         return view('landing/article/v_article_detail', $data);

@@ -172,12 +172,23 @@
                 </li>
 
                 <?php if (in_array(session()->get('id_peran'), [4])): ?>
+                    <!-- Pengolahan Data Utama -->
                     <li>
                         <a href="<?= base_url('admin/finance/data') ?>" 
                         class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 
                         <?= url_is('admin/finance/data*') ? 'bg-white text-blue-600 shadow-lg font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
                             <i data-lucide="wallet" class="w-5 h-5"></i>
                             <span class="text-sm font-medium">Pengolahan Data</span>
+                        </a>
+                    </li>
+
+                    <!-- Keep Cash / Draf Kas (Baru disatukan di sini) -->
+                    <li>
+                        <a href="<?= base_url('treasurer/cash-notes') ?>" 
+                        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 
+                        <?= url_is('treasurer/cash-notes*') ? 'bg-white text-blue-600 shadow-lg font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                            <i data-lucide="clipboard-pen-line" class="w-5 h-5"></i>
+                            <span class="text-sm font-medium">Keep Cash / Draf Kas</span>
                         </a>
                     </li>
                 <?php endif; ?>
@@ -223,14 +234,6 @@
                             <?php endif; ?>
                         </div>
                     </li>
-                    <!-- <li>
-                        <a href="<?= base_url('admin/finance/report/periodic') ?>" 
-                        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 
-                        <?= url_is('admin/finance/report/periodic*') ? 'bg-white text-blue-600 shadow-lg font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
-                            <i data-lucide="file-pie-chart" class="w-5 h-5"></i>
-                            <span class="text-sm font-medium">Laporan Periodik</span>
-                        </a>
-                    </li> -->
                 <?php endif; ?>
             <?php endif; ?>
 

@@ -6,6 +6,11 @@
         <div>
             <h2 class="text-2xl font-bold text-gray-800">Kalender Hijriah Global Tunggal (KHGT)</h2>
             <p class="text-sm text-gray-500 mt-1">Kelola dan sinkronisasi penanggalan Masehi dan Hijriah melalui API resmi.</p>
+            <!-- Indikator Sinkronisasi Terakhir -->
+            <p class="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
+                <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                <span>Sinkronisasi Terakhir: <strong id="last-sync-text" class="text-gray-600"><?= $lastSync ?? 'Belum pernah disinkronkan' ?></strong></span>
+            </p>
         </div>
         <?php if (in_array(session()->get('id_peran'), [1])): ?>
             <div class="flex flex-wrap items-center gap-3">
@@ -100,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         $.ajax({
             url: "<?= base_url('admin/khgt/sync') ?>",
-            type: "GET", // Atau POST jika route diatur POST
+            type: "GET",
             dataType: "json",
             success: function(res) {
                 if (res.status === 'success') {
@@ -111,6 +116,24 @@ document.addEventListener("DOMContentLoaded", function() {
                         timer: 2000,
                         showConfirmButton: false
                     });
+
+                    // Update teks waktu sinkronisasi secara langsung (Lengkap dengan Hari)
+                    const now = new Date();
+                    const namaHari = ['Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                    const hari = namaHari[now.getDay()];
+
+                    const bulanIndo = [
+                        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                    ];
+                    const tgl = String(now.getDate()).padStart(2, '0');
+                    const bln = bulanIndo[now.getMonth()];
+                    const thn = now.getFullYear();
+                    const jam = String(now.getHours()).padStart(2, '0');
+                    const menit = String(now.getMinutes()).padStart(2, '0');
+
+                    const timeStr = `${hari}, ${tgl} ${bln} ${thn} ${jam}:${menit} WIB`;
+                    $('#last-sync-text').text(timeStr);
                 } else {
                     Swal.fire('Gagal', res.message || 'Terjadi kesalahan saat sinkronisasi.', 'error');
                 }
@@ -125,7 +148,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 refreshKhgtCalendar();
             },
             complete: function() {
-                // Kembalikan tombol ke kondisi normal
                 btn.prop('disabled', false).removeClass('opacity-75 cursor-not-allowed');
                 icon.removeClass('animate-spin');
                 text.text('Sinkronisasi API');

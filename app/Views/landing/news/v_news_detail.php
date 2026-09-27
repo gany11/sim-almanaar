@@ -43,8 +43,8 @@
                     </div>
                 </header>
 
-                <div class="rounded-3xl overflow-hidden mb-10 shadow-2xl shadow-blue-100">
-                    <img src="<?= base_url('uploads/berita/' . $news['sampul']) ?>" alt="<?= $news['judul'] ?>" class="w-full object-cover">
+                <div class="rounded-3xl overflow-hidden mb-10 shadow-2xl shadow-blue-100 h-64 md:h-[400px]">
+                    <img src="<?= base_url('uploads/berita/' . $news['sampul']) ?>" alt="<?= $news['judul'] ?>" class="w-full h-full object-cover">
                 </div>
 
                 <div class="prose prose-lg prose-blue max-w-none text-gray-700 leading-relaxed font-serif italic">
