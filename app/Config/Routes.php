@@ -247,6 +247,10 @@ $routes->get('admin/sdm/edit/(:num)', 'Admin\SdmController::edit/$1', ['filter' 
 $routes->post('admin/sdm/update/(:num)', 'Admin\SdmController::update/$1', ['filter' => ['auth:true', 'role:1']]);
 $routes->post('admin/sdm/delete', 'Admin\SdmController::delete', ['filter' => ['auth:true', 'role:1']]);
 
+$routes->get('admin/sdm/detail/(:num)', 'Admin\SdmController::detail/$1', ['filter' => ['auth:true', 'role:1']]);
+$routes->post('admin/sdm/alternative', 'Admin\SdmController::getAlternativeSdm', ['filter' => 'apiGuard']);
+$routes->post('admin/sdm/replace-delete', 'Admin\SdmController::replaceAndDelete', ['filter' => 'apiGuard']);
+
 // Manajemen KHGT via Sinkronisasi API (Role 1)
 $routes->get('admin/khgt', 'Admin\KhgtController::index', ['filter' => ['auth:true', 'role:1']]);
 $routes->get('admin/khgt/list', 'Admin\KhgtController::list', ['filter' => 'apiGuard']);

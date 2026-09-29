@@ -36,6 +36,84 @@ class SdmController extends BaseController
         return view('admin/sdm/v_list_partial', $data);
     }
 
+    public function detail($id)
+    {
+        $sdm = $this->sdmModel->find($id);
+
+        if (!$sdm) {
+            return redirect()
+                ->to('admin/sdm')
+                ->with('error', 'Data SDM tidak ditemukan.');
+        }
+
+        $db = \Config\Database::connect();
+
+        $agendas = $db->table('sdm_agenda sa')
+            ->select('
+                sa.id_pengisi_agenda,
+                sa.id_agenda,
+                sa.id_sdm,
+                sa.id_kategori_sdm,
+
+                a.id_kategori_agenda,
+                a.tema,
+                a.judul,
+                a.deskripsi,
+                a.tempat,
+                a.waktu_mulai,
+                a.waktu_selesai,
+                a.method,
+
+                ka.nama_kategori,
+                ka.class_color AS kategori_class_color,
+
+                ks.kategori AS kategori_sdm,
+                ks.class_color AS kategori_sdm_class_color,
+
+                kw_mulai.keterangan AS keterangan_waktu_mulai,
+                kw_mulai.class_color AS waktu_mulai_class_color,
+
+                kw_selesai.keterangan AS keterangan_waktu_selesai,
+                kw_selesai.class_color AS waktu_selesai_class_color
+            ')
+            ->join(
+                'agenda a',
+                'a.id_agenda = sa.id_agenda',
+                'inner'
+            )
+            ->join(
+                'kategori_agenda ka',
+                'ka.id_kategori_agenda = a.id_kategori_agenda',
+                'left'
+            )
+            ->join(
+                'kategori_sdm ks',
+                'ks.id_kategori_sdm = sa.id_kategori_sdm',
+                'left'
+            )
+            ->join(
+                'keterangan_waktu kw_mulai',
+                'kw_mulai.id_keterangan_waktu = a.id_keterangan_waktu_mulai',
+                'left'
+            )
+            ->join(
+                'keterangan_waktu kw_selesai',
+                'kw_selesai.id_keterangan_waktu = a.id_keterangan_waktu_selesai',
+                'left'
+            )
+            ->where('sa.id_sdm', $id)
+            ->where('a.deleted_at IS NULL', null, false)
+            ->orderBy('a.waktu_mulai', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        return view('admin/sdm/v_detail', [
+            'title'   => 'Detail SDM',
+            'sdm'     => $sdm,
+            'agendas' => $agendas
+        ]);
+    }
+
     public function create()
     {
         return view('admin/sdm/v_form', [
@@ -109,7 +187,6 @@ class SdmController extends BaseController
 
         $phone = $this->request->getPost('telepon');
 
-        // Validasi nomor WhatsApp menggunakan WhatsAppService jika nomor diisi
         if (!empty($phone) && empty($errors['telepon'])) {
             try {
                 $checkNumber = $this->whatsappService->checkNumber($phone);
@@ -187,10 +264,29 @@ class SdmController extends BaseController
 
         $db = \Config\Database::connect();
 
-        // Pengecekan apakah SDM masih terikat di tabel sdm_agenda
-        $cekRelasi = $db->table('sdm_agenda')
-            ->where('id_sdm', $id)
+        // Cek agenda biasa yang masih aktif
+        $cekAgenda = $db->table('sdm_agenda sa')
+            ->join(
+                'agenda a',
+                'a.id_agenda = sa.id_agenda',
+                'inner'
+            )
+            ->where('sa.id_sdm', $id)
+            ->where('a.deleted_at IS NULL', null, false)
             ->countAllResults();
+
+        // Cek agenda rutin yang masih aktif
+        $cekAgendaRutin = $db->table('sdm_agenda sa')
+            ->join(
+                'agenda_rutin ar',
+                'ar.id_agenda_rutin = sa.id_agenda_rutin',
+                'inner'
+            )
+            ->where('sa.id_sdm', $id)
+            ->where('ar.deleted_at IS NULL', null, false)
+            ->countAllResults();
+
+        $cekRelasi = $cekAgenda + $cekAgendaRutin;
 
         if ($cekRelasi > 0) {
             return $this->response->setJSON([
@@ -216,5 +312,99 @@ class SdmController extends BaseController
             'status'  => 'error',
             'message' => 'Gagal menghapus data SDM.'
         ])->setStatusCode(500);
+    }
+
+    public function getAlternativeSdm()
+    {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Akses ditolak.'])->setStatusCode(403);
+        }
+
+        $idSdmDihapus = $this->request->getPost('id_sdm');
+        
+        // Ambil data SDM lain selain yang akan dihapus
+        $altSdm = $this->sdmModel->where('id_sdm !=', $idSdmDihapus)->findAll();
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'data'   => $altSdm
+        ]);
+    }
+
+    public function replaceAndDelete()
+    {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Akses ditolak.'])->setStatusCode(403);
+        }
+
+        $idLama = $this->request->getPost('id_sdm_lama');
+        $idBaru = $this->request->getPost('id_sdm_baru');
+
+        if (empty($idLama) || empty($idBaru)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Data SDM tidak lengkap.']);
+        }
+
+        $sdmLama = $this->sdmModel->find($idLama);
+        if (!$sdmLama) {
+            return $this->response->setJSON([
+                'status'  => 'error',
+                'message' => 'Data SDM tidak ditemukan.'
+            ])->setStatusCode(404);
+        }
+
+        $sdmBaru = $this->sdmModel->find($idBaru);
+        if (!$sdmBaru) {
+            return $this->response->setJSON([
+                'status'  => 'error',
+                'message' => 'Data SDM pengganti tidak ditemukan.'
+            ])->setStatusCode(404);
+        }
+
+        $namaLama = $sdmLama['nama'];
+        $namaBaru = $sdmBaru['nama'];
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        try {
+            // Pindahkan relasi agenda biasa yang masih aktif
+            $db->table('sdm_agenda sa')
+                ->join('agenda a', 'a.id_agenda = sa.id_agenda', 'inner')
+                ->where('sa.id_sdm', $idLama)
+                ->where('a.deleted_at IS NULL', null, false)
+                ->set('sa.id_sdm', $idBaru)
+                ->update();
+
+            // Pindahkan relasi agenda rutin yang masih aktif
+            $db->table('sdm_agenda sa')
+                ->join('agenda_rutin ar', 'ar.id_agenda_rutin = sa.id_agenda_rutin', 'inner')
+                ->where('sa.id_sdm', $idLama)
+                ->where('ar.deleted_at IS NULL', null, false)
+                ->set('sa.id_sdm', $idBaru)
+                ->update();
+
+            // 2. Catat user yang menghapus
+            $this->sdmModel->update($idLama, [
+                'deleted_by' => session()->get('id_akun')
+            ]);
+
+            // 3. Lakukan soft delete pada SDM lama
+            $this->sdmModel->delete($idLama);
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Gagal memproses pemindahan tugas dan penghapusan.']);
+            }
+
+            return $this->response->setJSON([
+                'status'  => 'success',
+                'message' => "Seluruh penugasan dari <b>{$namaLama}</b> telah dialihkan ke <b>{$namaBaru}</b> dan data SDM lama berhasil dihapus."
+            ]);
+
+        } catch (\Exception $e) {
+            $db->transRollback();
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
+        }
     }
 }
