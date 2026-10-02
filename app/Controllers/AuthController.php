@@ -3,17 +3,19 @@
 namespace App\Controllers;
 
 use App\Models\AkunModel;
-
+use App\Models\LogLoginModel;
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class AuthController extends BaseController
 {
     protected $akunModel;
+    protected $logLoginModel;
 
     public function __construct()
     {
-        $this->akunModel = new AkunModel();
+        $this->akunModel     = new AkunModel();
+        $this->logLoginModel = new LogLoginModel();
     }
 
     public function index()
@@ -47,18 +49,29 @@ class AuthController extends BaseController
 
                 $returnUrl = session()->get('redirect_after_login');
 
-                $sessionData = [
+                // Simpan log login ke database
+                $now = date('Y-m-d H:i:s');
+                $idLog = $this->logLoginModel->insert([
                     'id_akun'    => $user->id_akun,
-                    'id_peran'   => $user->id_peran,
-                    'nama_peran' => $user->nama_peran,
-                    'nama'       => $user->nama,
-                    'logged_in'  => true
+                    'login_at'   => $now,
+                    'ip_address' => $this->request->getIPAddress(),
+                    'user_agent' => (string) $this->request->getUserAgent(),
+                    'status'     => 'aktif'
+                ]);
+
+                $sessionData = [
+                    'id_akun'         => $user->id_akun,
+                    'id_peran'        => $user->id_peran,
+                    'nama_peran'      => $user->nama_peran,
+                    'nama'            => $user->nama,
+                    'logged_in'       => true,
+                    'id_log'          => $idLog,          // Simpan ID log untuk update saat logout
+                    'last_checked_at' => time()           // Penanda waktu cek berkala (1 jam)
                 ];
                 session()->set($sessionData);
 
                 session()->remove('redirect_after_login');
 
-                // Jika ada URL sebelumnya, kembali ke sana
                 if ($returnUrl) {
                     return redirect()->to($returnUrl);
                 }
@@ -73,6 +86,16 @@ class AuthController extends BaseController
 
     public function logout()
     {
+        $idLog = session()->get('id_log');
+
+        if ($idLog) {
+            // Perbarui status log menjadi logout dan catat waktu logout
+            $this->logLoginModel->update($idLog, [
+                'logout_at' => date('Y-m-d H:i:s'),
+                'status'    => 'logout'
+            ]);
+        }
+
         session()->destroy();
         return redirect()->to('admin/login')->with('success', 'Berhasil logout.');
     }

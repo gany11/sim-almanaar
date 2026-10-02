@@ -35,8 +35,23 @@ class AccountController extends BaseController
         $status = $this->request->getPost('status');
         $id_sesi = session()->get('id_akun');
 
-        $query = $this->akunModel->select('akun.*, peran.nama AS nama_peran, peran.class_color')
-                                 ->join('peran', 'peran.id_peran = akun.id_peran');
+        $db = \Config\Database::connect();
+        
+        // 1. Buat subquery untuk log login terakhir dan kompilasi ke SQL
+        $subquery = $db->table('log_login')
+            ->select('id_akun, MAX(id_log) as max_id')
+            ->groupBy('id_akun');
+        
+        $subQuerySql = $subquery->getCompiledSelect();
+
+        // 2. Susun query utama menggunakan akunModel
+        $query = $this->akunModel->select('akun.*, peran.nama AS nama_peran, peran.class_color, log_login.login_at, log_login.logout_at, log_login.ip_address, log_login.status AS status_log')
+            ->join('peran', 'peran.id_peran = akun.id_peran')
+            // Join ke subquery dulu (dihubungkan dengan id_akun)
+            ->join("({$subQuerySql}) AS latest_log", 'latest_log.id_akun = akun.id_akun', 'left', false)
+            // Baru kemudian join tabel log_login asli menggunakan max_id
+            ->join('log_login', 'log_login.id_log = latest_log.max_id', 'left', false)
+            ->where('akun.deleted_at', null);
 
         if ($status != "") {
             $query->where('akun.status', $status);
