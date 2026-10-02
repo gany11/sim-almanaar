@@ -7,13 +7,13 @@
             <h2 class="text-2xl font-bold text-gray-800"><?= isset($cashNote) ? 'Edit Catatan Keuangan' : 'Catat Keep Cash Baru' ?></h2>
             <p class="text-sm text-gray-500 mt-1">Formulir draf kas sementara sebelum dimasukkan ke buku kas utama.</p>
         </div>
-        <a href="<?= base_url('treasurer/cash-notes') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+        <a href="<?= base_url('admin/cash-notes') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
         </a>
     </div>
 
     <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mx-4 md:mx-0">
-        <form action="<?= isset($cashNote) ? base_url('treasurer/cash-notes/update/'.$cashNote['id_catatan']) : base_url('treasurer/cash-notes/save') ?>" method="post" class="p-8">
+        <form action="<?= isset($cashNote) ? base_url('admin/cash-notes/update/'.$cashNote['id_catatan']) : base_url('admin/cash-notes/save') ?>" method="post" class="p-8">
             <?= csrf_field() ?>
             
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -73,7 +73,7 @@
             </div>
 
             <div class="mt-10 pt-6 border-t border-gray-50 flex justify-end gap-3">
-                <a href="<?= base_url('treasurer/cash-notes') ?>" class="px-6 py-4 rounded-2xl border border-gray-300 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">Batal</a>
+                <a href="<?= base_url('admin/cash-notes') ?>" class="px-6 py-4 rounded-2xl border border-gray-300 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">Batal</a>
                 <button type="submit" class="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-100 transition-all active:scale-95 flex items-center gap-3">
                     <i data-lucide="save" class="w-5 h-5"></i> SIMPAN CATATAN
                 </button>

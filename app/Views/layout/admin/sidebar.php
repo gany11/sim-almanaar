@@ -184,9 +184,9 @@
 
                     <!-- Keep Cash / Draf Kas (Baru disatukan di sini) -->
                     <li>
-                        <a href="<?= base_url('treasurer/cash-notes') ?>" 
+                        <a href="<?= base_url('admin/cash-notes') ?>" 
                         class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 
-                        <?= url_is('treasurer/cash-notes*') ? 'bg-white text-blue-600 shadow-lg font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
+                        <?= url_is('admin/cash-notes*') ? 'bg-white text-blue-600 shadow-lg font-bold' : 'text-white hover:bg-white hover:text-blue-600' ?>">
                             <i data-lucide="clipboard-pen-line" class="w-5 h-5"></i>
                             <span class="text-sm font-medium">Keep Cash / Draf Kas</span>
                         </a>

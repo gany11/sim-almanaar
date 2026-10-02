@@ -256,15 +256,15 @@ $routes->get('admin/khgt', 'Admin\KhgtController::index', ['filter' => ['auth:tr
 $routes->get('admin/khgt/list', 'Admin\KhgtController::list', ['filter' => 'apiGuard']);
 $routes->get('admin/khgt/sync', 'Admin\KhgtController::sync', ['filter' => 'apiGuard']);
 
-// Catatan Keuangan (Keep Cash / Draf) - Role 4 (Treasurer)
-$routes->get('treasurer/cash-notes', 'Admin\CashNoteController::index', ['filter' => ['auth:true', 'role:4']]);
-$routes->post('treasurer/cash-notes/list', 'Admin\CashNoteController::list', ['filter' => ['auth:true', 'role:4']]);
-$routes->get('treasurer/cash-notes/create', 'Admin\CashNoteController::create', ['filter' => ['auth:true', 'role:4']]);
-$routes->post('treasurer/cash-notes/save', 'Admin\CashNoteController::save', ['filter' => ['auth:true', 'role:4']]);
-$routes->get('treasurer/cash-notes/edit/(:num)', 'Admin\CashNoteController::edit/$1', ['filter' => ['auth:true', 'role:4']]);
-$routes->post('treasurer/cash-notes/update/(:num)', 'Admin\CashNoteController::update/$1', ['filter' => ['auth:true', 'role:4']]);
-$routes->post('treasurer/cash-notes/status', 'Admin\CashNoteController::updateStatus', ['filter' => ['auth:true', 'role:4']]);
-$routes->post('treasurer/cash-notes/delete', 'Admin\CashNoteController::delete', ['filter' => ['auth:true', 'role:4']]);
+// Catatan Keuangan (Keep Cash / Draf) - Role 4
+$routes->get('admin/cash-notes', 'Admin\CashNoteController::index', ['filter' => ['auth:true', 'role:4']]);
+$routes->post('admin/cash-notes/list', 'Admin\CashNoteController::list', ['filter' => ['auth:true', 'role:4']]);
+$routes->get('admin/cash-notes/create', 'Admin\CashNoteController::create', ['filter' => ['auth:true', 'role:4']]);
+$routes->post('admin/cash-notes/save', 'Admin\CashNoteController::save', ['filter' => ['auth:true', 'role:4']]);
+$routes->get('admin/cash-notes/edit/(:num)', 'Admin\CashNoteController::edit/$1', ['filter' => ['auth:true', 'role:4']]);
+$routes->post('admin/cash-notes/update/(:num)', 'Admin\CashNoteController::update/$1', ['filter' => ['auth:true', 'role:4']]);
+$routes->post('admin/cash-notes/status', 'Admin\CashNoteController::updateStatus', ['filter' => ['auth:true', 'role:4']]);
+$routes->post('admin/cash-notes/delete', 'Admin\CashNoteController::delete', ['filter' => ['auth:true', 'role:4']]);
 
 $routes->get('/sholat', 'SholatController::index');
 $routes->get('tv', 'TvController::index');

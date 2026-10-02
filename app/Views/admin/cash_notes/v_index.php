@@ -8,7 +8,7 @@
             <p class="text-sm text-gray-500 mt-1">Kelola draf kas sementara sebelum dimasukkan ke buku kas utama.</p>
         </div>
         <?php if (in_array(session()->get('id_peran'), [4])): ?>
-            <a href="<?= base_url('treasurer/cash-notes/create') ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
+            <a href="<?= base_url('admin/cash-notes/create') ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> Catat Keep Cash Baru
             </a>
         <?php endif; ?>
@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", function() {
         $('#load-data').html('<tr><td colspan="5" class="text-center py-20 text-gray-400">Memuat data...</td></tr>');
 
         $.ajax({
-            url: "<?= base_url('treasurer/cash-notes/list') ?>",
+            url: "<?= base_url('admin/cash-notes/list') ?>",
             type: "POST",
             data: { 
                 status: $('#filter-status').val(),
@@ -212,7 +212,7 @@ document.addEventListener("DOMContentLoaded", function() {
         Swal.showLoading();
 
         $.ajax({
-            url: "<?= base_url('treasurer/cash-notes/status') ?>",
+            url: "<?= base_url('admin/cash-notes/status') ?>",
             type: "POST",
             data: {
                 id_catatan: id,
@@ -271,7 +271,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 Swal.showLoading();
 
                 $.ajax({
-                    url: "<?= base_url('treasurer/cash-notes/delete') ?>",
+                    url: "<?= base_url('admin/cash-notes/delete') ?>",
                     type: "POST",
                     data: {
                         id_catatan: id,

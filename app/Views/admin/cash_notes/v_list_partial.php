@@ -86,7 +86,7 @@
                                     title="Ubah Status">
                                 <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                             </button>
-                            <a href="<?= base_url('treasurer/cash-notes/edit/' . $row['id_catatan']) ?>" 
+                            <a href="<?= base_url('admin/cash-notes/edit/' . $row['id_catatan']) ?>" 
                                class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" 
                                title="Edit Catatan">
                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
