@@ -75,24 +75,34 @@
             </td>
 
             <td class="px-6 py-4">
-                <div class="flex justify-center gap-2">
-                    <a href="<?= base_url('admin/donors/detail/' . $row['id_donatur']) ?>" 
-                        class="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm" title="Detail Riwayat">
-                        <i data-lucide="eye" class="w-4 h-4"></i>
-                    </a>
-
-                    <a href="<?= base_url('admin/donors/edit/' . $row['id_donatur']) ?>" 
-                        class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit Data">
-                        <i data-lucide="edit-3" class="w-4 h-4"></i>
-                    </a>
-                    
-                    <button type="button" 
-                        class="btn-delete p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus Data"
-                        data-id="<?= $row['id_donatur'] ?>" 
-                        data-nama="<?= $row['nama'] ?>">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
-                </div>
+                <?php if (can_access('donatur.update') || can_access('donatur.delete') || can_access('donatur.detail')): ?>
+                    <div class="flex justify-center gap-2">
+                        <?php if(can_access('donatur.detail')): ?>
+                            <a href="<?= base_url('admin/donors/detail/' . $row['id_donatur']) ?>" 
+                                class="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm" title="Detail Riwayat">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </a>
+                        <?php endif; ?> 
+                        <?php if(can_access('donatur.update')): ?>
+                            <a href="<?= base_url('admin/donors/edit/' . $row['id_donatur']) ?>" 
+                                class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit Data">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </a>
+                        <?php endif; ?> 
+                        <?php if(can_access('donatur.delete')): ?>
+                            <button type="button" 
+                                class="btn-delete p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus Data"
+                                data-id="<?= $row['id_donatur'] ?>" 
+                                data-nama="<?= $row['nama'] ?>">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        <?php endif; ?> 
+                    </div>
+                <?php else: ?>
+                    <div class="text-center text-gray-500 text-sm">
+                        <i data-lucide="lock" class="w-4 h-4"></i>
+                    </div>
+                <?php endif; ?>
             </td>
         </tr>
     <?php endforeach; ?>

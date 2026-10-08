@@ -14,47 +14,99 @@ class AuthFilter implements FilterInterface
     {
         $isLoggedIn = session()->get('logged_in');
         
-        $shouldBeLoggedIn = filter_var($arguments[0] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $mode = $arguments[0] ?? 'auth';
 
-        if ($shouldBeLoggedIn) {
-            if (!$isLoggedIn) {
-                $returnUrl = current_url();
-                session()->set('redirect_after_login', $returnUrl);
-                
-                return redirect()->to(base_url('admin/login'))->with('error', 'Silakan login terlebih dahulu.');
-            }
+        if ($mode === 'true' || $mode === true) $mode = 'auth';
+        if ($mode === 'false' || $mode === false) $mode = 'public';
 
-            // --- CEK BERKALA SETIAP 1 JAM ---
-            $lastChecked = session()->get('last_checked_at');
-            $oneHour = 3600;
-
-            if (!$lastChecked || (time() - $lastChecked) > $oneHour) {
-                $akunModel = new AkunModel();
-                $idAkun = session()->get('id_akun');
-                
-                // Ambil data terbaru dari database
-                $user = $akunModel->find($idAkun);
-
-                // Jika akun tidak ditemukan atau status berubah menjadi tidak aktif
-                if (!$user || $user['status'] !== 'aktif') {
-                    $this->forceLogout();
-                    return redirect()->to(base_url('admin/login'))->with('error', 'Akun Anda telah dinonaktifkan atau dihapus oleh Administrator.');
+        switch ($mode) {
+            case 'auth':
+                // Wajib Login
+                if (!$isLoggedIn) {
+                    $returnUrl = current_url();
+                    session()->set('redirect_after_login', $returnUrl);
+                    
+                    return redirect()->to(base_url('admin/login'))->with('error', 'Silakan login terlebih dahulu.');
                 }
+                
+                // Jalankan cek berkala & refresh fitur
+                $this->checkAndRefreshUserSession();
+                break;
 
-                // Jika peran/role akun berubah
-                if ($user['id_peran'] != session()->get('id_peran')) {
-                    $this->forceLogout();
-                    return redirect()->to(base_url('admin/login'))->with('error', 'Hak akses (peran) Anda telah diperbarui. Silakan login kembali.');
+            case 'public':
+                // Wajib TIDAK Login
+                if ($isLoggedIn) {
+                    return redirect()->to(base_url('admin/dashboard'))->with('error', 'Anda sudah login.');
                 }
+                break;
 
-                // Perbarui waktu cek menjadi waktu sekarang
-                session()->set('last_checked_at', time());
+            case 'hybrid':
+                // Bebas diakses (login atau belum login)
+                // Jika user TERNYATA sedang dalam keadaan login, kita boleh jalankan cek berkala 
+                // agar jika statusnya dinonaktifkan admin, dia langsung ter-force logout.
+                if ($isLoggedIn) {
+                    $this->checkAndRefreshUserSession();
+                }
+                break;
+        }
+    }
+
+    /**
+     * Helper privat untuk mengecek status akun dan memperbarui izin fitur secara berkala
+     */
+    private function checkAndRefreshUserSession()
+    {
+        $lastChecked = session()->get('last_checked_at');
+        $oneHour = 3600;
+        // $oneHour = 10;
+
+        // Eksekusi hanya jika sudah lewat 1 jam atau belum pernah dicek di sesi ini
+        if (!$lastChecked || (time() - $lastChecked) > $oneHour) {
+            $akunModel = new AkunModel();
+            $idAkun = session()->get('id_akun');
+            
+            $user = $akunModel->find($idAkun);
+
+            if (!$user || $user->status !== 'aktif') {
+                $this->forceLogout();
+                return redirect()->to(base_url('admin/login'))->with('error', 'Akun Anda telah dinonaktifkan atau dihapus oleh Administrator.');
             }
 
-        } else {
-            if ($isLoggedIn) {
-                return redirect()->to(base_url('admin/dashboard'));
+            if ($user->id_peran != session()->get('id_peran')) {
+                $this->forceLogout();
+                return redirect()->to(base_url('admin/login'))->with('error', 'Hak akses (peran) Anda telah diperbarui. Silakan login kembali.');
             }
+
+            $db = \Config\Database::connect();
+            
+            $roleFeatures = $db->table('peran_fitur pf')
+                ->distinct()
+                ->select('f.kode_fitur')
+                ->join('fitur f', 'f.id_fitur = pf.id_fitur')
+                ->where('pf.id_peran', $user->id_peran)
+                ->where('pf.deleted_at IS NULL')
+                ->get()
+                ->getResultArray();
+
+            $accountFeatures = $db->table('akun_fitur af')
+                ->distinct()
+                ->select('f.kode_fitur')
+                ->join('fitur f', 'f.id_fitur = af.id_fitur')
+                ->where('af.id_akun', $user->id_akun)
+                ->where('af.deleted_at IS NULL')
+                ->get()
+                ->getResultArray();
+
+            $allCodes = array_merge(
+                array_column($roleFeatures, 'kode_fitur'), 
+                array_column($accountFeatures, 'kode_fitur')
+            );
+            $allowedFeatures = array_unique($allCodes);
+
+            session()->set([
+                'allowed_features' => $allowedFeatures,
+                'last_checked_at'  => time()
+            ]);
         }
     }
 
@@ -69,7 +121,7 @@ class AuthFilter implements FilterInterface
             $logLoginModel = new LogLoginModel();
             $logLoginModel->update($idLog, [
                 'logout_at' => date('Y-m-d H:i:s'),
-                'status'    => 'expired' // atau logout paksa
+                'status'    => 'expired' 
             ]);
         }
         session()->destroy();

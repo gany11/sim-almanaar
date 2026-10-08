@@ -292,4 +292,163 @@ class AccountController extends BaseController
         $emailService->setMessage($message);
         $emailService->send();
     }
+
+    /**
+     * Menampilkan halaman detail akun & matriks fitur tambahan 
+     * (Hanya menampilkan fitur yang BELUM termasuk di dalam Peran Utamanya)
+     */
+    public function detail($id)
+    {
+        $akun = $this->akunModel->select('akun.*, peran.nama AS nama_peran, peran.class_color')
+            ->join('peran', 'peran.id_peran = akun.id_peran')
+            ->where('akun.id_akun', $id)
+            ->where('akun.deleted_at', null)
+            ->first();
+
+        if (!$akun) {
+            return redirect()->to('admin/account')->with('error', 'Data akun tidak ditemukan.');
+        }
+
+        // 1. Ambil ID fitur yang sudah dimiliki oleh PERAN UTAMA akun ini
+        $peranFiturModel = new \App\Models\PeranFiturModel();
+        $roleFeatureIds = $peranFiturModel->where('id_peran', $akun->id_peran)->findColumn('id_fitur') ?? [];
+
+        // 2. Ambil fitur yang BELUM dimiliki oleh peran utama (untuk dijadikan tambahan/kustom)
+        $fiturModel = new \App\Models\FiturModel();
+        if (!empty($roleFeatureIds)) {
+            $allFeatures = $fiturModel->whereNotIn('id_fitur', $roleFeatureIds)->orderBy('kategori', 'ASC')->findAll();
+        } else {
+            $allFeatures = $fiturModel->orderBy('kategori', 'ASC')->findAll();
+        }
+        
+        // Kelompokkan fitur yang tersisa berdasarkan kategorinya
+        $groupedFeatures = [];
+        foreach ($allFeatures as $f) {
+            $groupedFeatures[$f['kategori']][] = $f;
+        }
+
+        // 3. Ambil ID fitur tambahan yang sudah dikhususkan untuk akun ini
+        $akunFiturModel = new \App\Models\AkunFiturModel();
+        $assignedFeatureIds = $akunFiturModel
+            ->where('id_akun', $id)
+            ->findColumn('id_fitur') ?? [];
+
+        return view('admin/account/v_detail', [
+            'title'              => 'Detail Akun & Fitur Tambahan: ' . $akun->nama,
+            'akun'               => $akun,
+            'groupedFeatures'    => $groupedFeatures,
+            'assignedFeatureIds' => $assignedFeatureIds
+        ]);
+    }
+
+    /**
+     * Menyimpan sinkronisasi fitur tambahan akun secara massal (Matrix Sync dengan Logika OR)
+     */
+    public function featureSync()
+    {
+        $idAkun        = $this->request->getPost('id_akun');
+        $selectedFitur = $this->request->getPost('id_fitur') ?? []; // Array ID fitur tambahan yang dicentang
+
+        if (empty($idAkun)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ID Akun tidak valid.'])->setStatusCode(400);
+        }
+
+        $db = \Config\Database::connect();
+        $fiturModel = new \App\Models\FiturModel();
+        $akunFiturModel = new \App\Models\AkunFiturModel();
+
+        // 1. VALIDASI PRASYARAT (LOGIKA OR / ATAU)
+        if (!empty($selectedFitur)) {
+            $builderPrasyarat = $db->table('fitur_prasyarat');
+            
+            foreach ($selectedFitur as $idFitur) {
+                $prasyaratList = $builderPrasyarat->select('id_prasyarat')
+                    ->where('id_fitur', $idFitur)
+                    ->where('deleted_at IS NULL')
+                    ->get()
+                    ->getResultArray();
+
+                $requiredIds = array_column($prasyaratList, 'id_prasyarat');
+
+                if (!empty($requiredIds)) {
+                    $intersect = array_intersect($requiredIds, $selectedFitur);
+
+                    if (empty($intersect)) {
+                        $missingFeatures = $db->table('fitur')
+                            ->select('kategori, nama_fitur')
+                            ->whereIn('id_fitur', $requiredIds)
+                            ->get()
+                            ->getResultArray();
+                        
+                        $formattedNames = [];
+                        foreach ($missingFeatures as $mf) {
+                            $formattedNames[] = "<b>{$mf['kategori']}</b> ({$mf['nama_fitur']})";
+                        }
+                        
+                        $namesStr = implode(' <b>ATAU</b> ', $formattedNames);
+                        
+                        $mainFeature = $fiturModel->find($idFitur);
+                        $mainName = $mainFeature ? "<b>{$mainFeature['kategori']}</b> ({$mainFeature['nama_fitur']})" : 'Fitur';
+
+                        return $this->response->setJSON([
+                            'status'  => 'error', 
+                            'message' => "Gagal! Fitur {$mainName} memerlukan setidaknya salah satu prasyarat berikut:<br><br>{$namesStr}."
+                        ])->setStatusCode(400);
+                    }
+                }
+            }
+        }
+
+        $db->transStart();
+
+        try {
+            $currentActive = $akunFiturModel->where('id_akun', $idAkun)->findAll();
+            $currentIds = array_column($currentActive, 'id_fitur');
+
+            $toDelete = array_diff($currentIds, $selectedFitur);
+            $toAdd    = array_diff($selectedFitur, $currentIds);
+
+            // Hapus relasi yang tidak dicentang lagi (soft delete)
+            if (!empty($toDelete)) {
+                $akunFiturModel->where('id_akun', $idAkun)
+                    ->whereIn('id_fitur', $toDelete)
+                    ->set(['deleted_by' => session()->get('id_akun')])
+                    ->delete();
+            }
+
+            // Tambahkan atau aktifkan kembali relasi yang dicentang
+            foreach ($toAdd as $idFitur) {
+                $exists = $akunFiturModel->withDeleted()
+                    ->where('id_akun', $idAkun)
+                    ->where('id_fitur', $idFitur)
+                    ->first();
+
+                if ($exists) {
+                    $akunFiturModel->update($exists['id_akun_fitur'], [
+                        'deleted_at' => null,
+                        'deleted_by' => null,
+                        'updated_by' => session()->get('id_akun')
+                    ]);
+                } else {
+                    $akunFiturModel->insert([
+                        'id_akun'    => $idAkun,
+                        'id_fitur'   => $idFitur,
+                        'created_by' => session()->get('id_akun')
+                    ]);
+                }
+            }
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Gagal memperbarui fitur tambahan akun.']);
+            }
+
+            return $this->response->setJSON(['status' => 'success', 'message' => 'Fitur tambahan akun berhasil diperbarui!']);
+
+        } catch (\Exception $e) {
+            $db->transRollback();
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
+        }
+    }
 }

@@ -8,19 +8,22 @@
             <p class="text-sm text-gray-500 mt-1">Catatan arus kas harian/mingguan Masjid Al-Manaar.</p>
         </div>
 
-        <?php if (in_array(session()->get('id_peran'), [4])): ?>
+        <?php if (can_access('keuangan.impor') || can_access('keuangan.create')): ?>
         <div class="flex flex-wrap items-center gap-3">
-            <button @click="openImport = true" 
-                class="flex items-center gap-2 px-5 py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl font-bold text-sm hover:bg-emerald-50 transition-all active:scale-95 shadow-sm shadow-emerald-50">
-                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> 
-                <span>Import Excel</span>
-            </button>
-
-            <a href="<?= base_url('admin/finance/data/create') ?>" 
-                class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
-                <i data-lucide="plus-circle" class="w-4 h-4"></i> 
-                <span>Catat Transaksi</span>
-            </a>
+            <?php if (can_access('keuangan.impor')): ?>
+                <button @click="openImport = true" 
+                    class="flex items-center gap-2 px-5 py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl font-bold text-sm hover:bg-emerald-50 transition-all active:scale-95 shadow-sm shadow-emerald-50">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> 
+                    <span>Import Excel</span>
+                </button>
+            <?php endif; ?>
+            <?php if (can_access('keuangan.create')): ?>
+                <a href="<?= base_url('admin/finance/data/create') ?>" 
+                    class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> 
+                    <span>Catat Transaksi</span>
+                </a>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
     </div>
@@ -125,7 +128,7 @@
                 <div class="h-8 w-1.5 bg-blue-600 rounded-full"></div>
                 <h3 id="current-title" class="font-bold text-gray-800 uppercase tracking-tight italic">Memuat Judul Laporan...</h3>
             </div>
-            <?php if (in_array(session()->get('id_peran'), [4])): ?>
+            <?php if (!can_access('laporan.keuangan.detail.mingguan') || !can_access('laporan.keuangan.catatan.mingguan')): ?>
                 <div id="current-report-action"></div>
             <?php endif; ?>
         </div>
@@ -149,58 +152,60 @@
         </div>
     </div>
 
-    <div x-show="openImport" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 class="font-bold text-gray-800">Import Data Keuangan</h3>
-                <button @click="openImport = false" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            
-            <form action="<?= base_url('admin/finance/import-excel') ?>" method="post" enctype="multipart/form-data" class="p-6 space-y-4">
-                <?= csrf_field() ?>
+    <?php if (can_access('keuangan.impor')): ?>
+        <div x-show="openImport" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                    <h3 class="font-bold text-gray-800">Import Data Keuangan</h3>
+                    <button @click="openImport = false" class="text-gray-400 hover:text-red-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
                 
-                <div class="p-4 bg-amber-50 border border-amber-100 rounded-2xl">
-                    <p class="text-[10px] text-amber-700 font-bold uppercase tracking-wider mb-1">Perhatian</p>
-                    <p class="text-xs text-amber-600 leading-relaxed">Gunakan template resmi untuk menghindari error. Pastikan nama Kategori dan Detail Alokasi sesuai dengan database.</p>
-                </div>
-    
-                <div 
-                    x-data="{ fileName: null }" 
-                    class="border-2 border-dashed rounded-2xl p-8 text-center transition-all relative"
-                    :class="fileName ? 'border-emerald-400 bg-emerald-50/50' : 'border-gray-200 hover:border-blue-400'"
-                >
-                    <input type="file" name="file_excel" 
-                        class="absolute inset-0 opacity-0 cursor-pointer" 
-                        accept=".xlsx, .xls"
-                        @change="fileName = $event.target.files[0] ? $event.target.files[0].name : null"
-                    >
+                <form action="<?= base_url('admin/finance/import-excel') ?>" method="post" enctype="multipart/form-data" class="p-6 space-y-4">
+                    <?= csrf_field() ?>
                     
-                    <template x-if="!fileName">
-                        <div>
-                            <i data-lucide="upload-cloud" class="w-10 h-10 text-gray-300 mx-auto mb-2"></i>
-                            <p class="text-sm font-medium text-gray-500">Klik atau seret file Excel ke sini</p>
-                            <p class="text-[10px] text-gray-400 mt-1">Format: .xlsx atau .xls</p>
-                        </div>
-                    </template>
-
-                    <template x-if="fileName">
-                        <div class="flex flex-col items-center animate-in fade-in zoom-in duration-300">
-                            <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-2">
-                                <i data-lucide="file-check" class="w-6 h-6"></i>
+                    <div class="p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+                        <p class="text-[10px] text-amber-700 font-bold uppercase tracking-wider mb-1">Perhatian</p>
+                        <p class="text-xs text-amber-600 leading-relaxed">Gunakan template resmi untuk menghindari error. Pastikan nama Kategori dan Detail Alokasi sesuai dengan database.</p>
+                    </div>
+        
+                    <div 
+                        x-data="{ fileName: null }" 
+                        class="border-2 border-dashed rounded-2xl p-8 text-center transition-all relative"
+                        :class="fileName ? 'border-emerald-400 bg-emerald-50/50' : 'border-gray-200 hover:border-blue-400'"
+                    >
+                        <input type="file" name="file_excel" 
+                            class="absolute inset-0 opacity-0 cursor-pointer" 
+                            accept=".xlsx, .xls"
+                            @change="fileName = $event.target.files[0] ? $event.target.files[0].name : null"
+                        >
+                        
+                        <template x-if="!fileName">
+                            <div>
+                                <i data-lucide="upload-cloud" class="w-10 h-10 text-gray-300 mx-auto mb-2"></i>
+                                <p class="text-sm font-medium text-gray-500">Klik atau seret file Excel ke sini</p>
+                                <p class="text-[10px] text-gray-400 mt-1">Format: .xlsx atau .xls</p>
                             </div>
-                            <p class="text-sm font-bold text-emerald-700 truncate max-w-full px-4" x-text="fileName"></p>
-                            <button type="button" @click.stop="fileName = null; $el.closest('form').reset()" class="mt-2 text-[10px] font-bold text-red-500 uppercase hover:underline">Ganti File</button>
-                        </div>
-                    </template>
-                </div>
-    
-                <div class="flex flex-col gap-2">
-                    <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">MULAI IMPORT</button>
-                    <a href="<?= base_url('assets/templates/Format Import Data Keuangan.xlsx') ?>" class="text-center py-2 text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors">Download Template Excel</a>
-                </div>
-            </form>
+                        </template>
+
+                        <template x-if="fileName">
+                            <div class="flex flex-col items-center animate-in fade-in zoom-in duration-300">
+                                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-2">
+                                    <i data-lucide="file-check" class="w-6 h-6"></i>
+                                </div>
+                                <p class="text-sm font-bold text-emerald-700 truncate max-w-full px-4" x-text="fileName"></p>
+                                <button type="button" @click.stop="fileName = null; $el.closest('form').reset()" class="mt-2 text-[10px] font-bold text-red-500 uppercase hover:underline">Ganti File</button>
+                            </div>
+                        </template>
+                    </div>
+        
+                    <div class="flex flex-col gap-2">
+                        <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">MULAI IMPORT</button>
+                        <a href="<?= base_url('assets/templates/Format Import Data Keuangan.xlsx') ?>" class="text-center py-2 text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors">Download Template Excel</a>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
+    <?php endif; ?>
 </div>
 
 <script>
@@ -221,7 +226,7 @@
                     "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
                 },
                 success: function(res) {
-                    const $temp = $('<div>').append(res);
+                    const $temp =$('<div>').append(res);
                     
                     $('#load-routine').html($temp.find('#source-routine-data tbody').html());
 
@@ -243,34 +248,58 @@
 
                     $temp.find('.summary-item').each(function() {
                         const catName = $(this).data('kategori');
-                        const newVal = $(this).data('saldo');
-                        $(`.saldo-value[data-cat="${catName}"]`).text(newVal);
+                        const newVal = $(this).data('saldo');$(`.saldo-value[data-cat="${catName}"]`).text(newVal);
                     });
                     
                     if (window.reinitIcons) window.reinitIcons();
                     else if (typeof lucide !== 'undefined') lucide.createIcons();
                 },
                 error: function(xhr) {
+                    // Jika fitur sedang maintenance (503), reload halaman agar tampilan maintenance tampil utuh
+                    if (xhr.status === 503) {
+                        window.location.reload();
+                        return;
+                    }
+
                     console.error(xhr.responseText);
-                    $('#load-routine').html('<tr><td colspan="4" class="text-center py-10 text-red-400">Gagal memuat data.</td></tr>');
+                    $('#load-routine').html('<tr><td colspan="4" class="text-center py-10 text-red-400">Gagal memuat data transaksi.</td></tr>');
                 }
             });
         };
 
+        // Definisikan hak akses via PHP helper di dalam skrip JS
+        const canPreviewReport = <?= can_access('laporan.keuangan.detail.mingguan') ? 'true' : 'false' ?>;
+        const canEditNote      = <?= can_access('laporan.keuangan.catatan.mingguan') ? 'true' : 'false' ?>;
+
         function updateActionUI(reportId, reportNote) {
             let actionBtn = '';
             if (reportId) {
-                actionBtn = `
-                    <div class="flex items-center gap-2">
+                let buttons = [];
+
+                // Cek izin preview laporan
+                if (canPreviewReport) {
+                    buttons.push(`
                         <a href="<?= base_url('admin/finance/report/weekly') ?>/${reportId}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider shadow-lg shadow-blue-100 transition-all active:scale-95 flex items-center justify-center gap-2">
                             <i data-lucide="eye" class="w-3.5 h-3.5"></i> Preview Laporan
                         </a>
+                    `);
+                }
+
+                // Cek izin catatan laporan (edit note)
+                if (canEditNote) {
+                    buttons.push(`
                         <a href="<?= base_url('admin/finance/report/edit-note') ?>/${reportId}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider shadow-lg shadow-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2">
                             <i data-lucide="message-square-plus" class="w-3.5 h-3.5"></i> Catatan Laporan
                         </a>
-                    </div>
-                `;
+                    `);
+                }
+
+                // Jika user memiliki setidaknya salah satu akses, gabungkan tombolnya
+                if (buttons.length > 0) {
+                    actionBtn = `<div class="flex items-center gap-2">${buttons.join('')}</div>`;
+                }
             }
+            
             $('#current-report-action').html(actionBtn);
 
             let noteHtml = '';
@@ -326,19 +355,23 @@
                                 });
                                 loadData();
                             } else {
-                                Swal.fire('Gagal', res.message, 'error');
+                                Swal.fire('Gagal', res.message || 'Gagal menghapus catatan.', 'error');
                             }
                         },
-                        error: function() {
-                            Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+                        error: function(xhr) {
+                            let errorMsg = 'Gagal menghubungi server.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                            Swal.fire('Error', errorMsg, 'error');
                         }
                     });
                 }
             });
         });
 
-        // 2. Handler Hapus Pemasukan Donasi (.btn-delete-candidate)
-        $(document).on('click', '.btn-delete-candidate', function(e) {
+        // 2. Handler Hapus Pemasukan Donasi (.btn-delete-income-donor)
+        $(document).on('click', '.btn-delete-income-donor', function(e) {
             e.preventDefault();
             
             const id = $(this).data('id');
@@ -379,7 +412,7 @@
                                     timer: 1500,
                                     showConfirmButton: false
                                 });
-                                loadData(); // Memperbarui tabel keuangan secara instan
+                                loadData();
                             } else {
                                 Swal.fire('Gagal', res.message, 'error');
                             }

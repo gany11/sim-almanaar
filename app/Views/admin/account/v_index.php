@@ -13,11 +13,13 @@
             </p>
         </div>
 
-        <a href="<?= base_url('admin/account/register') ?>"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
-            <i data-lucide="user-plus" class="w-4 h-4"></i>
-            Registrasi Baru
-        </a>
+        <?php if (can_access('akun.create')): ?>
+            <a href="<?= base_url('admin/account/register') ?>"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                Registrasi Baru
+            </a>
+        <?php endif; ?>
     </div>
 
 
@@ -314,6 +316,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             error: function (xhr) {
+                // JIKA STATUS CODE 503 (MAINTENANCE), RELOAD HALAMAN AGAR TAMPILAN MAINTENANCE MUNCUL UTUH
+                if (xhr.status === 503) {
+                    window.location.reload();
+                    return;
+                }
 
                 console.error(xhr.responseText);
 
@@ -325,7 +332,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         </td>
                     </tr>
                 `);
-
             }
 
         });
@@ -477,14 +483,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     },
 
 
-                    error: function () {
+                    error: function (xhr) {
+                        let errMsg = 'Gagal memperbarui status akun.';
+                        
+                        // Tangkap pesan error dari respons JSON server (jika ada)
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errMsg = xhr.responseJSON.message;
+                        }
 
                         Swal.fire(
                             'Error',
-                            'Gagal memperbarui status akun.',
+                            errMsg,
                             'error'
                         );
 
+                        loadData();
                     }
 
                 });

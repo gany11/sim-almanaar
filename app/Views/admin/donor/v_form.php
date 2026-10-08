@@ -7,9 +7,11 @@
             <h2 class="text-2xl font-bold text-gray-800"><?= isset($donor) ? 'Edit Data Donatur' : 'Tambah Donatur Baru' ?></h2>
             <p class="text-sm text-gray-500">Kelola informasi profil dan kontak donatur lembaga.</p>
         </div>
-        <a href="<?= base_url('admin/donors') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
-        </a>
+        <?php if(can_access('donatur.read')): ?>
+            <a href="<?= base_url('admin/donors') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
+            </a>
+        <?php endif; ?>
     </div>
 
     <form action="<?= isset($donor) ? base_url('admin/donors/update/'.$donor['id_donatur']) : base_url('admin/donors/save') ?>" method="post">

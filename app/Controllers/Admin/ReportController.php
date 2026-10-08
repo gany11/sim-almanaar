@@ -483,19 +483,16 @@ class ReportController extends BaseController
 
         $historyData = $builder->orderBy('ended_at', 'DESC')->findAll();
 
-        $id_peran = session()->get('id_peran');
-
         $response = [];
         foreach ($historyData as $h) {
-            // Logika 30 hari untuk edit
-            $canEdit = (time() <= strtotime($h['ended_at'] . ' +30 days'));
+            $canEditTime = (time() <= strtotime($h['ended_at'] . ' +30 days'));
 
             $response[] = [
                 'id_laporan_mingguan' => $h['id_laporan_mingguan'],
-                'judul'               => $h['judul'],
-                'catatan'             => $h['catatan'] ? strip_tags($h['catatan']) : '-',
-                'can_view'            => in_array($id_peran, [2, 3, 4]),
-                'can_edit'            => in_array($id_peran, [4]) && $canEdit,
+                'judul'              => $h['judul'],
+                'catatan'            => $h['catatan'] ? strip_tags($h['catatan']) : '-',
+                'can_view'           => can_access('laporan.keuangan.detail.mingguan'),
+                'can_edit'           => can_access('laporan.keuangan.catatan.mingguan') && $canEditTime,
             ];
         }
 

@@ -143,9 +143,11 @@ $errors = session('errors') ?? [];
             </p>
         </div>
 
+        <?php if(can_access('donasi.detail') || can_access('donatur.detail')): ?>
         <a href="<?= $backUrl ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
         </a>
+        <?php endif; ?>
     </div>
 
     <!-- =========================================================

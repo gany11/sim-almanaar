@@ -7,7 +7,7 @@
             <h2 class="text-2xl font-bold text-gray-800">Manajemen Carousel</h2>
             <p class="text-sm text-gray-500 mt-1">Kelola gambar carousel dan atur penayangannya di beranda.</p>
         </div>
-        <?php if (in_array(session()->get('id_peran'), [1])): ?>
+        <?php if (can_access('carousel.create')): ?>
             <a href="<?= base_url('admin/carousel/create') ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Carousel
             </a>
@@ -97,6 +97,15 @@ document.addEventListener("DOMContentLoaded", function() {
                     });
                 }
                 if (window.reinitIcons) window.reinitIcons();
+            },
+            error: function(xhr) {
+                if (xhr.status === 503) {
+                    window.location.reload();
+                    return;
+                }
+
+                console.error(xhr.responseText);
+                $('#load-data').html('<tr><td colspan="4" class="text-center py-10 text-red-500">Gagal memuat data carousel.</td></tr>');
             }
         });
     };

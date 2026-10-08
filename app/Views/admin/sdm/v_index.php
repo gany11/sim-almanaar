@@ -7,7 +7,7 @@
             <h2 class="text-2xl font-bold text-gray-800">Manajemen SDM / Petugas</h2>
             <p class="text-sm text-gray-500 mt-1">Kelola data sumber daya manusia, pengisi acara, dan kontak petugas.</p>
         </div>
-        <?php if (in_array(session()->get('id_peran'), [1])): ?>
+        <?php if (can_access('sdm.create')): ?>
             <a href="<?= base_url('admin/sdm/create') ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah SDM Baru
             </a>
@@ -147,6 +147,16 @@
                         });
                     }
                     if (window.reinitIcons) window.reinitIcons();
+                },
+                error: function(xhr) {
+                    // Jika fitur sedang maintenance (503), reload halaman untuk menampilkan view maintenance
+                    if (xhr.status === 503) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    console.error(xhr.responseText);
+                    $('#load-data').html('<tr><td colspan="5" class="text-center py-10 text-red-500">Gagal memuat data SDM.</td></tr>');
                 }
             });
         };

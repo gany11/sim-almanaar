@@ -74,34 +74,42 @@
 
             <!-- Aksi -->
             <td class="px-6 py-4">
-                <div class="flex justify-center gap-2">
-                    <?php if (in_array(session()->get('id_peran'), [4])): ?>
+                <?php if (can_access('catatan.keuangan.update') || can_access('catatan.keuangan.delete') || can_access('catatan.keuangan.update.status')): ?>
+                    <div class="flex justify-center gap-2">
                         <?php if ($row['status'] === 'tersedia'): ?>
-                            <button type="button" 
-                                    class="btn-open-status-modal p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all shadow-sm"
-                                    data-id="<?= $row['id_catatan'] ?>" 
-                                    data-status="<?= $row['status'] ?>"
-                                    data-keterangan="<?= htmlspecialchars($row['keterangan'], ENT_QUOTES) ?>"
-                                    data-alasan="<?= htmlspecialchars($row['alasan'] ?? '', ENT_QUOTES) ?>"
-                                    title="Ubah Status">
-                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                            </button>
-                            <a href="<?= base_url('admin/cash-notes/edit/' . $row['id_catatan']) ?>" 
-                               class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" 
-                               title="Edit Catatan">
-                                <i data-lucide="edit-3" class="w-4 h-4"></i>
-                            </a>
-                            
-                            <!-- <button type="button" 
-                                    class="btn-delete p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
-                                    data-id="<?= $row['id_catatan'] ?>" 
-                                    title="Hapus Catatan">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>  -->
-                           
+                            <?php if (can_access('catatan.keuangan.update.status')): ?>
+                                <button type="button" 
+                                        class="btn-open-status-modal p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all shadow-sm"
+                                        data-id="<?= $row['id_catatan'] ?>" 
+                                        data-status="<?= $row['status'] ?>"
+                                        data-keterangan="<?= htmlspecialchars($row['keterangan'], ENT_QUOTES) ?>"
+                                        data-alasan="<?= htmlspecialchars($row['alasan'] ?? '', ENT_QUOTES) ?>"
+                                        title="Ubah Status">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                </button>
+                            <?php endif; ?>
+                            <?php if (can_access('catatan.keuangan.update')): ?>
+                                <a href="<?= base_url('admin/cash-notes/edit/' . $row['id_catatan']) ?>" 
+                                class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" 
+                                title="Edit Catatan">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </a>
+                            <?php endif; ?>
+                            <?php if (can_access('catatan.keuangan.delete')): ?>
+                                <button type="button" 
+                                        class="btn-delete p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                        data-id="<?= $row['id_catatan'] ?>" 
+                                        title="Hapus Catatan">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button> 
+                            <?php endif; ?>
                         <?php endif; ?>
-                    <?php endif; ?>
-                </div>
+                    </div>
+                <?php else: ?>
+                    <div class="text-center text-gray-500 text-sm">
+                        <i data-lucide="lock" class="w-4 h-4"></i>
+                    </div>
+                <?php endif; ?>
             </td>
         </tr>
     <?php endforeach; ?>

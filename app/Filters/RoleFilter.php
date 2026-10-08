@@ -24,7 +24,7 @@ class RoleFilter implements FilterInterface
 
         if (!in_array((int)$userRole, $allowedRoles, true)) {
             return redirect()->to(base_url('admin/dashboard'))
-                ->with('error', 'Akses Ditolak: Anda tidak memiliki izin untuk peran ini (403).');
+                ->with('error', 'Akses Ditolak: Anda tidak memiliki izin untuk peran ini (403). --Peran Filter--');
         }
     }
 

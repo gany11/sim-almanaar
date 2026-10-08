@@ -42,9 +42,11 @@
                 <input type="number" name="telepon" value="<?= old('telepon', $user->telepon) ?>" class="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500">
                 <?php if(isset(session('errors')['telepon'])): ?><p class="text-xs text-red-500 mt-1"><?= session('errors')['telepon'] ?></p><?php endif; ?>
             </div>
-            <div class="md:col-span-2 flex justify-end">
-                <button type="submit" class="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all">Simpan Profil</button>
-            </div>
+            <?php if (can_access('admin.update.profil')): ?>
+                <div class="md:col-span-2 flex justify-end">
+                    <button type="submit" class="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all">Simpan Profil</button>
+                </div>
+            <?php endif; ?>
         </form>
     </div>
 
@@ -84,9 +86,11 @@
                 </div>
             </div>
 
-            <div class="flex justify-end pt-4">
-                <button type="submit" class="px-8 py-3 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:bg-red-700 transition-all active:scale-95">Update Keamanan Akun</button>
-            </div>
+            <?php if (can_access('admin.update.password')): ?>
+                <div class="flex justify-end pt-4">
+                    <button type="submit" class="px-8 py-3 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:bg-red-700 transition-all active:scale-95">Update Keamanan Akun</button>
+                </div>
+            <?php endif; ?>
         </form>
     </div>
 </div>

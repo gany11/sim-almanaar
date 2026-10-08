@@ -14,6 +14,13 @@
             <span class="text-sm font-medium"><?= session()->getFlashdata('error') ?></span>
         </div>
     <?php endif; ?>
+    <?php if (session()->getFlashdata('success')) : ?>
+        <div id="flash-success" data-message="<?= session()->getFlashdata('success') ?>"></div>
+        <div class="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 rounded-xl flex items-center gap-3 shadow-sm">
+            <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i>
+            <span class="text-sm font-medium"><?= session()->getFlashdata('success') ?></span>
+        </div>
+    <?php endif; ?>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <?php if (!empty($summaryKeuangan)): ?>

@@ -12,7 +12,7 @@
                 Total: <?= !empty($candidateDonors) ? count($candidateDonors) : 0 ?> Orang
             </span>
             
-            <?php if (empty($donation['closed_at'])): ?>
+            <?php if (empty($donation['closed_at']) && can_access('calon.donatur.donasi.create')): ?>
                 <a href="<?= base_url('admin/donation-donors/create/' . $donation['id_donasi']) ?>" 
                     class="flex items-center gap-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white px-4 py-2 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95">
                     <i data-lucide="user-plus" class="w-4 h-4"></i> 
@@ -153,34 +153,40 @@
                             <!-- Kolom Aksi -->
                             <td class="px-6 py-4 text-xs text-right">
                                 <div class="flex justify-end items-center gap-2">
-                                    <?php if (empty($donation['closed_at'])): ?>
+                                    <?php if (empty($donation['closed_at']) && (can_access('pemasukan.donasi.delete') || can_access('calon.donatur.donasi.update.status') || can_access('calon.donatur.donasi.update'))): ?>
                                         <?php if (!in_array((int)($cand['id_status_donasi'] ?? 1), [4, 5, 6])): ?>
-                                            <button
-                                                type="button"
-                                                @click="$dispatch('open-update-status', {
-                                                    id: <?= (int) $cand['id_pemasukan_donasi'] ?>,
-                                                    name: <?= htmlspecialchars(
-                                                        json_encode($cand['nama_donatur'] ?? '-'),
-                                                        ENT_QUOTES,
-                                                        'UTF-8'
-                                                    ) ?>
-                                                })"
-                                                class="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all shadow-sm"
-                                                title="Update Status"
-                                            >
-                                                <i data-lucide="git-pull-request" class="w-4 h-4"></i>
-                                            </button>
-                                            <a href="<?= base_url('admin/donation-donors/edit/' . $cand['id_pemasukan_donasi']) ?>" 
-                                                class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit Data Donatur">
-                                                <i data-lucide="edit-3" class="w-4 h-4"></i>
-                                            </a>
+                                            <?php if(can_access('calon.donatur.donasi.update.status')): ?>
+                                                <button
+                                                    type="button"
+                                                    @click="$dispatch('open-update-status', {
+                                                        id: <?= (int) $cand['id_pemasukan_donasi'] ?>,
+                                                        name: <?= htmlspecialchars(
+                                                            json_encode($cand['nama_donatur'] ?? '-'),
+                                                            ENT_QUOTES,
+                                                            'UTF-8'
+                                                        ) ?>
+                                                    })"
+                                                    class="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all shadow-sm"
+                                                    title="Update Status"
+                                                >
+                                                    <i data-lucide="git-pull-request" class="w-4 h-4"></i>
+                                                </button>
+                                            <?php endif; ?>
+                                            <?php if(can_access('calon.donatur.donasi.update')): ?>
+                                                <a href="<?= base_url('admin/donation-donors/edit/' . $cand['id_pemasukan_donasi']) ?>" 
+                                                    class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit Data Donatur">
+                                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                                </a>
+                                            <?php endif; ?>
                                         <?php endif; ?>
-                                        <button type="button" 
-                                            class="btn-delete-candidate p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus Data"
-                                            data-id="<?= $cand['id_pemasukan_donasi'] ?>" 
-                                            data-nama="<?= htmlspecialchars($cand['nama_donatur']) ?>">
-                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                        </button>
+                                        <?php if(can_access('pemasukan.donasi.delete')): ?>
+                                            <button type="button" 
+                                                class="btn-delete-candidate p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus Data"
+                                                data-id="<?= $cand['id_pemasukan_donasi'] ?>" 
+                                                data-nama="<?= htmlspecialchars($cand['nama_donatur']) ?>">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        <?php endif; ?>
                                     <?php else: ?>
                                         <span class="italic text-gray-400 text-[11px]">Terkunci</span>
                                     <?php endif; ?>

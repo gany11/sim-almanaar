@@ -61,25 +61,32 @@
                             <?php endif; ?>
 
                             <!-- Tombol Edit & Hapus: Sembunyikan jika ada id_pemasukan_donasi -->
-                            <?php if (empty($row['id_pemasukan_donasi']) && in_array(session()->get('id_peran'), [4])): ?>
+                            <?php if (empty($row['id_pemasukan_donasi'])): ?>
+                                <?php if(can_access('keuangan.update')): ?>
                                 <a href="<?= base_url('admin/finance/data/edit/' . $row['id_keuangan']) ?>" class="p-2 bg-blue-50 text-blue-600 rounded-lg shadow-sm hover:bg-blue-600 hover:text-white transition-all" title="Edit Transaksi">
                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
                                 </a>
-                                <button type="button" class="btn-delete p-2 bg-red-50 text-red-600 rounded-lg shadow-sm hover:bg-red-600 hover:text-white transition-all" data-id="<?= $row['id_keuangan'] ?>" data-judul="<?= $row['keterangan'] ?>" title="Hapus Transaksi">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
+                                <?php endif; ?>
+                                <?php if(can_access('keuangan.delete')): ?>
+                                    <button type="button" class="btn-delete p-2 bg-red-50 text-red-600 rounded-lg shadow-sm hover:bg-red-600 hover:text-white transition-all" data-id="<?= $row['id_keuangan'] ?>" data-judul="<?= $row['keterangan'] ?>" title="Hapus Transaksi">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                <?php endif; ?>
                             <?php else: ?>
-                                <a href="<?= base_url('admin/donation-incomes/edit/' . $row['id_pemasukan_donasi']) ?>" 
-                                    class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit Pemasukan Donasi">
-                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
-                                </a>
-                                
-                                <button type="button" 
-                                    class="btn-delete-candidate p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus Pemasukan Donasi"
-                                    data-id="<?= $row['id_pemasukan_donasi'] ?>" 
-                                    data-info="<?= htmlspecialchars($row['keterangan'] ?? 'Pemasukan Donasi', ENT_QUOTES) ?>">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
+                                <?php if(can_access('pemasukan.donasi.update')): ?>
+                                    <a href="<?= base_url('admin/donation-incomes/edit/' . $row['id_pemasukan_donasi']) ?>" 
+                                        class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit Pemasukan Donasi">
+                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                    </a>
+                                <?php endif; ?>
+                                <?php if(can_access('pemasukan.donasi.delete')): ?>
+                                    <button type="button" 
+                                        class="btn-delete-income-donor p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus Pemasukan Donasi"
+                                        data-id="<?= $row['id_pemasukan_donasi'] ?>" 
+                                        data-info="<?= htmlspecialchars($row['keterangan'] ?? 'Pemasukan Donasi', ENT_QUOTES) ?>">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </div>
                     </td>

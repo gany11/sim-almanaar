@@ -8,9 +8,11 @@
             <h2 class="text-2xl font-bold text-gray-800">Registrasi Akun Baru</h2>
         <p class="text-sm text-gray-500">Sistem akan mengirimkan email aktivasi otomatis kepada pengguna setelah akun dibuat.</p>
         </div>
-        <a href="<?= base_url('admin/account') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Lihat daftar akun
-        </a>
+        <?php if (can_access('akun.read')): ?>
+            <a href="<?= base_url('admin/account') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Lihat daftar akun
+            </a>
+        <?php endif; ?>
     </div>
 
     <?php if (session()->getFlashdata('error')) : ?>
@@ -102,8 +104,8 @@
                                 class="w-full px-4 py-3 rounded-xl border <?= isset(session('errors')['id_peran']) ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300' ?> focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none bg-transparent">
                                 <option value="">-- Pilih Peran --</option>
                                 <?php foreach($peran as $p): ?>
-                                    <option value="<?= $p->id_peran ?>" <?= old('id_peran') == $p->id_peran ? 'selected' : '' ?>>
-                                        <?= $p->nama ?>
+                                    <option value="<?= $p['id_peran'] ?>" <?= old('id_peran') == $p['id_peran'] ? 'selected' : '' ?>>
+                                        <?= $p['nama'] ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>

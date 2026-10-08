@@ -61,18 +61,27 @@
                         $batas_waktu = strtotime($row['waktu_mulai'] . ' +1 hour');
                         $waktu_sekarang = time();
                     ?>
-                    <?php if (in_array(session()->get('id_peran'), [3,5]) && $waktu_sekarang <= $batas_waktu): ?>
-                        <a href="<?= base_url('admin/agenda/edit/' . $row['id_agenda']) ?>" 
-                        class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm">
-                            <i data-lucide="edit-3" class="w-4 h-4"></i>
-                        </a>
-                        
-                        <button type="button" 
-                            class="btn-delete p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
-                            data-id="<?= $row['id_agenda'] ?>" 
-                            data-tema="<?= $row['tema'] ?>">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
+                    <?php if ((can_access('agenda.update') || can_access('agenda.delete')) && $waktu_sekarang <= $batas_waktu): ?>
+                        <!-- Tombol Edit -->
+                        <?php if(can_access('agenda.update')): ?>
+                            <a href="<?= base_url('admin/agenda/edit/' . $row['id_agenda']) ?>" 
+                            class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </a>
+                        <?php endif; ?>
+                        <!-- Tombol Hapus -->
+                        <?php if(can_access('agenda.delete')): ?>
+                            <button type="button" 
+                                class="btn-delete p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                data-id="<?= $row['id_agenda'] ?>" 
+                                data-tema="<?= $row['tema'] ?>">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <div class="text-center text-gray-500 text-sm">
+                            <i data-lucide="lock" class="w-4 h-4"></i>
+                        </div>
                     <?php endif; ?>
                 </div>
             </td>

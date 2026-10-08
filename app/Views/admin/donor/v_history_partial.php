@@ -144,28 +144,28 @@
 
 
                     <?php if ($isEditable): ?>
-
-                        <!-- Tombol Edit -->
-                        <a
-                            href="<?= base_url('admin/donation-incomes/edit/' . $row['id_pemasukan_donasi']) ?>"
-                            class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                            title="Edit Data"
-                        >
-                            <i data-lucide="edit-3" class="w-4 h-4"></i>
-                        </a>
-
-
-                        <!-- Tombol Hapus -->
-                        <button
-                            type="button"
-                            class="btn-delete-candidate p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
-                            title="Hapus Data"
-                            data-id="<?= $row['id_pemasukan_donasi'] ?>"
-                            data-info="<?= htmlspecialchars($infoHapus, ENT_QUOTES) ?>"
-                        >
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-
+                        <?php if(can_access('pemasukan.donasi.update')): ?>
+                            <!-- Tombol Edit -->
+                            <a
+                                href="<?= base_url('admin/donation-incomes/edit/' . $row['id_pemasukan_donasi']) ?>"
+                                class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                title="Edit Data"
+                            >
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </a>
+                        <?php endif; ?>
+                        <?php if(can_access('pemasukan.donasi.delete')): ?>
+                            <!-- Tombol Hapus -->
+                            <button
+                                type="button"
+                                class="btn-delete-candidate p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                title="Hapus Data"
+                                data-id="<?= $row['id_pemasukan_donasi'] ?>"
+                                data-info="<?= htmlspecialchars($infoHapus, ENT_QUOTES) ?>"
+                            >
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        <?php endif; ?>
                     <?php else: ?>
 
                         <!-- Status terkunci -->
@@ -173,27 +173,29 @@
                             Terkunci / Ditutup
                         </span>
 
-                        <!-- Toggle Samarkan -->
-                        <button
-                            type="button"
-                            class="btn-toggle-samarkan p-2 rounded-lg transition-all shadow-sm
-                                <?= ($row['samarkan'] ?? 'N') === 'Y'
-                                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-700 hover:text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-700 hover:text-white'
+                        <?php if(can_access('pemasukan.donasi.update.samaran')): ?>
+                            <!-- Toggle Samarkan -->
+                            <button
+                                type="button"
+                                class="btn-toggle-samarkan p-2 rounded-lg transition-all shadow-sm
+                                    <?= ($row['samarkan'] ?? 'N') === 'Y'
+                                        ? 'bg-amber-100 text-amber-700 hover:bg-amber-700 hover:text-white'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-700 hover:text-white'
+                                    ?>"
+                                title="<?= ($row['samarkan'] ?? 'N') === 'Y'
+                                    ? 'Buka Samaran'
+                                    : 'Samarkan Donatur'
                                 ?>"
-                            title="<?= ($row['samarkan'] ?? 'N') === 'Y'
-                                ? 'Buka Samaran'
-                                : 'Samarkan Donatur'
-                            ?>"
-                            data-id="<?= $row['id_pemasukan_donasi'] ?>"
-                            data-samarkan="<?= ($row['samarkan'] ?? 'N') === 'Y' ? 'Y' : 'N' ?>"
-                            data-nama="<?= htmlspecialchars($donor['nama'] ?? '-', ENT_QUOTES, 'UTF-8') ?>"
-                        >
-                            <i
-                                data-lucide="<?= ($row['samarkan'] ?? 'N') === 'Y' ? 'eye-off' : 'eye' ?>"
-                                class="w-4 h-4"
-                            ></i>
-                        </button>
+                                data-id="<?= $row['id_pemasukan_donasi'] ?>"
+                                data-samarkan="<?= ($row['samarkan'] ?? 'N') === 'Y' ? 'Y' : 'N' ?>"
+                                data-nama="<?= htmlspecialchars($donor['nama'] ?? '-', ENT_QUOTES, 'UTF-8') ?>"
+                            >
+                                <i
+                                    data-lucide="<?= ($row['samarkan'] ?? 'N') === 'Y' ? 'eye-off' : 'eye' ?>"
+                                    class="w-4 h-4"
+                                ></i>
+                            </button>
+                        <?php endif; ?>
 
                     <?php endif; ?>
                 </div>

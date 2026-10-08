@@ -8,9 +8,12 @@
             <h2 class="text-2xl font-bold text-gray-800">Detail Donatur</h2>
             <p class="text-sm text-gray-500">Informasi profil lengkap dan riwayat kontribusi donasi.</p>
         </div>
-        <a href="<?= base_url('admin/donors') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors text-sm font-medium">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
-        </a>
+        <?php if(can_access('donatur.read')): ?>
+            <a href="<?= base_url('admin/donors') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors text-sm font-medium">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
+            </a>
+        <?php endif; ?>
+
     </div>
 
     <?php if (session()->getFlashdata('success')) : ?>
@@ -99,10 +102,11 @@
                 <span id="total-transaksi" class="text-xs font-semibold bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl">
                     Total Transaksi: <?= count($donations) ?>
                 </span>
-                <!-- Tombol Tambah Donasi Donatur di Atas Tabel -->
-                <a href="<?= base_url('admin/donors/record/' . $donor['id_donatur']) ?>" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors shadow-sm">
-                    <i data-lucide="plus" class="w-4 h-4"></i> Tambah Donasi Donatur
-                </a>
+                <?php if(can_access('pemasukan.donasi.donatur')): ?>
+                    <a href="<?= base_url('admin/donors/record/' . $donor['id_donatur']) ?>" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors shadow-sm">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Tambah Donasi Donatur
+                    </a>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -503,7 +507,13 @@
                         });
                     }
                 },
-                error: function() {
+                error: function(xhr) {
+                    // Jika fitur sedang maintenance (503), reload halaman untuk menampilkan view maintenance
+                    if (xhr.status === 503) {
+                        window.location.reload();
+                        return;
+                    }
+
                     console.warn('Gagal memuat ulang data partial, melakukan reload halaman...');
                     location.reload();
                 }

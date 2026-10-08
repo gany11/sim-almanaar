@@ -19,24 +19,26 @@
             </p>
         </div>
 
-        <div class="flex items-center gap-4">
+        <?php if (can_access('sdm.update') || can_access('sdm.read')): ?>
+            <div class="flex items-center gap-4">
+                <?php if (can_access('sdm.update')): ?>
+                    <a href="<?= base_url('admin/sdm/edit/' . $sdm['id_sdm']) ?>"
+                        class="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
 
-            <?php if (in_array(session()->get('id_peran'), [1])): ?>
-                <a href="<?= base_url('admin/sdm/edit/' . $sdm['id_sdm']) ?>"
-                    class="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
+                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        Edit SDM
+                    </a>
+                <?php endif; ?>
 
-                    <i data-lucide="edit-3" class="w-4 h-4"></i>
-                    Edit SDM
-                </a>
-            <?php endif; ?>
-
-            <a href="<?= base_url('admin/sdm') ?>"
-            class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                Kembali ke daftar
-            </a>
-
-        </div>
+                <?php if(can_access('sdm.read')): ?>
+                    <a href="<?= base_url('admin/sdm') ?>"
+                    class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        Kembali ke daftar
+                    </a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </div>
 
 

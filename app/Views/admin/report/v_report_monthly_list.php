@@ -96,6 +96,15 @@
                                 <i data-lucide="check-circle" class="w-3 h-3"></i> FINAL
                             </span>`;
 
+                        // Pengecekan izin akses langsung via helper PHP di view
+                        const canView = <?= can_access('laporan.keuangan.detail.bulanan') ? 'true' : 'false' ?>;
+                        
+                        const actionHtml = canView 
+                            ? `<a href="<?= base_url('admin/finance/report/monthly') ?>/${report.tahun}/${report.bulan_num}" class="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 font-bold transition-all group">
+                                   Detail Laporan <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                               </a>`
+                            : `<span class="text-xs text-gray-400 italic">Tanpa Akses</span>`;
+
                         const row = `
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-6 py-4">
@@ -110,17 +119,13 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-center">${statusHtml}</td>
-                                <td class="px-6 py-4 text-center">
-                                    <a href="<?= base_url('admin/finance/report/monthly') ?>/${report.tahun}/${report.bulan_num}" class="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 font-bold transition-all group">
-                                        Detail Laporan <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                                    </a>
-                                </td>
+                                <td class="px-6 py-4 text-center">${actionHtml}</td>
                             </tr>
                         `;
                         tableBody.insertAdjacentHTML('beforeend', row);
                     });
                     
-                    // Render ulang icon dengan menyertakan object icons
+                    // Render ulang icon
                     if (typeof lucide !== 'undefined' && lucide.createIcons) {
                         lucide.createIcons({
                             icons: lucide.icons
@@ -130,8 +135,6 @@
                 .catch(error => {
                     console.error('AJAX Error:', error);
                     
-                    // Gunakan template literal yang valid tanpa icon lucide agar aman jika terjadi error rendering,
-                    // atau render ulang icon setelah error message ditambahkan
                     tableBody.innerHTML = `<tr><td colspan="3" class="px-6 py-10 text-center text-red-500 font-bold flex flex-col items-center gap-2 justify-center">
                         <i data-lucide="alert-triangle" class="w-6 h-6"></i> Gagal memuat data: ${error.message}
                     </td></tr>`;

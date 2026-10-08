@@ -4,7 +4,7 @@
             <i data-lucide="trending-down" class="w-5 h-5 text-red-500"></i> Riwayat Pengeluaran Donasi
         </h3>
         
-        <?php if (empty($donation['closed_at'])): ?>
+        <?php if (empty($donation['closed_at']) && can_access('pengeluaran.donasi.create')): ?>
             <a href="<?= base_url('admin/donation-expenses/create/' . $donation['id_donasi']) ?>" 
                 class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-md shadow-red-100 transition-all active:scale-95 w-fit">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> 
@@ -45,18 +45,21 @@
                                         <i data-lucide="file-text" class="w-4 h-4"></i>
                                     </a>
                                     <?php endif; ?>
-                                    <?php if (empty($donation['closed_at'])): ?>
-                                        <a href="<?= base_url('admin/donation-expenses/edit/' . $exp['id_pengeluaran_donasi']) ?>" 
-                                            class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit Pengeluaran">
-                                            <i data-lucide="edit-3" class="w-4 h-4"></i>
-                                        </a>
-                                        
-                                        <button type="button" 
-                                            class="btn-delete-expense p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus Pengeluaran"
-                                            data-id="<?= $exp['id_pengeluaran_donasi'] ?>" 
-                                            data-keterangan="<?= htmlspecialchars($exp['keterangan']) ?>">
-                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                        </button>
+                                    <?php if (empty($donation['closed_at']) && (can_access('pengeluaran.donasi.update') || can_access('pengeluaran.donasi.delete'))): ?>
+                                        <?php if(can_access('pengeluaran.donasi.update')): ?>
+                                            <a href="<?= base_url('admin/donation-expenses/edit/' . $exp['id_pengeluaran_donasi']) ?>" 
+                                                class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit Pengeluaran">
+                                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                            </a>
+                                        <?php endif; ?>                                        
+                                        <?php if(can_access('pengeluaran.donasi.delete')): ?>
+                                            <button type="button" 
+                                                class="btn-delete-expense p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus Pengeluaran"
+                                                data-id="<?= $exp['id_pengeluaran_donasi'] ?>" 
+                                                data-keterangan="<?= htmlspecialchars($exp['keterangan']) ?>">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
                             </td>

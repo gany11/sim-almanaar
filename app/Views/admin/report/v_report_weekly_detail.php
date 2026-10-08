@@ -8,16 +8,20 @@
             <h2 class="text-2xl font-bold text-gray-800">Pratinjau Laporan</h2>
             <p class="text-sm text-gray-500 italic"><?= $report['judul'] ?></p>
         </div>
-        <div class="flex items-center gap-3">
-            <a href="<?= base_url('admin/finance/report/weekly') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
-            </a>
-            <?php if (in_array(session()->get('id_peran'), [3,4])): ?>
-                <button onclick="printReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all flex items-center gap-2">
-                    <i data-lucide="printer" class="w-4 h-4"></i> Cetak
-                </button>
-            <?php endif; ?> 
-        </div>
+        <?php if (can_access('laporan.keuangan.mingguan') || can_access('laporan.keuangan.cetak.mingguan')): ?>
+            <div class="flex items-center gap-3">
+                <?php if (can_access('laporan.keuangan.mingguan')): ?>
+                <a href="<?= base_url('admin/finance/report/weekly') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
+                </a>
+                <?php endif; ?> 
+                <?php if (can_access('laporan.keuangan.cetak.mingguan')): ?>
+                    <button onclick="printReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all flex items-center gap-2">
+                        <i data-lucide="printer" class="w-4 h-4"></i> Cetak
+                    </button>
+                <?php endif; ?> 
+            </div>
+        <?php endif; ?> 
     </div>
 
     <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mx-auto" style="font-family: 'Times New Roman', Times, serif;">

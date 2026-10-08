@@ -8,9 +8,11 @@
             <h2 class="text-2xl font-bold text-gray-800"><?= $donation['judul'] ?></h2>
             <p class="text-sm text-gray-500">Akronim Kwitansi: <b class="font-mono text-blue-600"><?= $donation['akronim_kwitansi'] ?></b></p>
         </div>
-        <a href="<?= base_url('admin/donations') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
-        </a>
+        <?php if(can_access('donasi.read')): ?>
+            <a href="<?= base_url('admin/donations') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
+            </a>
+        <?php endif; ?>
     </div>
 
     <?php if (session()->getFlashdata('success')) : ?>
@@ -101,369 +103,253 @@
 
 <script>
     document.addEventListener('alpine:init', () => {
-
         Alpine.data('historyModal', () => ({
-
             open: false,
-
             nama: '',
-
             kwitansi: '',
-
             items: [],
 
-
             get orderedItems() {
-                // Database diasumsikan DESC:
-                // terbaru -> terlama
-                //
-                // Timeline ditampilkan:
-                // terlama -> terbaru
-
+                // Database diasumsikan DESC (terbaru -> terlama),
+                // Timeline ditampilkan terlama -> terbaru.
                 return [...this.items].reverse();
             }
-
         }));
-
     });
 </script>
 
 <script>
-document.addEventListener('alpine:init', () => {
-
-    Alpine.data('updateStatusModal', () => ({
-
-        open: false,
-
-        updateId: null,
-
-        updateName: '',
-
-        allowedStatuses: [],
-
-        pengurusList: <?= json_encode(
-            array_values(
-                array_filter(
-                    array_map(
-                        fn($p) => trim($p['nama_pengurus'] ?? ''),
-                        $pengurusList ?? []
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('updateStatusModal', () => ({
+            open: false,
+            updateId: null,
+            updateName: '',
+            allowedStatuses: [],
+            pengurusList: <?= json_encode(
+                array_values(
+                    array_filter(
+                        array_map(
+                            fn($p) => trim($p['nama_pengurus'] ?? ''),$pengurusList ?? []
+                        )
                     )
-                )
-            ),
-            JSON_UNESCAPED_UNICODE |
-            JSON_HEX_TAG |
-            JSON_HEX_APOS |
-            JSON_HEX_QUOT |
-            JSON_HEX_AMP
-        ) ?>,
-
-        form: {
-            id_status_donasi: '',
-            waktu: '',
-            nama_pengurus: ''
-        },
-
-        async init() {
-
-            window.addEventListener(
-                'open-update-status',
-                (event) => {
-
-                    this.updateId = event.detail.id;
-                    this.updateName = event.detail.name;
-
-                    this.openModal();
-
-                }
-            );
-
-        },
-
-        async openModal() {
-
-            this.form = {
+                ),
+                JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
+            ) ?>,
+            form: {
                 id_status_donasi: '',
                 waktu: '',
-                nama_pengurus: '<?= esc(
-                    session()->get('nama') ?? 'Administrator',
-                    'js'
-                ) ?>'
-            };
+                nama_pengurus: ''
+            },
 
-            this.allowedStatuses = [];
-
-            try {
-
-                const response = await fetch(
-                    "<?= base_url('admin/donation-donors/get-status-options/') ?>" +
-                    this.updateId,
-                    {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    }
-                );
-
-                const data = await response.json();
-
-                if (!response.ok || data.status !== 'success') {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Akses Ditolak',
-                        text: data.message ||
-                            'Tidak dapat memuat data status.'
-                    });
-
-                    return;
-                }
-
-                this.allowedStatuses =
-                    data.allowed_statuses || [];
-
-                this.form.waktu =
-                    data.default_waktu || '';
-
-                this.open = true;
-
-                this.$nextTick(() => {
-                    this.initPengurusSelect();
+            async init() {
+                window.addEventListener('open-update-status', (event) => {
+                    this.updateId = event.detail.id;
+                    this.updateName = event.detail.name;
+                    this.openModal();
                 });
+            },
 
-            } catch (error) {
-
-                console.error(error);
-
-                Swal.fire(
-                    'Error',
-                    'Gagal menghubungi server.',
-                    'error'
-                );
-            }
-        },
-
-        initPengurusSelect() {
-
-            const select = $('#select-pengurus');
-
-            if (!select.length || !$.fn.select2) {
-                return;
-            }
-
-            if (select.hasClass('select2-hidden-accessible')) {
-                select.select2('destroy');
-            }
-
-            select.empty();
-
-            this.pengurusList.forEach(nama => {
-
-                if (!nama) return;
-
-                select.append(
-                    new Option(
-                        nama,
-                        nama,
-                        false,
-                        nama === this.form.nama_pengurus
-                    )
-                );
-
-            });
-
-            select.select2({
-                tags: true,
-                placeholder:
-                    'Pilih atau ketik nama pengurus...',
-                allowClear: true,
-                width: '100%',
-                dropdownParent:
-                    $('#modal-update-status')
-            });
-
-            select
-                .off('change.updateStatus')
-                .on('change.updateStatus', () => {
-
-                    this.form.nama_pengurus =
-                        select.val() || '';
-
-                });
-
-            select
-                .val(this.form.nama_pengurus)
-                .trigger('change');
-
-        },
-
-        close() {
-
-            this.open = false;
-
-            const select = $('#select-pengurus');
-
-            if (
-                select.length &&
-                select.hasClass('select2-hidden-accessible')
-            ) {
-                select.select2('destroy');
-            }
-
-        },
-
-        async submit() {
-
-            if (!this.form.id_status_donasi) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Peringatan',
-                    text: 'Silakan pilih status baru terlebih dahulu.'
-                });
-                return;
-            }
-
-            // Jika status 4 = Pencatatan Dana
-            if (Number(this.form.id_status_donasi) === 4) {
-
-                window.location.href =
-                    "<?= base_url('admin/donation-incomes/record/') ?>" +
-                    this.updateId;
-
-                return;
-            }
-
-            const formData = new FormData();
-
-            formData.append(
-                'id_status_donasi',
-                this.form.id_status_donasi
-            );
-
-            formData.append(
-                'waktu',
-                this.form.waktu || ''
-            );
-
-            formData.append(
-                'nama_pengurus',
-                this.form.nama_pengurus || ''
-            );
-
-            formData.append(
-                "<?= csrf_token() ?>",
-                "<?= csrf_hash() ?>"
-            );
-
-            try {
-
-                const response = await fetch(
-                    "<?= base_url('admin/donation-donors/update-status/') ?>" +
-                    this.updateId,
-                    {
-                        method: 'POST',
-
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        },
-
-                        body: formData
-                    }
-                );
-
-                const responseText = await response.text();
-
-                console.log('HTTP STATUS:', response.status);
-                console.log('RESPONSE SERVER:', responseText);
-
-                let data;
+            async openModal() {
+                this.form = {
+                    id_status_donasi: '',
+                    waktu: '',
+                    nama_pengurus: '<?= esc(session()->get('nama') ?? 'Administrator', 'js') ?>'
+                };
+                this.allowedStatuses = [];
 
                 try {
-
-                    data = JSON.parse(responseText);
-
-                } catch (jsonError) {
-
-                    console.error(
-                        'Response bukan JSON:',
-                        responseText
+                    const response = await fetch(
+                        "<?= base_url('admin/donation-donors/get-status-options/') ?>" + this.updateId,
+                        {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        }
                     );
 
-                    this.close();
+                    const responseText = await response.text();
+                    let data = {};
 
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Response Server Tidak Valid',
-                        text: 'Server tidak mengembalikan response JSON yang valid.'
+                    try {
+                        data = JSON.parse(responseText);
+                    } catch (e) {
+                        data = {};
+                    }
+
+                    // Tangani jika terjadi pemeliharaan sistem (503)
+                    if (response.status === 503) {
+                        let errMsg = 'Terjadi kesalahan sistem.';
+                        
+                        if (data && data.message) {
+                            errMsg = data.message;
+                        }
+
+                        Swal.fire('Error', errMsg, 'error');
+                        return;
+                    }
+
+                    if (!response.ok || data.status !== 'success') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Akses Ditolak',
+                            text: data.message || 'Tidak dapat memuat data status.'
+                        });
+                        return;
+                    }
+
+                    this.allowedStatuses = data.allowed_statuses || [];
+                    this.form.waktu = data.default_waktu || '';
+                    this.open = true;
+
+                    this.$nextTick(() => {
+                        this.initPengurusSelect();
                     });
 
+                } catch (error) {
+                    console.error('OPEN MODAL ERROR:', error);
+                    Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+                }
+            },
+
+            initPengurusSelect() {
+                const select = $('#select-pengurus');
+                if (!select.length || !$.fn.select2) return;
+
+                if (select.hasClass('select2-hidden-accessible')) {
+                    select.select2('destroy');
+                }
+
+                select.empty();
+
+                this.pengurusList.forEach(nama => {
+                    if (!nama) return;
+                    select.append(
+                        new Option(nama, nama, false, nama === this.form.nama_pengurus)
+                    );
+                });
+
+                select.select2({
+                    tags: true,
+                    placeholder: 'Pilih atau ketik nama pengurus...',
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: $('#modal-update-status')
+                });
+
+                select.off('change.updateStatus').on('change.updateStatus', () => {
+                    this.form.nama_pengurus = select.val() || '';
+                });
+
+                select.val(this.form.nama_pengurus).trigger('change');
+            },
+
+            close() {
+                this.open = false;
+                const select = $('#select-pengurus');
+                if (select.length && select.hasClass('select2-hidden-accessible')) {
+                    select.select2('destroy');
+                }
+            },
+
+            async submit() {
+                if (!this.form.id_status_donasi) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Peringatan',
+                        text: 'Silakan pilih status baru terlebih dahulu.'
+                    });
                     return;
                 }
 
-
-                // ==========================================
-                // SERVER ERROR
-                // ==========================================
-
-                if (!response.ok || data.status !== 'success') {
-
-                    this.close();
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: data.message ||
-                            'Gagal memperbarui status.'
-                    });
-
+                // Jika status 4 = Pencatatan Dana
+                if (Number(this.form.id_status_donasi) === 4) {
+                    window.location.href = "<?= base_url('admin/donation-incomes/record/') ?>" + this.updateId;
                     return;
                 }
 
+                const formData = new FormData();
+                formData.append('id_status_donasi', this.form.id_status_donasi);
+                formData.append('waktu', this.form.waktu || '');
+                formData.append('nama_pengurus', this.form.nama_pengurus || '');
+                formData.append("<?= csrf_token() ?>", "<?= csrf_hash() ?>");
 
-                // ==========================================
-                // SUCCESS
-                // ==========================================
+                try {
+                    const response = await fetch(
+                        "<?= base_url('admin/donation-donors/update-status/') ?>" + this.updateId,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            },
+                            body: formData
+                        }
+                    );
 
-                this.close();
+                    const responseText = await response.text();
+                    let data = {};
 
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: data.message ||
-                        'Status donasi berhasil diperbarui.',
-                    timer: 1200,
-                    showConfirmButton: false
-                });
+                    try {
+                        data = JSON.parse(responseText);
+                    } catch (e) {
+                        data = {};
+                    }
 
-                // Reload partial
-                if (typeof window.reloadPartials === 'function') {
-                    window.reloadPartials();
-                } else {
-                    console.error('window.reloadPartials() tidak tersedia.');
+                    // Tangani jika terjadi pemeliharaan sistem (503)
+                    if (response.status === 503) {
+                        this.close();
+                        let errMsg = 'Terjadi kesalahan sistem.';
+                        
+                        // Ambil pesan dari respons server jika tersedia
+                        if (data && data.message) {
+                            errMsg = data.message;
+                        }
+
+                        Swal.fire('Error', errMsg, 'error');
+                        return;
+                    }
+
+                    if (!response.ok || data.status !== 'success') {
+                        this.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: data.message || 'Gagal memperbarui status.'
+                        });
+                        return;
+                    }
+
+                    this.close();
+
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: data.message || 'Status donasi berhasil diperbarui.',
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+
+                    // Reload partial
+                    if (typeof window.reloadPartials === 'function') {
+                        window.reloadPartials();
+                    } else {
+                        console.error('window.reloadPartials() tidak tersedia.');
+                    }
+
+                } catch (error) {
+                    console.error('ERROR UPDATE STATUS:', error);
+                    this.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal menghubungi server.'
+                    });
                 }
-
-            } catch (error) {
-
-                console.error(
-                    'ERROR UPDATE STATUS:',
-                    error
-                );
-
-                this.close();
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Gagal menghubungi server.'
-                });
             }
-        }
-
-    }));
-
-});
+        }));
+    });
 </script>
 
 <script>
@@ -481,67 +367,42 @@ document.addEventListener('alpine:init', () => {
         // ==========================================
         // RELOAD PARTIALS
         // ==========================================
-
         window.reloadPartials = function() {
-
             $.ajax({
-
-                url:
-                    "<?= base_url('admin/donations/partial-detail/') ?>" +
-                    donationId,
-
+                url: "<?= base_url('admin/donations/partial-detail/') ?>" + donationId,
                 type: "GET",
-
                 dataType: "json",
-
                 success: function(res) {
+                    $('#wrapper-incomes').html(res.incomesHtml);
+                    $('#wrapper-candidates').html(res.candidatesHtml);
+                    $('#wrapper-expenses').html(res.expensesHtml);
+                    $('#card-total-pemasukan').text(res.totalPemasukan);
+                    $('#card-total-pengeluaran').text(res.totalPengeluaran);
+                    $('#card-saldo-akhir').text(res.saldoAkhir);
 
-                    console.log('PARTIAL RELOAD:', res);
-
-                    $('#wrapper-incomes')
-                        .html(res.incomesHtml);
-
-                    $('#wrapper-candidates')
-                        .html(res.candidatesHtml);
-
-                    $('#wrapper-expenses')
-                        .html(res.expensesHtml);
-
-                    $('#card-total-pemasukan')
-                        .text(res.totalPemasukan);
-
-                    $('#card-total-pengeluaran')
-                        .text(res.totalPengeluaran);
-
-                    $('#card-saldo-akhir')
-                        .text(res.saldoAkhir);
-
-
-                    // Recreate Lucide
                     if (window.lucide) {
-
                         lucide.createIcons({
                             icons: lucide.icons
                         });
-
                     }
                 },
-
                 error: function(xhr) {
+                    if (xhr.status === 503) {
+                        window.location.reload();
+                        return;
+                    }
 
-                    console.error(
-                        'GAGAL RELOAD PARTIAL:',
-                        xhr.status,
-                        xhr.responseText
-                    );
-
+                    console.error('GAGAL RELOAD PARTIAL:', xhr.status, xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal memuat ulang data terbaru dari server.'
+                    });
                 }
-
             });
-
         };
 
-        // 1. Script Tombol Hapus Pengeluaran (Menggunakan Event Delegation)
+        // 1. Script Tombol Hapus Pengeluaran
         $(document).on('click', '.btn-delete-expense', function() {
             const id = $(this).data('id');
             const ket = $(this).data('keterangan');
@@ -579,10 +440,12 @@ document.addEventListener('alpine:init', () => {
                                 Swal.fire('Gagal', res.message, 'error');
                             }
                         },
-                        error: function() {
-                            Swal.fire(
-                                'Error', 'Gagal menghubungi server.', 'error'
-                            ).then(() => {
+                        error: function(xhr) {
+                            let errorMsg = 'Gagal menghubungi server.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                            Swal.fire('Error', errorMsg, 'error').then(() => {
                                 if (typeof reloadPartials === 'function') {
                                     reloadPartials();
                                 } else {
@@ -595,7 +458,7 @@ document.addEventListener('alpine:init', () => {
             });
         });
 
-        // 2. Script Tombol Hapus Income / Pemasukan Donasi (Baru ditambahkan)
+        // 2. Script Tombol Hapus Income / Pemasukan Donasi
         $(document).on('click', '.btn-delete-income', function() {
             const id = $(this).data('id');
             const nama = $(this).data('nama');
@@ -633,10 +496,12 @@ document.addEventListener('alpine:init', () => {
                                 Swal.fire('Gagal', res.message, 'error');
                             }
                         },
-                        error: function() {
-                            Swal.fire(
-                                'Error', 'Gagal menghubungi server.', 'error'
-                            ).then(() => {
+                        error: function(xhr) {
+                            let errorMsg = 'Gagal menghubungi server.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                            Swal.fire('Error', errorMsg, 'error').then(() => {
                                 if (typeof reloadPartials === 'function') {
                                     reloadPartials();
                                 } else {
@@ -649,7 +514,7 @@ document.addEventListener('alpine:init', () => {
             });
         });
 
-        // 3. Script Tombol Hapus List Donatur / Calon Donatur (Menggunakan Event Delegation)
+        // 3. Script Tombol Hapus List Donatur / Calon Donatur
         $(document).on('click', '.btn-delete-candidate', function() {
             const id = $(this).data('id');
             const nama = $(this).data('nama');
@@ -687,10 +552,12 @@ document.addEventListener('alpine:init', () => {
                                 Swal.fire('Gagal', res.message, 'error');
                             }
                         },
-                        error: function() {
-                            Swal.fire(
-                                'Error', 'Gagal menghubungi server.', 'error'
-                            ).then(() => {
+                        error: function(xhr) {
+                            let errorMsg = 'Gagal menghubungi server.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                            Swal.fire('Error', errorMsg, 'error').then(() => {
                                 if (typeof reloadPartials === 'function') {
                                     reloadPartials();
                                 } else {
@@ -706,17 +573,14 @@ document.addEventListener('alpine:init', () => {
         // =========================================================
         // TOGGLE SAMARKAN NOMINAL PEMASUKAN DONASI
         // =========================================================
-
         function escapeHtml(text) {
             return $('<div>').text(text ?? '').html();
         }
 
         $(document).on('click', '.btn-toggle-samarkan', function(e) {
-
             e.preventDefault();
 
             const button = $(this);
-
             const id = button.data('id');
             const currentSamarkan = button.data('samarkan');
             const nama = button.data('nama');
@@ -726,35 +590,15 @@ document.addEventListener('alpine:init', () => {
                 return;
             }
 
-            // ==========================================
-            // Tentukan status saat ini
-            // ==========================================
-
             const isCurrentlyMasked = currentSamarkan === 'Y';
-
-            // Jika Y -> N
-            // Jika N -> Y
             const newSamarkan = isCurrentlyMasked ? 'N' : 'Y';
-
-            const actionText = isCurrentlyMasked
-                ? 'menampilkan'
-                : 'menyamarkan';
-
+            const actionText = isCurrentlyMasked ? 'menampilkan' : 'menyamarkan';
             const confirmText = isCurrentlyMasked
                 ? 'Nama donatur akan ditampilkan kembali.'
                 : 'Nama donatur akan disamarkan menjadi Hamba Allah.';
 
-
-            // ==========================================
-            // KONFIRMASI
-            // ==========================================
-
             Swal.fire({
-
-                title: isCurrentlyMasked
-                    ? 'Tampilkan Nama Donatur?'
-                    : 'Samarkan Nama Donatur?',
-
+                title: isCurrentlyMasked ? 'Tampilkan Nama Donatur?' : 'Samarkan Nama Donatur?',
                 html: `
                     Apakah Anda yakin ingin <b>${actionText}</b> nama donatur
                     <br>
@@ -764,158 +608,72 @@ document.addEventListener('alpine:init', () => {
                         ${confirmText}
                     </span>
                 `,
-
                 icon: 'question',
-
                 showCancelButton: true,
-
-                confirmButtonText: isCurrentlyMasked
-                    ? 'Ya, Tampilkan'
-                    : 'Ya, Samarkan',
-
+                confirmButtonText: isCurrentlyMasked ? 'Ya, Tampilkan' : 'Ya, Samarkan',
                 cancelButtonText: 'Batal',
-
-                confirmButtonColor: isCurrentlyMasked
-                    ? '#4f46e5'
-                    : '#d97706',
-
+                confirmButtonColor: isCurrentlyMasked ? '#4f46e5' : '#d97706',
                 cancelButtonColor: '#6b7280',
-
                 reverseButtons: true
-
             }).then((result) => {
-
-                if (!result.isConfirmed) {
-                    return;
-                }
-
-
-                // ==========================================
-                // DISABLE TOMBOL
-                // ==========================================
+                if (!result.isConfirmed) return;
 
                 button.prop('disabled', true);
 
-
-                // ==========================================
-                // AJAX
-                // ==========================================
-
                 $.ajax({
-
                     url: "<?= base_url('admin/donation-incomes/toggle-samarkan') ?>",
-
                     type: "POST",
-
                     dataType: "json",
-
                     data: {
-
                         id_pemasukan_donasi: id,
-
-                        // Kirim status BARU
                         samarkan: newSamarkan,
-
-                        "<?= csrf_token() ?>":
-                            "<?= csrf_hash() ?>"
+                        "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
                     },
-
-
-                    // ======================================
-                    // SUCCESS
-                    // ======================================
-
                     success: function(res) {
-
                         if (res.status === 'success') {
-
                             Swal.fire({
-
                                 icon: 'success',
-
                                 title: 'Berhasil!',
-
                                 text: res.message,
-
                                 timer: 1200,
-
                                 showConfirmButton: false
-
                             }).then(() => {
-
-                                // Refresh partial v_incomes
-                                // agar nama/icon/status langsung berubah
                                 reloadPartials();
-
                             });
-
                         } else {
-
                             Swal.fire({
-
                                 icon: 'error',
-
                                 title: 'Gagal',
-
-                                text: res.message ||
-                                    'Gagal mengubah status penyamaran.'
-
+                                text: res.message || 'Gagal mengubah status penyamaran.'
                             });
-
                             button.prop('disabled', false);
                         }
                     },
-
-
-                    // ======================================
-                    // ERROR
-                    // ======================================
-
                     error: function(xhr) {
-
-                        let errorMsg =
-                            'Gagal menghubungi server.';
-
-                        if (
-                            xhr.responseJSON &&
-                            xhr.responseJSON.message
-                        ) {
-
-                            errorMsg =
-                                xhr.responseJSON.message;
+                        let errorMsg = 'Gagal menghubungi server.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
                         }
 
-                        console.error(
-                            'ERROR TOGGLE SAMARKAN:',
-                            xhr.status,
-                            xhr.responseText
-                        );
+                        console.error('ERROR TOGGLE SAMARKAN:', xhr.status, xhr.responseText);
 
                         Swal.fire({
-
                             icon: 'error',
-
                             title: 'Error',
-
                             text: errorMsg
-
                         });
 
                         button.prop('disabled', false);
                     }
-
                 });
-
             });
-
         });
     });
 </script>
+
 <script>
     document.addEventListener('alpine:init', () => {
-
         Alpine.data('candidateTable', () => ({
-
             selectedFilter: 'all',
             searchQuery: '',
 
@@ -924,17 +682,13 @@ document.addEventListener('alpine:init', () => {
                 array_values(
                     array_filter(
                         array_map(
-                            fn($p) => trim($p['nama_pengurus'] ?? ''),
-                            $pengurusList ?? []
+                            fn($p) => trim($p['nama_pengurus'] ?? ''),$pengurusList ?? []
                         )
                     )
                 ),
                 JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
             ) ?>,
 
-            // ==========================================
-            // FILTER
-            // ==========================================
             matchesFilter(status, text) {
                 const matchStatus =
                     this.selectedFilter === 'all' ||
@@ -945,9 +699,8 @@ document.addEventListener('alpine:init', () => {
                         .includes(this.searchQuery.toLowerCase());
 
                 return matchStatus && matchSearch;
-            },
+            }
         }));
-
     });
 </script>
 <?= $this->endSection() ?>

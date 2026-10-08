@@ -7,9 +7,11 @@
             <h2 class="text-2xl font-bold text-gray-800"><?= isset($cashNote) ? 'Edit Catatan Keuangan' : 'Catat Keep Cash Baru' ?></h2>
             <p class="text-sm text-gray-500 mt-1">Formulir draf kas sementara sebelum dimasukkan ke buku kas utama.</p>
         </div>
-        <a href="<?= base_url('admin/cash-notes') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
-        </a>
+        <?php if(can_access('catatan.keuangan.read')): ?>
+            <a href="<?= base_url('admin/cash-notes') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
+            </a>
+        <?php endif; ?>
     </div>
 
     <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mx-4 md:mx-0">

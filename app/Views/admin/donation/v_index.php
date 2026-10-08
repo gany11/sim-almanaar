@@ -8,13 +8,15 @@
             <p class="text-sm text-gray-500 mt-1">Kelola program penggalangan dana, proposal, laporan, dan status publikasi.</p>
         </div>
         
-        <div class="flex flex-wrap items-center gap-3">
-            <a href="<?= base_url('admin/donations/create') ?>" 
-                class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
-                <i data-lucide="plus-circle" class="w-4 h-4"></i> 
-                <span>Tambah Donasi</span>
-            </a>
-        </div>
+        <?php if(can_access('donasi.create')): ?>
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="<?= base_url('admin/donations/create') ?>" 
+                    class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> 
+                    <span>Tambah Donasi</span>
+                </a>
+            </div>
+        <?php endif; ?>
     </div>
 
     <?php if (session()->getFlashdata('success')) : ?>
@@ -105,6 +107,16 @@
                         });
                     }
                     if (window.reinitIcons) window.reinitIcons();
+                },
+                error: function(xhr) {
+                    // Jika fitur sedang maintenance (503), reload halaman agar tampilan maintenance tampil utuh
+                    if (xhr.status === 503) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    console.error(xhr.responseText);
+                    $('#load-data').html('<tr><td colspan="5" class="text-center py-10 text-red-500">Gagal memuat program donasi.</td></tr>');
                 }
             });
         };
@@ -153,11 +165,11 @@
                                 loadData();
                             } else {
                                 Swal.fire('Gagal', res.message, 'error');
+                                loadData();
                             }
                         },
                         error: function(xhr) {
-                            // Tangkap pesan error JSON yang dikirim dari server (misal status 400/500)
-                            let errorMessage = 'Gagal menghubungi server.';
+                            let errorMessage = 'Terjadi kesalahan sistem saat menutup program.';
                             if (xhr.responseJSON && xhr.responseJSON.message) {
                                 errorMessage = xhr.responseJSON.message;
                             }
@@ -204,10 +216,16 @@
                                 loadData();
                             } else {
                                 Swal.fire('Gagal', res.message, 'error');
+                                loadData();
                             }
                         },
-                        error: function() {
-                            Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+                        error: function(xhr) {
+                            let errMsg = 'Terjadi kesalahan sistem saat menghapus data.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errMsg = xhr.responseJSON.message;
+                            }
+                            Swal.fire('Error', errMsg, 'error');
+                            loadData(); 
                         }
                     });
                 }

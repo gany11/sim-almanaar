@@ -4,7 +4,7 @@
             <i data-lucide="trending-up" class="w-5 h-5 text-emerald-500"></i> Riwayat Pemasukan Donasi
         </h3>
 
-        <?php if (empty($donation['closed_at'])): ?>
+        <?php if (empty($donation['closed_at']) && can_access('pemasukan.donasi.detail')): ?>
             <a href="<?= base_url('admin/donation-incomes/create/' . $donation['id_donasi']) ?>" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors shadow-sm">
                 <i data-lucide="plus" class="w-4 h-4"></i> Tambah Pemasukan
             </a>
@@ -110,14 +110,16 @@
                                         <i data-lucide="history" class="w-4 h-4"></i>
                                     </button>
                                     
-                                    <?php if (empty($donation['closed_at'])): ?>
+                                    <?php if (empty($donation['closed_at']) && (can_access('pemasukan.donasi.update') || can_access('pemasukan.donasi.delete'))): ?>
 
+                                        <?php if(can_access('pemasukan.donasi.update')): ?>
                                         <!-- Tombol Edit -->
                                         <a href="<?= base_url('admin/donation-incomes/edit/' . $inc['id_pemasukan_donasi']) ?>" 
                                             class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit Data">
                                             <i data-lucide="edit-3" class="w-4 h-4"></i>
                                         </a>
-                                        
+                                        <?php endif; ?>
+                                        <?php if(can_access('pemasukan.donasi.delete')): ?>
                                         <!-- Tombol Hapus (Terhubung ke script AJAX yang sudah ada) -->
                                         <button type="button" 
                                             class="btn-delete-income p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus Data"
@@ -125,39 +127,41 @@
                                             data-nama="<?= $inc['nama_donatur'] ?>">
                                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                                         </button>
+                                        <?php endif; ?>
                                     <?php else: ?>
 
                                         <!-- =====================================================
                                             DATA TERKUNCI
                                             ===================================================== -->
+                                        <?php if(can_access('pemasukan.donasi.update.samaran')): ?>
+                                            <button
+                                                type="button"
+                                                class="btn-toggle-samarkan p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all shadow-sm"
 
-                                        <button
-                                            type="button"
-                                            class="btn-toggle-samarkan p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all shadow-sm"
-
-                                            title="<?= ($inc['samarkan'] ?? 'N') === 'Y'
-                                                ? 'Tampilkan Nama Donatur'
-                                                : 'Samarkan Nama Donatur'
-                                            ?>"
-
-                                            data-id="<?= $inc['id_pemasukan_donasi'] ?>"
-
-                                            data-samarkan="<?= $inc['samarkan'] ?? 'N' ?>"
-
-                                            data-nama="<?= htmlspecialchars(
-                                                $inc['nama_donatur'] ?? '-',
-                                                ENT_QUOTES,
-                                                'UTF-8'
-                                            ) ?>"
-                                        >
-                                            <i
-                                                data-lucide="<?= ($inc['samarkan'] ?? 'N') === 'Y'
-                                                    ? 'eye'
-                                                    : 'eye-off'
+                                                title="<?= ($inc['samarkan'] ?? 'N') === 'Y'
+                                                    ? 'Tampilkan Nama Donatur'
+                                                    : 'Samarkan Nama Donatur'
                                                 ?>"
-                                                class="w-4 h-4"
-                                            ></i>
-                                        </button>
+
+                                                data-id="<?= $inc['id_pemasukan_donasi'] ?>"
+
+                                                data-samarkan="<?= $inc['samarkan'] ?? 'N' ?>"
+
+                                                data-nama="<?= htmlspecialchars(
+                                                    $inc['nama_donatur'] ?? '-',
+                                                    ENT_QUOTES,
+                                                    'UTF-8'
+                                                ) ?>"
+                                            >
+                                                <i
+                                                    data-lucide="<?= ($inc['samarkan'] ?? 'N') === 'Y'
+                                                        ? 'eye'
+                                                        : 'eye-off'
+                                                    ?>"
+                                                    class="w-4 h-4"
+                                                ></i>
+                                            </button>
+                                        <?php endif; ?>
 
                                         <!-- Status Terkunci -->
                                         <div class="text-center">

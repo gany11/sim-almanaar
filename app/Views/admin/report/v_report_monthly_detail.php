@@ -9,19 +9,25 @@
                 <p class="text-sm text-gray-500 italic">Bulan <?= esc($bulan_txt) ?></p>
             </div>
             
-            <div class="flex items-center gap-3">
-                <a href="<?= base_url('admin/finance/report/monthly') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
-                </a>
-                <?php if (!$isDraft): ?>
-                    <a href="<?= base_url("admin/finance/report/monthly/export/{$tahun}/{$bulan}") ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg">
-                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>Export Excel
-                    </a>
-                <?php endif; ?>
-                <button type="button" onclick="printReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg">
-                    <i data-lucide="printer" class="w-4 h-4"></i> Cetak Laporan
-                </button>
-            </div>
+            <?php if (can_access('laporan.keuangan.bulanan') || an_access('laporan.keuangan.cetak.bulanan') || (!$isDraft && can_access('laporan.keuangan.ekspor.bulanan'))): ?>
+                <div class="flex items-center gap-3">
+                    <?php if (can_access('laporan.keuangan.bulanan')): ?>
+                        <a href="<?= base_url('admin/finance/report/monthly') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
+                        </a>
+                    <?php endif; ?>
+                    <?php if (!$isDraft && can_access('laporan.keuangan.ekspor.bulanan')): ?>
+                        <a href="<?= base_url("admin/finance/report/monthly/export/{$tahun}/{$bulan}") ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>Export Excel
+                        </a>
+                    <?php endif; ?>
+                    <?php if (can_access('laporan.keuangan.cetak.bulanan')): ?>
+                        <button type="button" onclick="printReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg">
+                            <i data-lucide="printer" class="w-4 h-4"></i> Cetak Laporan
+                        </button>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 

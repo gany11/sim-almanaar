@@ -7,9 +7,11 @@
             <h2 class="text-2xl font-bold text-gray-800"><?= isset($artikel) ? 'Edit Artikel' : 'Tulis Artikel Baru' ?></h2>
             <p class="text-sm text-gray-500">Gunakan form ini untuk mengelola konten artikel publik.</p>
         </div>
-        <a href="<?= base_url('admin/article') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar artikel
-        </a>
+        <?php if (can_access('artikel.read')): ?>
+            <a href="<?= base_url('admin/article') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar artikel
+            </a>
+        <?php endif; ?>
     </div>
 
     <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">

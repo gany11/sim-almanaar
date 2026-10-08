@@ -59,6 +59,37 @@ class AuthController extends BaseController
                     'status'     => 'aktif'
                 ]);
 
+                // --- PENGAMBILAN HAK AKSES FITUR (GABUNGAN PERAN + FITUR TAMBAHAN DENGAN DISTINCT) ---
+                $db = \Config\Database::connect();
+                
+                // 1. Ambil fitur dari peran utama (dengan DISTINCT)
+                $roleFeatures = $db->table('peran_fitur pf')
+                    ->distinct()
+                    ->select('f.kode_fitur')
+                    ->join('fitur f', 'f.id_fitur = pf.id_fitur')
+                    ->where('pf.id_peran', $user->id_peran)
+                    ->where('pf.deleted_at IS NULL')
+                    ->get()
+                    ->getResultArray();
+
+                // 2. Ambil fitur tambahan khusus akun ini (dengan DISTINCT)
+                $accountFeatures = $db->table('akun_fitur af')
+                    ->distinct()
+                    ->select('f.kode_fitur')
+                    ->join('fitur f', 'f.id_fitur = af.id_fitur')
+                    ->where('af.id_akun', $user->id_akun)
+                    ->where('af.deleted_at IS NULL')
+                    ->get()
+                    ->getResultArray();
+
+                // 3. Gabungkan dan pastikan tetap unik dengan array_unique()
+                $allCodes = array_merge(
+                    array_column($roleFeatures, 'kode_fitur'), 
+                    array_column($accountFeatures, 'kode_fitur')
+                );
+                $allowedFeatures = array_unique($allCodes);
+
+
                 $sessionData = [
                     'id_akun'         => $user->id_akun,
                     'id_peran'        => $user->id_peran,
@@ -66,6 +97,7 @@ class AuthController extends BaseController
                     'nama'            => $user->nama,
                     'logged_in'       => true,
                     'id_log'          => $idLog,          // Simpan ID log untuk update saat logout
+                    'allowed_features' => $allowedFeatures, // Simpan daftar fitur yang diizinkan
                     'last_checked_at' => time()           // Penanda waktu cek berkala (1 jam)
                 ];
                 session()->set($sessionData);
@@ -75,7 +107,7 @@ class AuthController extends BaseController
                 if ($returnUrl) {
                     return redirect()->to($returnUrl);
                 }
-                return redirect()->to('admin/dashboard');
+                return redirect()->to('admin/dashboard')->with('success', 'Login berhasil. Selamat datang, ' . $user->nama . '!');
             } else {
                 return redirect()->back()->with('error', 'Username atau password yang Anda masukkan salah!');
             }

@@ -83,25 +83,43 @@
 
             <!-- Aksi -->
             <td class="px-6 py-4">
-                <div class="flex justify-center">
-                    <?php if ($row->id_akun == $id_sesi): ?>
-                        <span class="text-[10px] font-bold text-gray-300 italic uppercase tracking-tighter">Akun Anda</span>
-                    <?php else: ?>
-                        <button type="button" 
-                            class="btn-toggle-status flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all text-xs font-bold 
-                            <?= $row->status === 'aktif' ? 'text-red-500 hover:bg-red-50' : 'text-green-600 hover:bg-green-50' ?>"
-                            data-id="<?= $row->id_akun ?>" 
-                            data-nama="<?= esc($row->nama) ?>" 
-                            data-status="<?= $row->status ?>">
-                            
-                            <?php if ($row->status === 'aktif'): ?>
-                                <i data-lucide="user-x" class="w-4 h-4"></i> Nonaktifkan
+                <?php if (can_access('akun.detail') || can_access('akun.update.status')): ?>
+                    <div class="flex justify-center items-center gap-2">
+                        <!-- Tombol Detail & Fitur Tambahan -->
+                        <?php if (can_access('akun.detail')): ?>
+                            <a href="<?= base_url('admin/account/detail/' . $row->id_akun) ?>" 
+                                class="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm" 
+                                title="Detail & Fitur Tambahan">
+                                <i data-lucide="shield-plus" class="w-4 h-4"></i>
+                            </a>
+                        <?php endif; ?>
+
+                        <!-- Tombol Nonaktifkan / Pulihkan Akun -->
+                        <?php if (can_access('akun.update.status')): ?>
+                            <?php if ($row->id_akun == $id_sesi): ?>
+                                <span class="text-[10px] font-bold text-gray-300 italic uppercase tracking-tighter ml-1">Akun Anda</span>
                             <?php else: ?>
-                                <i data-lucide="user-check" class="w-4 h-4"></i> Pulihkan
+                                <button type="button" 
+                                    class="btn-toggle-status flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all text-xs font-bold 
+                                    <?= $row->status === 'aktif' ? 'text-red-500 hover:bg-red-50' : 'text-green-600 hover:bg-green-50' ?>"
+                                    data-id="<?= $row->id_akun ?>" 
+                                    data-nama="<?= esc($row->nama) ?>" 
+                                    data-status="<?= $row->status ?>">
+                                    
+                                    <?php if ($row->status === 'aktif'): ?>
+                                        <i data-lucide="user-x" class="w-4 h-4"></i> Nonaktifkan
+                                    <?php else: ?>
+                                        <i data-lucide="user-check" class="w-4 h-4"></i> Pulihkan
+                                    <?php endif; ?>
+                                </button>
                             <?php endif; ?>
-                        </button>
-                    <?php endif; ?>
-                </div>
+                        <?php endif; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="text-center text-gray-500 text-sm">
+                        <i data-lucide="lock" class="w-4 h-4"></i>
+                    </div>
+                <?php endif; ?>
             </td>
         </tr>
     <?php endforeach; ?>

@@ -7,9 +7,11 @@
             <h2 class="text-2xl font-bold text-gray-800"><?= isset($donation) ? 'Edit Program Donasi' : 'Buat Program Donasi Baru' ?></h2>
             <p class="text-sm text-gray-500">Kelola informasi detail kegiatan, jenis donasi, proposal, dan laporan.</p>
         </div>
-        <a href="<?= base_url('admin/donations') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
-        </a>
+        <?php if(can_access('donasi.read')): ?>
+            <a href="<?= base_url('admin/donations') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
+            </a>
+        <?php endif; ?>
     </div>
 
     <form action="<?= isset($donation) ? base_url('admin/donations/update/'.$donation['id_donasi']) : base_url('admin/donations/save') ?>" method="post" enctype="multipart/form-data">

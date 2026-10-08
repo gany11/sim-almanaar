@@ -46,40 +46,48 @@
             </td>
 
             <td class="px-6 py-4">
-                <div class="flex justify-center gap-2">
-                    <!-- Tombol Detail selalu ada -->
-                    <a href="<?= base_url('admin/donations/detail/' . $row['id_donasi']) ?>" 
-                        class="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm" title="Detail Program">
-                        <i data-lucide="eye" class="w-4 h-4"></i>
-                    </a>
-                    <a href="<?= base_url('admin/donations/edit/' . $row['id_donasi']) ?>" 
-                        class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit Program">
-                        <i data-lucide="edit-3" class="w-4 h-4"></i>
-                    </a>
+                <?php if(can_access('donasi.detail') || can_access('donasi.update') || can_access('donasi.delete') || can_access('donasi.close')): ?>
+                    <div class="flex justify-center gap-2">
+                        <!-- Tombol Detail selalu ada -->
+                        <?php if(can_access('donasi.detail')): ?>
+                            <a href="<?= base_url('admin/donations/detail/' . $row['id_donasi']) ?>" 
+                                class="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm" title="Detail Program">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </a>
+                        <?php endif; ?>
+                        <?php if(can_access('donasi.update')): ?>
+                            <a href="<?= base_url('admin/donations/edit/' . $row['id_donasi']) ?>" 
+                                class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Edit Program">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </a>
+                        <?php endif; ?>
 
-                    <?php if (!$isClosed): ?>
-                        <!-- Tombol Edit, Kunci, dan Hapus Hanya Muncul Jika Belum Ditutup (closed_at kosong) -->
-
-                        <button type="button" 
-                            class="btn-close-program p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all shadow-sm" title="Tutup / Kunci Program"
-                            data-id="<?= $row['id_donasi'] ?>" 
-                            data-judul="<?= $row['judul'] ?>">
-                            <i data-lucide="lock" class="w-4 h-4"></i>
-                        </button>
-                        
-                        <button type="button" 
-                            class="btn-delete p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus Program"
-                            data-id="<?= $row['id_donasi'] ?>" 
-                            data-judul="<?= $row['judul'] ?>">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    <?php else: ?>
-                        <!-- Jika sudah ditutup secara finansial -->
-                        <span class="text-xs text-gray-400 italic px-2 py-1 bg-gray-50 rounded-lg flex items-center gap-1">
-                            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
-                        </span>
-                    <?php endif; ?>
-                </div>
+                        <?php if (!$isClosed): ?>
+                            <?php if(can_access('donasi.close')): ?>
+                                <button type="button" 
+                                    class="btn-close-program p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all shadow-sm" title="Tutup / Kunci Program"
+                                    data-id="<?= $row['id_donasi'] ?>" 
+                                    data-judul="<?= $row['judul'] ?>">
+                                    <i data-lucide="lock" class="w-4 h-4"></i>
+                                </button>
+                            <?php endif; ?>
+                                
+                            <?php if(can_access('donasi.delete')): ?>
+                                <button type="button" 
+                                    class="btn-delete p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus Program"
+                                    data-id="<?= $row['id_donasi'] ?>" 
+                                    data-judul="<?= $row['judul'] ?>">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
+                <?php else: ?>
+                    <!-- Jika sudah ditutup secara finansial -->
+                    <span class="text-xs text-gray-400 italic px-2 py-1 bg-gray-50 rounded-lg flex items-center gap-1">
+                        <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                    </span>
+                <?php endif; ?>
             </td>
         </tr>
     <?php endforeach; ?>

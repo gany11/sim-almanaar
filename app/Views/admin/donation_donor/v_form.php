@@ -7,9 +7,11 @@
             <h2 class="text-2xl font-bold text-gray-800"><?= isset($pemasukan) ? 'Edit List Donatur' : 'Tambah List Donatur Baru' ?></h2>
             <p class="text-sm text-gray-500 mt-1">Program: <b class="text-blue-600"><?= $donasi['judul'] ?></b></p>
         </div>
-        <a href="<?= base_url('admin/donations/detail/' . $donasi['id_donasi']) ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke detail
-        </a>
+        <?php if(can_access('donasi.detail')): ?>
+            <a href="<?= base_url('admin/donations/detail/' . $donasi['id_donasi']) ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke detail
+            </a>
+        <?php endif; ?>
     </div>
 
     <!-- Alert Error Global -->

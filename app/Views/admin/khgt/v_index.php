@@ -12,7 +12,7 @@
                 <span>Sinkronisasi Terakhir: <strong id="last-sync-text" class="text-gray-600"><?= $lastSync ?? 'Belum pernah disinkronkan' ?></strong></span>
             </p>
         </div>
-        <?php if (in_array(session()->get('id_peran'), [1])): ?>
+        <?php if (can_access('khgt.sinkronisasi.data')): ?>
             <div class="flex flex-wrap items-center gap-3">
                 <!-- Tombol Sinkronisasi AJAX -->
                 <button type="button" id="btn-sync"

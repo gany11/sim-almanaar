@@ -13,14 +13,23 @@
             <span class="text-sm"><?= session()->get('nama') ?? 'Administrator' ?></span>
         </button>
 
-        <div x-show="open" 
-            @click.outside="open = false"
-            x-transition
-            class="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-50">
-            <a href="<?= base_url('admin/profile'); ?>" class="block px-4 py-2 text-sm hover:bg-gray-100">Profil Akun</a>
-            <button onclick="confirmLogout()" class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100">
-                Logout
-            </button>
-        </div>
+        <!-- Dropdown Menu -->
+        <?php if (can_access('admin.profil') || can_access('admin.update.profil') || can_access('admin.update.password') || can_access('autentikasi.logout.admin')): ?>
+            <div x-show="open" 
+                @click.outside="open = false"
+                x-transition
+                class="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-50">
+                <!-- Profil -->
+                <?php if (can_access('admin.profil') || can_access('admin.update.profil') || can_access('admin.update.password')): ?>
+                    <a href="<?= base_url('admin/profile'); ?>" class="block px-4 py-2 text-sm hover:bg-gray-100">Profil Akun</a>
+                <?php endif; ?>
+                <!-- Logout -->
+                <?php if (can_access('autentikasi.logout.admin')): ?>
+                    <button onclick="confirmLogout()" class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100">
+                        Logout
+                    </button>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </nav>

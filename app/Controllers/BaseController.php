@@ -26,7 +26,7 @@ abstract class BaseController extends Controller
      */
 
     // protected $session;
-    protected $helpers = ['tanggal'];
+    protected $helpers = ['tanggal', 'auth'];
 
     /**
      * @return void

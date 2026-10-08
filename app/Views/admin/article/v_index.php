@@ -7,7 +7,7 @@
             <h2 class="text-2xl font-bold text-gray-800">Manajemen Artikel</h2>
             <p class="text-sm text-gray-500 mt-1">Kelola publikasi artikel dan atur konten melalui halaman edit.</p>
         </div>
-        <?php if (in_array(session()->get('id_peran'), [3])): ?>
+        <?php if (can_access('artikel.create')): ?>
             <a href="<?= base_url('admin/article/create') ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Artikel
             </a>
@@ -98,6 +98,16 @@ document.addEventListener("DOMContentLoaded", function() {
                     });
                 }
                 if (window.reinitIcons) window.reinitIcons();
+            },
+            // --- TAMBAHKAN BLOK ERROR INI ---
+            error: function(xhr) {
+                if (xhr.status === 503) {
+                    window.location.reload();
+                    return;
+                }
+
+                console.error(xhr.responseText);
+                $('#load-data').html('<tr><td colspan="4" class="text-center py-10 text-red-500">Gagal memuat data artikel.</td></tr>');
             }
         });
     };
@@ -146,11 +156,18 @@ document.addEventListener("DOMContentLoaded", function() {
                             });
                             loadData(); 
                         } else {
-                            Swal.fire('Gagal', res.message, 'error');
+                            Swal.fire('Gagal', res.message || 'Gagal menghapus artikel.', 'error');
+                            loadData();
                         }
                     },
-                    error: function() {
-                        Swal.fire('Error', 'Terjadi kesalahan sistem saat menghapus artikel.', 'error');
+                    error: function(xhr) {
+                        let errMsg = 'Terjadi kesalahan sistem saat menghapus artikel.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errMsg = xhr.responseJSON.message;
+                        }
+                        
+                        Swal.fire('Error', errMsg, 'error');
+                        loadData();
                     }
                 });
             }

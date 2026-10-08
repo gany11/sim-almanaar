@@ -12,9 +12,11 @@
             <h2 class="text-2xl font-bold text-gray-800"><?= isset($agenda_rutin) ? 'Edit Agenda Rutin' : 'Buat Agenda Rutin Baru' ?></h2>
             <p class="text-sm text-gray-500">Kelola jadwal kegiatan rutin dan penugasan SDM masjid.</p>
         </div>
-        <a href="<?= base_url('admin/routine-agenda') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
-        </a>
+        <?php if(can_access('agenda.rutin.read')): ?>
+            <a href="<?= base_url('admin/routine-agenda') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
+            </a>
+        <?php endif; ?>
     </div>
 
     <form action="<?= isset($agenda_rutin) ? base_url('admin/routine-agenda/update/'.$agenda_rutin['id_agenda_rutin']) : base_url('admin/routine-agenda/save') ?>" method="post">

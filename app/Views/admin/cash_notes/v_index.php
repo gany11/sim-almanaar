@@ -7,7 +7,7 @@
             <h2 class="text-2xl font-bold text-gray-800">Catatan Keuangan (Keep Cash / Draf)</h2>
             <p class="text-sm text-gray-500 mt-1">Kelola draf kas sementara sebelum dimasukkan ke buku kas utama.</p>
         </div>
-        <?php if (in_array(session()->get('id_peran'), [4])): ?>
+        <?php if (can_access('catatan.keuangan.create')): ?>
             <a href="<?= base_url('admin/cash-notes/create') ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> Catat Keep Cash Baru
             </a>
@@ -107,203 +107,212 @@
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const $ = window.jQuery;
-    const DataTable = window.DataTable;
+    document.addEventListener("DOMContentLoaded", function() {
+        const $ = window.jQuery;
+        const DataTable = window.DataTable;
 
-    const loadData = () => {
-        const tableId = '#tableCashNotes';
-        if ($.fn.DataTable.isDataTable(tableId)) $(tableId).DataTable().clear().destroy();
+        const loadData = () => {
+            const tableId = '#tableCashNotes';
+            if ($.fn.DataTable.isDataTable(tableId)) $(tableId).DataTable().clear().destroy();
 
-        $('#load-data').html('<tr><td colspan="5" class="text-center py-20 text-gray-400">Memuat data...</td></tr>');
+            $('#load-data').html('<tr><td colspan="5" class="text-center py-20 text-gray-400">Memuat data...</td></tr>');
 
-        $.ajax({
-            url: "<?= base_url('admin/cash-notes/list') ?>",
-            type: "POST",
-            data: { 
-                status: $('#filter-status').val(),
-                "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
-            },
-            success: function(response) {
-                $('#load-data').html(response);
-                if ($('#load-data').find('td[colspan]').length === 0) {
-                    new DataTable(tableId, {
-                        responsive: false,
-                        pageLength: 10,
-                        columnDefs: [{ targets: [3, 4], orderable: false }],
-                        dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>',
-                        language: {
-                            search: "Cari:",
-                            lengthMenu: "Tampilkan _MENU_ data",
-                            info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
-                            infoEmpty: "Data tidak ditemukan",
-                            paginate: { next: "Next", previous: "Prev" }
-                        },
-                        drawCallback: function() {
-                            if (window.reinitIcons) {
-                                window.reinitIcons();
-                            } else if (typeof lucide !== 'undefined') {
-                                lucide.createIcons();
+            $.ajax({
+                url: "<?= base_url('admin/cash-notes/list') ?>",
+                type: "POST",
+                data: { 
+                    status: $('#filter-status').val(),
+                    "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
+                },
+                success: function(response) {
+                    $('#load-data').html(response);
+                    if ($('#load-data').find('td[colspan]').length === 0) {
+                        new DataTable(tableId, {
+                            responsive: false,
+                            pageLength: 10,
+                            columnDefs: [{ targets: [3, 4], orderable: false }],
+                            dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>',
+                            language: {
+                                search: "Cari:",
+                                lengthMenu: "Tampilkan _MENU_ data",
+                                info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
+                                infoEmpty: "Data tidak ditemukan",
+                                zeroRecords: "Data tidak ditemukan",
+                                paginate: { next: "Next", previous: "Prev" }
+                            },
+                            drawCallback: function() {
+                                if (window.reinitIcons) {
+                                    window.reinitIcons();
+                                } else if (typeof lucide !== 'undefined') {
+                                    lucide.createIcons();
+                                }
                             }
-                        }
-                    });
-                }
-                if (window.reinitIcons) window.reinitIcons();
-            }
-        });
-    };
-
-    loadData();
-    $('#filter-status').on('change', loadData);
-    $('#btn-reset-filter').on('click', function() {
-        $('#filter-status').val("");
-        loadData();
-    });
-
-    // Buka Modal Ubah Status (Kunci Scroll Body & Atur Label Dinamis)
-    $(document).on('click', '.btn-open-status-modal', function() {
-        const id = $(this).data('id');
-        const status = $(this).data('status');
-        const ket = $(this).data('keterangan');
-        const alasan = $(this).data('alasan') || '';
-
-        $('#modal_id_catatan').val(id);
-        // Default ke sudah_digunakan jika status sebelumnya masih tersedia
-        $('#modal_status').val(status === 'tersedia' ? 'sudah_digunakan' : status);
-        $('#modal_keterangan_text').text(ket);
-        $('#modal_alasan').val(alasan);
-
-        // Ubah label dinamis berdasarkan pilihan status
-        updateLabelAlasan($('#modal_status').val());
-
-        $('#statusModal').removeClass('hidden');
-        $('body').addClass('overflow-hidden'); // Kunci scroll background
-    });
-
-    // Perbarui label alasan saat pilihan status diganti
-    $('#modal_status').on('change', function() {
-        updateLabelAlasan($(this).val());
-    });
-
-    function updateLabelAlasan(val) {
-        if (val === 'sudah_digunakan') {
-            $('#label_alasan').text('Peruntukan / Penggunaan');
-            $('#modal_alasan').attr('placeholder', 'Masukkan rincian peruntukan kas...');
-        } else {
-            $('#label_alasan').text('Alasan Pembatalan');
-            $('#modal_alasan').attr('placeholder', 'Masukkan alasan pembatalan...');
-        }
-    }
-
-    // Tutup Modal Ubah Status (Buka Kembali Scroll Body)
-    $('#closeStatusModal, #cancelStatusModal').on('click', function() {
-        $('#statusModal').addClass('hidden');
-        $('body').removeClass('overflow-hidden');
-    });
-
-    // Submit Form Ubah Status via AJAX (Pola penanganan error persis tombol delete)
-    $('#formUpdateStatus').on('submit', function(e) {
-        e.preventDefault();
-
-        const id = $('#modal_id_catatan').val();
-        const status = $('#modal_status').val();
-        const alasan = $('#modal_alasan').val();
-
-        Swal.showLoading();
-
-        $.ajax({
-            url: "<?= base_url('admin/cash-notes/status') ?>",
-            type: "POST",
-            data: {
-                id_catatan: id,
-                status: status,
-                alasan: alasan,
-                "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
-            },
-            success: function(res) {
-                $('#statusModal').addClass('hidden');
-                $('body').removeClass('overflow-hidden');
-
-                if (res.status === 'success') {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: res.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                    loadData();
-                } else {
-                    Swal.fire('Gagal', res.message || 'Gagal memperbarui status.', 'error');
-                    loadData();
-                }
-            },
-            error: function(xhr) {
-                $('#statusModal').addClass('hidden');
-                $('body').removeClass('overflow-hidden');
-
-                let errMsg = 'Terjadi kesalahan sistem saat memperbarui status.';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errMsg = xhr.responseJSON.message;
-                }
-                Swal.fire('Error', errMsg, 'error');
-                loadData();
-            }
-        });
-    });
-
-    // Fungsi Hapus Catatan Keuangan dengan SweetAlert2
-    $(document).on('click', '.btn-delete', function() {
-        const id = $(this).data('id');
-
-        window.Swal.fire({
-            title: 'Hapus Catatan?',
-            text: 'Apakah Anda yakin ingin menghapus catatan keep cash ini?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.showLoading();
-
-                $.ajax({
-                    url: "<?= base_url('admin/cash-notes/delete') ?>",
-                    type: "POST",
-                    data: {
-                        id_catatan: id,
-                        "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
-                    },
-                    success: function(res) {
-                        if (res.status === 'success') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Terhapus!',
-                                text: res.message,
-                                timer: 1500,
-                                showConfirmButton: false
-                            });
-                            loadData(); 
-                        } else {
-                            Swal.fire('Gagal', res.message || 'Gagal menghapus catatan.', 'error');
-                            loadData(); 
-                        }
-                    },
-                    error: function(xhr) {
-                        let errMsg = 'Terjadi kesalahan sistem saat menghapus data.';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            errMsg = xhr.responseJSON.message;
-                        }
-                        Swal.fire('Error', errMsg, 'error');
-                        loadData(); 
+                        });
                     }
-                });
+                    if (window.reinitIcons) window.reinitIcons();
+                },
+                // --- TAMBAHKAN BLOK ERROR INI ---
+                error: function(xhr) {
+                    if (xhr.status === 503) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    console.error(xhr.responseText);
+                    $('#load-data').html('<tr><td colspan="5" class="text-center py-10 text-red-500">Gagal memuat data catatan kas.</td></tr>');
+                }
+            });
+        };
+
+        loadData();
+        $('#filter-status').on('change', loadData);
+        $('#btn-reset-filter').on('click', function() {
+            $('#filter-status').val("");
+            loadData();
+        });
+
+        // Buka Modal Ubah Status (Kunci Scroll Body & Atur Label Dinamis)
+        $(document).on('click', '.btn-open-status-modal', function() {
+            const id = $(this).data('id');
+            const status = $(this).data('status');
+            const ket = $(this).data('keterangan');
+            const alasan = $(this).data('alasan') || '';
+
+            $('#modal_id_catatan').val(id);
+            $('#modal_status').val(status === 'tersedia' ? 'sudah_digunakan' : status);
+            $('#modal_keterangan_text').text(ket);
+            $('#modal_alasan').val(alasan);
+
+            updateLabelAlasan($('#modal_status').val());
+
+            $('#statusModal').removeClass('hidden');
+            $('body').addClass('overflow-hidden');
+        });
+
+        // Perbarui label alasan saat pilihan status diganti
+        $('#modal_status').on('change', function() {
+            updateLabelAlasan($(this).val());
+        });
+
+        function updateLabelAlasan(val) {
+            if (val === 'sudah_digunakan') {
+                $('#label_alasan').text('Peruntukan / Penggunaan');
+                $('#modal_alasan').attr('placeholder', 'Masukkan rincian peruntukan kas...');
+            } else {
+                $('#label_alasan').text('Alasan Pembatalan');
+                $('#modal_alasan').attr('placeholder', 'Masukkan alasan pembatalan...');
             }
+        }
+
+        // Tutup Modal Ubah Status (Buka Kembali Scroll Body)
+        $('#closeStatusModal, #cancelStatusModal').on('click', function() {
+            $('#statusModal').addClass('hidden');
+            $('body').removeClass('overflow-hidden');
+        });
+
+        // Submit Form Ubah Status via AJAX
+        $('#formUpdateStatus').on('submit', function(e) {
+            e.preventDefault();
+
+            const id = $('#modal_id_catatan').val();
+            const status = $('#modal_status').val();
+            const alasan = $('#modal_alasan').val();
+
+            Swal.showLoading();
+
+            $.ajax({
+                url: "<?= base_url('admin/cash-notes/status') ?>",
+                type: "POST",
+                data: {
+                    id_catatan: id,
+                    status: status,
+                    alasan: alasan,
+                    "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
+                },
+                success: function(res) {
+                    $('#statusModal').addClass('hidden');
+                    $('body').removeClass('overflow-hidden');
+
+                    if (res.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: res.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        loadData();
+                    } else {
+                        Swal.fire('Gagal', res.message || 'Gagal memperbarui status.', 'error');
+                        loadData();
+                    }
+                },
+                error: function(xhr) {
+                    $('#statusModal').addClass('hidden');
+                    $('body').removeClass('overflow-hidden');
+
+                    let errMsg = 'Terjadi kesalahan sistem saat memperbarui status.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errMsg = xhr.responseJSON.message;
+                    }
+                    Swal.fire('Error', errMsg, 'error');
+                    loadData();
+                }
+            });
+        });
+
+        // Fungsi Hapus Catatan Keuangan dengan SweetAlert2
+        $(document).on('click', '.btn-delete', function() {
+            const id = $(this).data('id');
+
+            window.Swal.fire({
+                title: 'Hapus Catatan?',
+                text: 'Apakah Anda yakin ingin menghapus catatan keep cash ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.showLoading();
+
+                    $.ajax({
+                        url: "<?= base_url('admin/cash-notes/delete') ?>",
+                        type: "POST",
+                        data: {
+                            id_catatan: id,
+                            "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
+                        },
+                        success: function(res) {
+                            if (res.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Terhapus!',
+                                    text: res.message,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                                loadData(); 
+                            } else {
+                                Swal.fire('Gagal', res.message || 'Gagal menghapus catatan.', 'error');
+                                loadData(); 
+                            }
+                        },
+                        error: function(xhr) {
+                            let errMsg = 'Terjadi kesalahan sistem saat menghapus data.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errMsg = xhr.responseJSON.message;
+                            }
+                            Swal.fire('Error', errMsg, 'error');
+                            loadData(); 
+                        }
+                    });
+                }
+            });
         });
     });
-});
 </script>
 <?= $this->endSection() ?>

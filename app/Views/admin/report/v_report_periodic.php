@@ -48,15 +48,16 @@
 
                 </form>
 
-                <div class="flex justify-end">
-                    <button type="button" onclick="printReport()" 
-                        class="w-auto whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl 
-                            font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg h-[46px]">
-                        <i data-lucide="printer" class="w-4 h-4"></i> 
-                        Cetak Laporan
-                    </button>
-                </div>
-
+                <?php if(can_access('laporan.keuangan.cetak.periodik')): ?>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="printReport()" 
+                            class="w-auto whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl 
+                                font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg h-[46px]">
+                            <i data-lucide="printer" class="w-4 h-4"></i> 
+                            Cetak Laporan
+                        </button>
+                    </div>
+                <?php endif; ?>
             </div>
 
         </div>

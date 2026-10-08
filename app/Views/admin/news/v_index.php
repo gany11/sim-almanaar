@@ -7,7 +7,7 @@
             <h2 class="text-2xl font-bold text-gray-800">Manajemen Berita</h2>
             <p class="text-sm text-gray-500 mt-1">Kelola publikasi berita dan atur konten melalui halaman edit.</p>
         </div>
-        <?php if (in_array(session()->get('id_peran'), [3])): ?>
+        <?php if (can_access('berita.create')): ?>    
             <a href="<?= base_url('admin/news/create') ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Berita
             </a>
@@ -63,98 +63,115 @@
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const $ = window.jQuery;
-    const DataTable = window.DataTable;
+    document.addEventListener("DOMContentLoaded", function() {
+        const $ = window.jQuery;
+        const DataTable = window.DataTable;
 
-    const loadData = () => {
-        const tableId = '#tableBerita';
-        if ($.fn.DataTable.isDataTable(tableId)) $(tableId).DataTable().clear().destroy();
+        const loadData = () => {
+            const tableId = '#tableBerita';
+            if ($.fn.DataTable.isDataTable(tableId)) $(tableId).DataTable().clear().destroy();
 
-        $('#load-data').html('<tr><td colspan="4" class="text-center py-20 text-gray-400">Memuat data...</td></tr>');
+            $('#load-data').html('<tr><td colspan="4" class="text-center py-20 text-gray-400">Memuat data...</td></tr>');
 
-        $.ajax({
-            url: "<?= base_url('admin/news/list') ?>",
-            type: "POST",
-            data: { 
-                status: $('#filter-status').val(),
-                "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
-            },
-            success: function(response) {
-                $('#load-data').html(response);
-                if ($('#load-data').find('td[colspan]').length === 0) {
-                    new DataTable(tableId, {
-                        responsive: false,
-                        pageLength: 10,
-                        columnDefs: [{ targets: [2, 3], orderable: false }],
-                        dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>',
-                        drawCallback: function() {
-                            if (window.reinitIcons) {
-                                window.reinitIcons();
-                            } else if (typeof lucide !== 'undefined') {
-                                lucide.createIcons();
+            $.ajax({
+                url: "<?= base_url('admin/news/list') ?>",
+                type: "POST",
+                data: { 
+                    status: $('#filter-status').val(),
+                    "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
+                },
+                success: function(response) {
+                    $('#load-data').html(response);
+                    if ($('#load-data').find('td[colspan]').length === 0) {
+                        new DataTable(tableId, {
+                            responsive: false,
+                            pageLength: 10,
+                            columnDefs: [{ targets: [2, 3], orderable: false }],
+                            dom: '<"flex flex-col md:flex-row justify-between items-center gap-4 mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center gap-4 mt-4"ip>',
+                            drawCallback: function() {
+                                if (window.reinitIcons) {
+                                    window.reinitIcons();
+                                } else if (typeof lucide !== 'undefined') {
+                                    lucide.createIcons();
+                                }
                             }
+                        });
+                    }
+                    if (window.reinitIcons) window.reinitIcons();
+                },
+                error: function(xhr) {
+                    // Jika fitur sedang maintenance (503), reload halaman agar halaman maintenance tampil utuh
+                    if (xhr.status === 503) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    console.error(xhr.responseText);
+                    $('#load-data').html('<tr><td colspan="4" class="text-center py-10 text-red-500">Gagal memuat data berita.</td></tr>');
+                }
+            });
+        };
+
+        loadData();
+        $('#filter-status').on('change', loadData);
+        $('#btn-reset-filter').on('click', function() {
+            $('#filter-status').val("");
+            loadData();
+        });
+
+        $(document).on('click', '.btn-delete', function() {
+            const id = $(this).data('id');
+            const judul = $(this).data('judul');
+
+            window.Swal.fire({
+                title: 'Hapus Berita?',
+                html: `Apakah Anda yakin ingin menghapus berita:<br><b>${judul}</b>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.showLoading();
+
+                    $.ajax({
+                        url: "<?= base_url('admin/news/delete') ?>",
+                        type: "POST",
+                        data: {
+                            id_publikasi: id,
+                            "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
+                        },
+                        success: function(res) {
+                            if (res.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Terhapus!',
+                                    text: res.message,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                                loadData(); 
+                            } else {
+                                Swal.fire('Gagal', res.message || 'Gagal menghapus berita.', 'error');
+                                loadData();
+                            }
+                        },
+                        error: function(xhr) {
+                            let errMsg = 'Terjadi kesalahan sistem saat menghapus berita.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errMsg = xhr.responseJSON.message;
+                            }
+                            
+                            Swal.fire('Error', errMsg, 'error');
+                            loadData();
                         }
                     });
                 }
-                if (window.reinitIcons) window.reinitIcons();
-            }
-        });
-    };
-
-    loadData();
-    $('#filter-status').on('change', loadData);
-    $('#btn-reset-filter').on('click', function() {
-        $('#filter-status').val("");
-        loadData();
-    });
-
-    $(document).on('click', '.btn-delete', function() {
-        const id = $(this).data('id');
-        const judul = $(this).data('judul');
-
-        window.Swal.fire({
-            title: 'Hapus Berita?',
-            html: `Apakah Anda yakin ingin menghapus berita:<br><b>${judul}</b>`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.showLoading();
-
-                $.ajax({
-                    url: "<?= base_url('admin/news/delete') ?>",
-                    type: "POST",
-                    data: {
-                        id_publikasi: id,
-                        "<?= csrf_token() ?>": "<?= csrf_hash() ?>"
-                    },
-                    success: function(res) {
-                        if (res.status === 'success') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Terhapus!',
-                                text: res.message,
-                                timer: 1500,
-                                showConfirmButton: false
-                            });
-                            loadData(); 
-                        } else {
-                            Swal.fire('Gagal', res.message, 'error');
-                        }
-                    },
-                    error: function(xhr) {
-                        Swal.fire('Error', 'Terjadi kesalahan sistem saat menghapus data.', 'error');
-                    }
-                });
-            }
+            });
         });
     });
-});
 </script>
 <?= $this->endSection() ?>

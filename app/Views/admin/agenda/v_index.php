@@ -7,22 +7,23 @@
             <h2 class="text-2xl font-bold text-gray-800">Manajemen Agenda</h2>
             <p class="text-sm text-gray-500 mt-1">Kelola jadwal kegiatan, penugasan SDM, dan lokasi acara masjid.</p>
         </div>
-        <?php if (in_array(session()->get('id_peran'), [3,5])): ?>
-            <!-- <a href="<?= base_url('admin/agenda/create') ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
-                <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Agenda
-            </a> -->
+        <?php if (can_access('agenda.impor') || can_access('agenda.create')): ?>
             <div class="flex flex-wrap items-center gap-3">
-                <button @click="openImport = true" 
-                    class="flex items-center gap-2 px-5 py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl font-bold text-sm hover:bg-emerald-50 transition-all active:scale-95 shadow-sm shadow-emerald-50">
-                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> 
-                    <span>Import Excel</span>
-                </button>
+                <?php if (can_access('agenda.impor')): ?>
+                    <button @click="openImport = true" 
+                        class="flex items-center gap-2 px-5 py-2.5 bg-white border border-emerald-200 text-emerald-600 rounded-xl font-bold text-sm hover:bg-emerald-50 transition-all active:scale-95 shadow-sm shadow-emerald-50">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> 
+                        <span>Import Excel</span>
+                    </button>
+                <?php endif; ?>
 
-                <a href="<?= base_url('admin/agenda/create') ?>" 
-                    class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
-                    <i data-lucide="plus-circle" class="w-4 h-4"></i> 
-                    <span>Tambah Agenda</span>
-                </a>
+                <?php if (can_access('agenda.create')): ?>
+                    <a href="<?= base_url('admin/agenda/create') ?>" 
+                        class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> 
+                        <span>Tambah Agenda</span>
+                    </a>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
     </div>
@@ -252,26 +253,28 @@
                     </div>
         
                     <!-- TOMBOL AKSI DI DALAM MODAL -->
-                    <?php if (in_array(session()->get('id_peran'), [3,5])): ?>
-                    <!-- Tombol hanya dirender PHP jika peran sesuai, lalu dikontrol penampilannya secara dinamis via x-show -->
-                    <div class="pt-4 mt-2 border-t border-gray-100 flex justify-end gap-2" x-show="canEditOrDelete()">
-                        <!-- Tombol Edit -->
-                        <a :href="'<?= base_url('admin/agenda/edit/') ?>' + id" 
-                        class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm font-medium text-sm">
-                            <i data-lucide="edit-3" class="w-4 h-4"></i> Edit
-                        </a>
-                        
-                        <!-- Tombol Hapus -->
-                        <button type="button" 
-                            class="btn-delete flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm font-medium text-sm"
-                            :data-id="id" 
-                            :data-tema="theme"
-                            @click="open = false">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus
-                        </button>
-                    </div>
+                    <?php if (can_access('agenda.update') || can_access('agenda.delete')): ?>
+                        <!-- Tombol hanya dirender PHP jika peran sesuai, lalu dikontrol penampilannya secara dinamis via x-show -->
+                        <div class="pt-4 mt-2 border-t border-gray-100 flex justify-end gap-2" x-show="canEditOrDelete()">
+                            <!-- Tombol Edit -->
+                            <?php if(can_access('agenda.update')): ?>
+                                <a :href="'<?= base_url('admin/agenda/edit/') ?>' + id" 
+                                class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm font-medium text-sm">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i> Edit
+                                </a>
+                            <?php endif; ?>
+                            <!-- Tombol Hapus -->
+                            <?php if(can_access('agenda.delete')): ?>
+                                <button type="button" 
+                                    class="btn-delete flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm font-medium text-sm"
+                                    :data-id="id" 
+                                    :data-tema="theme"
+                                    @click="open = false">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus
+                                </button>
+                            <?php endif; ?>
+                        </div>
                     <?php endif; ?>
-        
                 </div>
             </div>
         </div>
@@ -317,6 +320,16 @@
                         });
                     }
                     if (window.reinitIcons) window.reinitIcons();
+                },
+                // --- TAMBAHKAN BLOK ERROR INI ---
+                error: function(xhr) {
+                    if (xhr.status === 503) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    console.error(xhr.responseText);
+                    $('#load-data').html('<tr><td colspan="6" class="text-center py-10 text-red-500">Gagal memuat data agenda.</td></tr>');
                 }
             });
         };

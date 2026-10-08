@@ -7,9 +7,11 @@
             <h2 class="text-2xl font-bold text-gray-800"><?= isset($agenda) ? 'Edit Agenda' : 'Buat Agenda Baru' ?></h2>
             <p class="text-sm text-gray-500">Kelola jadwal kegiatan dan penugasan SDM masjid.</p>
         </div>
-        <a href="<?= base_url('admin/agenda') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar agenda
-        </a>
+        <?php if (can_access('agenda.read')): ?>
+            <a href="<?= base_url('admin/agenda') ?>" class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar agenda
+            </a>
+        <?php endif; ?>
     </div>
 
     <form action="<?= isset($agenda) ? base_url('admin/agenda/update/'.$agenda['id_agenda']) : base_url('admin/agenda/save') ?>" method="post">
