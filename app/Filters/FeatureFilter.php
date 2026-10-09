@@ -25,17 +25,23 @@ class FeatureFilter implements FilterInterface
         }
 
         $db = \Config\Database::connect();
+        $allowedFeatures = session()->get('allowed_features') ?? [];
 
-        // 2. CEK STATUS MAINTENANCE TERLEBIH DAHULU (Berlaku untuk semua jenis fitur)
-        $maintenanceFeature = $db->table('fitur')
-            ->whereIn('kode_fitur', $requiredFeatures)
-            ->where('is_maintenance', 1)
-            ->where('deleted_at IS NULL')
-            ->get()
-            ->getRowArray();
+        // 2. CEK STATUS MAINTENANCE
+        // Tambahkan pengecekan: Jika user memiliki izin 'sistem.maintenance', lewati blokir maintenance (untuk testing)
+        $isBypassMaintenance = in_array('sistem.maintenance', $allowedFeatures);
 
-        if ($maintenanceFeature) {
-            return $this->blockMaintenance($request, $maintenanceFeature);
+        if (!$isBypassMaintenance) {
+            $maintenanceFeature = $db->table('fitur')
+                ->whereIn('kode_fitur', $requiredFeatures)
+                ->where('is_maintenance', 1)
+                ->where('deleted_at IS NULL')
+                ->get()
+                ->getRowArray();
+
+            if ($maintenanceFeature) {
+                return $this->blockMaintenance($request, $maintenanceFeature);
+            }
         }
 
         // 3. AMBIL DATA FITUR UNTUK MENGECEK JENIS AKSESNYA (public, hybrid, auth)
@@ -56,7 +62,6 @@ class FeatureFilter implements FilterInterface
 
         // 4. JIKA BUKAN PUBLIC/HYBRID (Artinya berjenis 'auth'), LAKUKAN PENGECEKAN IZIN
         if (!$isPublicOrHybrid) {
-            $allowedFeatures = session()->get('allowed_features') ?? [];
             $isGranted = false;
 
             foreach ($requiredFeatures as $feature) {

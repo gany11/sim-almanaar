@@ -23,8 +23,12 @@ class AuthFilter implements FilterInterface
             case 'auth':
                 // Wajib Login
                 if (!$isLoggedIn) {
-                    $returnUrl = current_url();
-                    session()->set('redirect_after_login', $returnUrl);
+                    $currentUrl = current_url();
+                    
+                    // Jangan simpan URL logout atau halaman tertentu ke session redirect
+                    if (!str_contains($currentUrl, 'admin/logout')) {
+                        session()->set('redirect_after_login', $currentUrl);
+                    }
                     
                     return redirect()->to(base_url('admin/login'))->with('error', 'Silakan login terlebih dahulu.');
                 }
