@@ -26,6 +26,7 @@
     </div>
 </section>
 
+<!-- Statistik Keuangan -->
 <section class="max-w-7xl mx-auto px-4 -mt-16 relative z-20">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <?php foreach ($finance as $f): ?>
@@ -50,8 +51,6 @@
             </div>
 
             <div class="flex justify-between items-center mt-4">
-                <!-- <p class="text-[10px] text-gray-400 italic">Total Saldo Saat Ini</p> -->
-                <!-- Iterasi 2 -->
                 <p class="text-[10px] text-gray-400 italic">Total Saldo Sampai: <?= format_indo($f['tanggal_penghitungan'], 'full') ?></p>
                 <div class="w-2 h-2 rounded-full animate-pulse <?= !empty($f['class_color']) ? str_replace('text', 'bg', $f['class_color']) : 'bg-blue-600' ?>"></div>
             </div>
@@ -61,6 +60,52 @@
         <?php endforeach; ?>
     </div>
 </section>
+
+<!-- ========================================== -->
+<!-- KARTU COUNTDOWN HARI BESAR ISLAM (RESPONSIF HP & LAPTOP) -->
+<!-- ========================================== -->
+<?php if (!empty($upcoming_event)): ?>
+<section class="max-w-7xl mx-auto px-4 mt-8">
+    <div class="bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 border border-blue-600/40">
+        <!-- Efek Background Dekoratif -->
+        <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <!-- Bagian Informasi Event (Di HP jadi di bawah, di Laptop jadi di kiri) -->
+        <div class="flex flex-col md:flex-row items-center gap-4 text-center md:text-left z-10 order-last md:order-first w-full md:w-auto">
+            <div class="hidden md:flex w-16 h-16 bg-white/15 border border-white/25 text-white rounded-2xl items-center justify-center shrink-0 shadow-inner">
+                <i data-lucide="calendar" class="w-8 h-8"></i>
+            </div>
+            <div>
+                <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-100 bg-blue-950/40 px-3 py-1 rounded-full border border-blue-400/30 inline-block mb-1.5">Hitung Mundur Peringatan</span>
+                <h3 class="text-xl md:text-2xl font-black uppercase tracking-tight text-white"><?= esc($upcoming_event['nama_perayaan']) ?></h3>
+                <p class="text-xs text-blue-100 mt-0.5">Perkiraan Masehi: <span class="font-semibold text-white"><?= format_indo($upcoming_event['masehi'], 'full') ?></span></p>
+            </div>
+        </div>
+
+        <!-- Bagian Widget Countdown Alpine.js (Di HP jadi di atas / order-first) -->
+        <div class="flex items-center justify-center gap-2 md:gap-3 z-10 order-first md:order-last w-full md:w-auto" 
+             x-data="countdownTimer('<?= $upcoming_event['masehi'] ?>')" 
+             x-init="init()">
+            <div class="bg-blue-950/50 border border-blue-400/30 backdrop-blur-md px-3 md:px-4 py-3 rounded-2xl text-center min-w-[60px] md:min-w-[65px]">
+                <span class="text-lg md:text-2xl font-black text-white block leading-none" x-text="days">00</span>
+                <span class="text-[9px] uppercase font-bold tracking-wider text-blue-200 mt-1 block">Hari</span>
+            </div>
+            <div class="bg-blue-950/50 border border-blue-400/30 backdrop-blur-md px-3 md:px-4 py-3 rounded-2xl text-center min-w-[60px] md:min-w-[65px]">
+                <span class="text-lg md:text-2xl font-black text-white block leading-none" x-text="hours">00</span>
+                <span class="text-[9px] uppercase font-bold tracking-wider text-blue-200 mt-1 block">Jam</span>
+            </div>
+            <div class="bg-blue-950/50 border border-blue-400/30 backdrop-blur-md px-3 md:px-4 py-3 rounded-2xl text-center min-w-[60px] md:min-w-[65px]">
+                <span class="text-lg md:text-2xl font-black text-white block leading-none" x-text="minutes">00</span>
+                <span class="text-[9px] uppercase font-bold tracking-wider text-blue-200 mt-1 block">Menit</span>
+            </div>
+            <div class="bg-blue-950/50 border border-blue-400/30 backdrop-blur-md px-3 md:px-4 py-3 rounded-2xl text-center min-w-[60px] md:min-w-[65px]">
+                <span class="text-lg md:text-2xl font-black text-white block leading-none" x-text="seconds">00</span>
+                <span class="text-[9px] uppercase font-bold tracking-wider text-blue-200 mt-1 block">Detik</span>
+            </div>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
 
 <div class="max-w-7xl mx-auto px-4 py-20 grid grid-cols-1 lg:grid-cols-12 gap-12">
     
@@ -160,7 +205,7 @@
                     <div>
                         <span class="bg-blue-50 text-blue-600 text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-tighter mb-2 inline-block">Artikel</span>
                         <h3 class="font-bold text-gray-900 md:text-lg group-hover:text-blue-600 transition-colors line-clamp-2 uppercase italic leading-tight"><?= $a['judul'] ?></h3>
-                        <p class="text-gray-400 text-xs mt-2 italic"><?= format_indo($a['created_at']) ?> • Oleh <?= $a['sumber_penulis'] ?? 'Admin' ?></p>
+                        <p class="text-gray-400 text-xs mt-2 italic"><?= format_indo($a['created_at']) ?> Oleh <?= $a['sumber_penulis'] ?? 'Admin' ?></p>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -169,5 +214,47 @@
 
     </main>
 </div>
+
+<!-- Skrip Alpine.js untuk Countdown Real-time -->
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('countdownTimer', (targetDate) => ({
+            days: '00',
+            hours: '00',
+            minutes: '00',
+            seconds: '00',
+            init() {
+                const targetTime = new Date(targetDate + 'T00:00:00').getTime();
+
+                const updateTimer = () => {
+                    const now = new Date().getTime();
+                    const difference = targetTime - now;
+
+                    if (difference <= 0) {
+                        this.days = '00';
+                        this.hours = '00';
+                        this.minutes = '00';
+                        this.seconds = '00';
+                        clearInterval(timerInterval);
+                        return;
+                    }
+
+                    const d = Math.floor(difference / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((difference % (1000 * 60)) / 1000);
+
+                    this.days = String(d).padStart(2, '0');
+                    this.hours = String(h).padStart(2, '0');
+                    this.minutes = String(m).padStart(2, '0');
+                    this.seconds = String(s).padStart(2, '0');
+                };
+
+                updateTimer();
+                const timerInterval = setInterval(updateTimer, 1000);
+            }
+        }));
+    });
+</script>
 
 <?= $this->endSection() ?>
