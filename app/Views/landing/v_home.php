@@ -70,8 +70,8 @@
         <!-- Efek Background Dekoratif -->
         <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
 
-        <!-- Bagian Informasi Event (Di HP jadi di bawah, di Laptop jadi di kiri) -->
-        <div class="flex flex-col md:flex-row items-center gap-4 text-center md:text-left z-10 order-last md:order-first w-full md:w-auto">
+        <!-- Bagian Informasi Event (Di HP jadi di ATAS, di Laptop jadi di KIRI) -->
+        <div class="flex flex-col md:flex-row items-center gap-4 text-center md:text-left z-10 order-first w-full md:w-auto">
             <div class="hidden md:flex w-16 h-16 bg-white/15 border border-white/25 text-white rounded-2xl items-center justify-center shrink-0 shadow-inner">
                 <i data-lucide="calendar" class="w-8 h-8"></i>
             </div>
@@ -82,8 +82,8 @@
             </div>
         </div>
 
-        <!-- Bagian Widget Countdown Alpine.js (Di HP jadi di atas / order-first) -->
-        <div class="flex items-center justify-center gap-2 md:gap-3 z-10 order-first md:order-last w-full md:w-auto" 
+        <!-- Bagian Widget Countdown Alpine.js (Di HP jadi di BAWAH, di Laptop jadi di KANAN) -->
+        <div class="flex items-center justify-center gap-2 md:gap-3 z-10 order-last w-full md:w-auto" 
              x-data="countdownTimer('<?= $upcoming_event['masehi'] ?>')" 
              x-init="init()">
             <div class="bg-blue-950/50 border border-blue-400/30 backdrop-blur-md px-3 md:px-4 py-3 rounded-2xl text-center min-w-[60px] md:min-w-[65px]">
@@ -103,6 +103,81 @@
                 <span class="text-[9px] uppercase font-bold tracking-wider text-blue-200 mt-1 block">Detik</span>
             </div>
         </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- ========================================== -->
+<!-- SECTION JADWAL SHOLAT TARAWIH (MUNCUL DI SYA'BAN & RAMADHAN) -->
+<!-- ========================================== -->
+<?php if (!empty($show_tarawih) && !empty($tarawih_list)): ?>
+<section class="max-w-7xl mx-auto px-4 py-16" x-data="{ expanded: false }">
+    <div class="flex items-center gap-3 mb-8">
+        <div class="h-8 w-1.5 bg-blue-600 rounded-full shadow-sm shadow-blue-200"></div>
+        <div>
+            <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight">Jadwal Sholat <span class="text-blue-600">Tarawih</span></h2>
+            <p class="text-xs text-gray-400 italic">Daftar Imam, Penceramah, dan Protokol Malam Ramadhan</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-blue-600 border-b border-blue-600 text-[11px] font-black uppercase tracking-wider text-white">
+                        <th class="px-6 py-4 text-center">Malam Ke</th>
+                        <th class="px-6 py-4">Tanggal (Masehi & Hijriah)</th>
+                        <th class="px-6 py-4">Imam</th>
+                        <th class="px-6 py-4">Penceramah</th>
+                        <th class="px-6 py-4">Protokol</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm">
+                    <?php foreach ($tarawih_list as $index => $row): ?>
+                    <tr class="hover:bg-gray-50/80 transition-colors" 
+                        <?php if ($index >= 5): ?> 
+                            x-show="expanded" 
+                            x-transition.opacity.duration.300ms 
+                        <?php endif; ?>>
+                        <td class="px-6 py-4 text-center font-black text-blue-600">
+                            <span class="w-8 h-8 rounded-xl bg-blue-50 inline-flex items-center justify-center">
+                                <?= $row['malam_ke'] ?>
+                            </span>
+                        </td>
+                        <!-- Kolom Digabung: Masehi di atas, Hijriah di bawah -->
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="font-bold text-gray-900 text-sm">
+                                <?= format_indo($row['tanggal_masehi'], 'full') ?>
+                            </div>
+                            <div class="text-xs text-blue-600 font-semibold mt-0.5">
+                                <?= esc($row['tanggal_ramadhan']) ?>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 font-semibold text-gray-700">
+                            <?= esc($row['imam']['nama']) ?>
+                        </td>
+                        <td class="px-6 py-4 font-semibold text-gray-700">
+                            <?= esc($row['penceramah']['nama']) ?>
+                        </td>
+                        <td class="px-6 py-4 text-gray-500">
+                            <?= esc($row['protokol']['nama']) ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tombol Toggle (Hanya muncul jika jumlah data lebih dari 5 baris) -->
+        <?php if (count($tarawih_list) > 5): ?>
+        <div class="p-6 bg-gray-50/50 border-t border-gray-100 text-center">
+            <button @click="expanded = !expanded" 
+                    class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-100 transition-all text-xs uppercase tracking-widest inline-flex items-center gap-2">
+                <span x-text="expanded ? 'Sembunyikan Sebagian' : 'Lihat Selengkapnya (<?= count($tarawih_list) ?> Malam)'"></span>
+                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" :class="expanded ? 'rotate-180' : ''"></i>
+            </button>
+        </div>
+        <?php endif; ?>
     </div>
 </section>
 <?php endif; ?>
@@ -173,43 +248,61 @@
 
     <main class="lg:col-span-8 space-y-16">
         
+        <!-- Section Berita Kegiatan -->
         <section>
             <div class="flex justify-between items-end mb-8 border-b border-gray-100 pb-4">
                 <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight">Berita <span class="text-blue-600">Kegiatan</span></h2>
                 <a href="<?= base_url('berita') ?>" class="text-blue-600 text-xs font-bold uppercase tracking-widest hover:underline">Semua Berita</a>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <?php foreach($latest_news as $n): ?>
-                <div class="group cursor-pointer" onclick="location.href='<?= base_url('berita/'.date('Ymd', strtotime($n['created_at'])).'/'.$n['slug']) ?>'">
-                    <div class="relative h-48 rounded-3xl overflow-hidden mb-4 shadow-lg">
-                        <img src="<?= base_url('uploads/berita/'.$n['sampul']) ?>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                    </div>
-                    <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest"><?= format_indo($n['created_at']) ?></span>
-                    <h3 class="font-bold text-gray-900 mt-1 group-hover:text-blue-600 transition-colors line-clamp-2 uppercase italic leading-tight"><?= $n['judul'] ?></h3>
+
+            <?php if (empty($latest_news)): ?>
+                <div class="bg-gray-50 border border-dashed border-gray-200 rounded-3xl p-12 text-center">
+                    <i data-lucide="newspaper" class="w-10 h-10 text-gray-300 mx-auto mb-3"></i>
+                    <p class="text-gray-400 italic text-sm">Belum ada berita yang diterbitkan.</p>
                 </div>
-                <?php endforeach; ?>
-            </div>
+            <?php else: ?>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <?php foreach($latest_news as $n): ?>
+                    <div class="group cursor-pointer" onclick="location.href='<?= base_url('berita/'.date('Ymd', strtotime($n['created_at'])).'/'.$n['slug']) ?>'">
+                        <div class="relative h-48 rounded-3xl overflow-hidden mb-4 shadow-lg bg-gray-100">
+                            <img src="<?= base_url('uploads/berita/'.$n['sampul']) ?>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest"><?= format_indo($n['created_at']) ?></span>
+                        <h3 class="font-bold text-gray-900 mt-1 group-hover:text-blue-600 transition-colors line-clamp-2 uppercase italic leading-tight"><?= $n['judul'] ?></h3>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </section>
 
+        <!-- Section Artikel Dakwah -->
         <section>
             <div class="flex justify-between items-end mb-8 border-b border-gray-100 pb-4">
                 <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight">Artikel <span class="text-blue-600">Dakwah</span></h2>
                 <a href="<?= base_url('artikel') ?>" class="text-blue-600 text-xs font-bold uppercase tracking-widest hover:underline">Semua Artikel</a>
             </div>
-            <div class="space-y-6">
-                <?php foreach($latest_article as $a): ?>
-                <div class="flex gap-6 items-center group cursor-pointer" onclick="location.href='<?= base_url('artikel/'.date('Ymd', strtotime($a['created_at'])).'/'.$a['slug']) ?>'">
-                    <div class="w-24 h-24 md:w-32 md:h-32 rounded-3xl overflow-hidden flex-shrink-0 shadow-md">
-                        <img src="<?= base_url('uploads/artikel/'.$a['sampul']) ?>" class="w-full h-full object-cover group-hover:rotate-3 group-hover:scale-110 transition-all duration-500">
-                    </div>
-                    <div>
-                        <span class="bg-blue-50 text-blue-600 text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-tighter mb-2 inline-block">Artikel</span>
-                        <h3 class="font-bold text-gray-900 md:text-lg group-hover:text-blue-600 transition-colors line-clamp-2 uppercase italic leading-tight"><?= $a['judul'] ?></h3>
-                        <p class="text-gray-400 text-xs mt-2 italic"><?= format_indo($a['created_at']) ?> Oleh <?= $a['sumber_penulis'] ?? 'Admin' ?></p>
-                    </div>
+
+            <?php if (empty($latest_article)): ?>
+                <div class="bg-gray-50 border border-dashed border-gray-200 rounded-3xl p-12 text-center">
+                    <i data-lucide="book-open" class="w-10 h-10 text-gray-300 mx-auto mb-3"></i>
+                    <p class="text-gray-400 italic text-sm">Belum ada artikel yang diterbitkan.</p>
                 </div>
-                <?php endforeach; ?>
-            </div>
+            <?php else: ?>
+                <div class="space-y-6">
+                    <?php foreach($latest_article as $a): ?>
+                    <div class="flex gap-6 items-center group cursor-pointer" onclick="location.href='<?= base_url('artikel/'.date('Ymd', strtotime($a['created_at'])).'/'.$a['slug']) ?>'">
+                        <div class="w-24 h-24 md:w-32 md:h-32 rounded-3xl overflow-hidden flex-shrink-0 shadow-md bg-gray-100">
+                            <img src="<?= base_url('uploads/artikel/'.$a['sampul']) ?>" class="w-full h-full object-cover group-hover:rotate-3 group-hover:scale-110 transition-all duration-500">
+                        </div>
+                        <div>
+                            <span class="bg-blue-50 text-blue-600 text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-tighter mb-2 inline-block">Artikel</span>
+                            <h3 class="font-bold text-gray-900 md:text-lg group-hover:text-blue-600 transition-colors line-clamp-2 uppercase italic leading-tight"><?= $a['judul'] ?></h3>
+                            <p class="text-gray-400 text-xs mt-2 italic"><?= format_indo($a['created_at']) ?> Oleh <?= $a['sumber_penulis'] ?? 'Admin' ?></p>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </section>
 
     </main>

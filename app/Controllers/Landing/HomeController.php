@@ -23,6 +23,23 @@ class HomeController extends BaseController
 
         $today = date('Y-m-d');
 
+        // Ambil data referensi hijriah hari ini dari tabel khgt
+        $currentKhgt = $khgtModel->where('masehi', $today)->first();
+        
+        // Fallback jika tanggal hari ini tidak persis ada di tabel, ambil yang terdekat sebelumnya
+        if (!$currentKhgt) {
+            $currentKhgt = $khgtModel->where('masehi <=', $today)->orderBy('masehi', 'DESC')->first();
+        }
+
+        $bulanHijriah = $currentKhgt['hijriah_bulan'] ?? null;
+        $tahunHijriah = $currentKhgt['hijriah_tahun'] ?? null;
+
+        $tarawihList = [];
+        // Jika bulan saat ini Sya'ban (8) atau Ramadhan (9)
+        if (in_array($bulanHijriah, [8, 9])) {
+            $tarawihList = $khgtModel->getListTarawihDates($tahunHijriah);
+        }
+
         $data = [
             'title'             => 'Beranda',
             'carousels'         => $carouselModel->getActiveCarousel(),
@@ -31,6 +48,9 @@ class HomeController extends BaseController
             'latest_news'       => $publikasiModel->getTerbaru(3, null, 1),
             'latest_article'    => $publikasiModel->getTerbaru(3, null, 2),
             'upcoming_event'    => $khgtModel->getUpcomingIslamicEvent($today),
+            'show_tarawih'      => in_array($bulanHijriah, [8, 9]), // Status penampil
+            'tarawih_list'      => $tarawihList,                    // Data tabel tarawih
+            'current_hijriah_l' => $bulanHijriah                    // Info bulan aktif
         ];
 
         return view('landing/v_home', $data);
