@@ -55,4 +55,20 @@ class HomeController extends BaseController
 
         return view('landing/v_home', $data);
     }
+
+    public function privacy()
+    {
+        $data = [
+            'title' => 'Kebijakan Privasi'
+        ];
+        return view('landing/v_privacy', $data);
+    }
+
+    public function terms()
+    {
+        $data = [
+            'title' => 'Syarat & Ketentuan'
+        ];
+        return view('landing/v_terms', $data);
+    }
 }

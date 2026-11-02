@@ -15,6 +15,12 @@ use Config\Feature;
 $routes->get('/', 'Landing\HomeController::index', ['filter' => ['auth:hybrid', 'feature:publik.home']]);
 
 /**
+ * Privacy Policy & Terms of Service
+ */
+$routes->get('privacy', 'Landing\HomeController::privacy');
+$routes->get('terms', 'Landing\HomeController::terms');
+
+/**
  * Finance Reports (DataTables)
  */
 $routes->get('keuangan', 'Landing\FinanceController::index', ['filter' => ['auth:hybrid', 'feature:publik.keuangan']]);
