@@ -42,7 +42,7 @@ class AgendaController extends BaseController
     {
         return view('admin/agenda/v_index', [
             'title'      => 'Manajemen Agenda',
-            'categories' => $this->katAgendaModel->findAll()
+            'categories' => $this->katAgendaModel->whereNotIn('id_kategori_agenda', [9])->findAll()
         ]);
     }
 
@@ -78,7 +78,7 @@ class AgendaController extends BaseController
     {
         return view('admin/agenda/v_form', [
             'title'      => 'Tambah Agenda Baru',
-            'categories' => $this->katAgendaModel->findAll(),
+            'categories' => $this->katAgendaModel->whereNotIn('id_kategori_agenda', [9])->findAll(),
             'sdm_roles'  => $this->katSdmModel->findAll(),
             'times'      => $this->ketWaktuModel->findAll(),
             'all_sdm'    => $this->sdmModel->findAll(),
@@ -102,7 +102,7 @@ class AgendaController extends BaseController
             'title'      => 'Edit Agenda',
             'agenda'     => $agenda,
             'currentSdm' => $currentSdm,
-            'categories' => $this->katAgendaModel->findAll(),
+            'categories' => $this->katAgendaModel->whereNotIn('id_kategori_agenda', [9])->findAll(),
             'sdm_roles'  => $this->katSdmModel->findAll(),
             'times'      => $this->ketWaktuModel->findAll(),
             'all_sdm'    => $this->sdmModel->findAll(),

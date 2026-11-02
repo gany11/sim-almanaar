@@ -35,7 +35,7 @@ class RoutineAgendaController extends BaseController
     {
         return view('admin/routine-agenda/v_index', [
             'title'      => 'Manajemen Agenda Rutin',
-            'categories' => $this->katAgendaModel->findAll()
+            'categories' => $this->katAgendaModel->whereNotIn('id_kategori_agenda', [9])->findAll()
         ]);
     }
 
@@ -77,7 +77,7 @@ class RoutineAgendaController extends BaseController
     {
         return view('admin/routine-agenda/v_form', [
             'title'      => 'Tambah Agenda Rutin Baru',
-            'categories' => $this->katAgendaModel->findAll(),
+            'categories' => $this->katAgendaModel->whereNotIn('id_kategori_agenda', [9])->findAll(),
             'sdm_roles'  => $this->katSdmModel->findAll(),
             'times'      => $this->ketWaktuModel->findAll(),
             'all_sdm'    => $this->sdmModel->findAll(),
@@ -96,7 +96,7 @@ class RoutineAgendaController extends BaseController
             'title'        => 'Edit Agenda Rutin',
             'agenda_rutin' => $agenda_rutin,
             'currentSdm'   => $currentSdm,
-            'categories'   => $this->katAgendaModel->findAll(),
+            'categories'   => $this->katAgendaModel->whereNotIn('id_kategori_agenda', [9])->findAll(),
             'sdm_roles'    => $this->katSdmModel->findAll(),
             'times'        => $this->ketWaktuModel->findAll(),
             'all_sdm'      => $this->sdmModel->findAll(),
